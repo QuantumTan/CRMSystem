@@ -12,14 +12,14 @@ $nx-light: #e8f4fd;
 }
 
 body {
-    font-family: 'Instrument Sans', sans-serif;
+    font-family: "Instrument Sans", sans-serif;
 }
 
 .nx-panel {
     background: linear-gradient(145deg, $nx-navy 0, #0f3080 55%);
 
     &::before {
-        content: '';
+        content: "";
         position: absolute;
         inset: 0;
         background-size: 36px 36px;
@@ -27,7 +27,7 @@ body {
     }
 
     &::after {
-        content: '';
+        content: "";
         position: absolute;
         bottom: -100px;
         left: -80px;
@@ -40,8 +40,8 @@ body {
 .nx-icon-box {
     width: 42px;
     height: 42px;
-    background: rgba(0, 184, 212, .12);
-    border: 1px solid rgba(0, 184, 212, .25);
+    background: rgba(0, 184, 212, 0.12);
+    border: 1px solid rgba(0, 184, 212, 0.25);
     border-radius: 10px;
     display: flex;
     align-items: center;
@@ -51,21 +51,24 @@ body {
 }
 
 .nx-badge {
-    background: rgba(0, 184, 212, .15);
-    border: 1px solid rgba(0, 184, 212, .3);
+    background: rgba(0, 184, 212, 0.15);
+    border: 1px solid rgba(0, 184, 212, 0.3);
     color: $nx-cyan;
-    font-size: .7rem;
+    font-size: 0.7rem;
     font-weight: 600;
-    letter-spacing: .06em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    padding: .2rem .55rem;
+    padding: 0.2rem 0.55rem;
     border-radius: 20px;
 }
 
 .role-label {
     border: 1.5px solid #dee2e6;
     border-radius: 10px;
-    transition: border-color .15s, background .15s, color .15s;
+    transition:
+        border-color 0.15s,
+        background 0.15s,
+        color 0.15s;
     cursor: pointer;
 
     &:hover {
@@ -83,8 +86,10 @@ body {
         justify-content: center;
         font-size: 1.1rem;
         color: #64748b;
-        transition: background .15s, color .15s;
-        margin-bottom: .45rem;
+        transition:
+            background 0.15s,
+            color 0.15s;
+        margin-bottom: 0.45rem;
     }
 }
 
@@ -107,23 +112,27 @@ body {
     &:focus,
     &:focus ~ .input-group-text {
         border-color: $nx-blue;
-        box-shadow: 0 0 0 .2rem rgba(21, 101, 192, .12);
+        box-shadow: 0 0 0 0.2rem rgba(21, 101, 192, 0.12);
     }
 }
 
 .btn-nexlink {
-    background: linear-gradient(90deg, $nx-navy, $nx-blue);
+    background: $nx-blue;
     border: none;
     color: #fff;
     font-weight: 600;
     border-radius: 10px;
-    padding: .7rem 1rem;
+    padding: 0.7rem 1rem;
     width: 100%;
-    transition: opacity .15s, transform .1s;
+    transition:
+        opacity 0.15s,
+        transform 0.1s;
 
     &:hover {
-        opacity: .9;
+        opacity: 0.9;
         transform: translateY(-1px);
+        background: $nx-blue;
+        border: none;
         color: #fff;
     }
 
@@ -136,13 +145,13 @@ body {
 .nx-divider {
     display: flex;
     align-items: center;
-    gap: .75rem;
+    gap: 0.75rem;
     color: #cbd5e1;
-    font-size: .75rem;
+    font-size: 0.75rem;
 
     &::before,
     &::after {
-        content: '';
+        content: "";
         flex: 1;
         height: 1px;
         background: #e2e8f0;
@@ -150,24 +159,24 @@ body {
 }
 
 .nx-muted-copy {
-    color: rgba(255, 255, 255, .5);
-    font-size: .75rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.75rem;
 }
 
 .nx-feature-title {
-    color: rgba(255, 255, 255, .9);
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .nx-feature-copy {
-    color: rgba(255, 255, 255, .5);
+    color: rgba(255, 255, 255, 0.5);
 }
 
 .role-name {
-    font-size: .8rem;
+    font-size: 0.8rem;
 }
 
 .role-copy {
-    font-size: .7rem;
+    font-size: 0.7rem;
 }
 
 .login-shell {
@@ -180,7 +189,7 @@ body {
 
 @media (max-width: 575.98px) {
     .login-shell {
-        padding: .75rem !important;
+        padding: 0.75rem !important;
     }
 
     .login-card {
@@ -189,8 +198,8 @@ body {
     }
 
     .role-grid {
-        --bs-gutter-x: .5rem;
-        --bs-gutter-y: .5rem;
+        --bs-gutter-x: 0.5rem;
+        --bs-gutter-y: 0.5rem;
     }
 
     .role-col {
@@ -203,7 +212,7 @@ body {
         align-items: flex-start !important;
         justify-content: center;
         text-align: left;
-        padding: .6rem .75rem !important;
+        padding: 0.6rem 0.75rem !important;
     }
 
     .role-option .bi {
@@ -213,6 +222,6 @@ body {
     .mobile-stack {
         flex-direction: column;
         align-items: flex-start !important;
-        gap: .35rem;
+        gap: 0.35rem;
     }
 }

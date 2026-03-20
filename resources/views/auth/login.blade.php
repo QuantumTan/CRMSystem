@@ -25,7 +25,7 @@
             <div class="col-lg-6 d-none d-lg-flex flex-column justify-content-between p-5 nx-panel text-white position-relative overflow-hidden">
                 <div style="position:relative;z-index:1;">
                     <div class="d-flex align-items-center gap-3 mb-2">
-                        <img src="{{ asset('images/crm_logo.png') }}" alt="NexLink Logo" class="rounded-3"
+                        <img src="{{ asset('assets/images/crm_logo.png') }}" alt="NexLink Logo" class="rounded-3"
                             style="width:52px;height:52px;object-fit:contain;background:rgba(255,255,255,.07);padding:4px;">
                         <div>
                             <div class="d-flex align-items-center gap-2">
@@ -79,10 +79,9 @@
 
                         {{-- Mobile logo --}}
                         <div class="d-flex d-lg-none align-items-center gap-2 mb-4">
-                            <img src="{{ asset('images/crm_logo.png') }}" alt="NexLink"
+                            <img src="{{ asset('assets/images/crm_logo.png') }}" alt="NexLink"
                                 style="width:36px;height:36px;object-fit:contain;">
                             <span class="fw-bold fs-6" style="color:var(--nx-navy);">NexLink</span>
-                            <span class="nx-badge">CRM</span>
                         </div>
 
                         {{-- Error alert --}}
