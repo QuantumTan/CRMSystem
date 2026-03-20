@@ -1,0 +1,218 @@
+// Define colors
+$nx-navy: #0d2156;
+$nx-blue: #1565c0;
+$nx-cyan: #00b8d4;
+$nx-light: #e8f4fd;
+
+:root {
+    --nx-navy: #{$nx-navy};
+    --nx-blue: #{$nx-blue};
+    --nx-cyan: #{$nx-cyan};
+    --nx-light: #{$nx-light};
+}
+
+body {
+    font-family: 'Instrument Sans', sans-serif;
+}
+
+.nx-panel {
+    background: linear-gradient(145deg, $nx-navy 0, #0f3080 55%);
+
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-size: 36px 36px;
+        pointer-events: none;
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: -100px;
+        left: -80px;
+        width: 380px;
+        height: 380px;
+        pointer-events: none;
+    }
+}
+
+.nx-icon-box {
+    width: 42px;
+    height: 42px;
+    background: rgba(0, 184, 212, .12);
+    border: 1px solid rgba(0, 184, 212, .25);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $nx-cyan;
+    flex-shrink: 0;
+}
+
+.nx-badge {
+    background: rgba(0, 184, 212, .15);
+    border: 1px solid rgba(0, 184, 212, .3);
+    color: $nx-cyan;
+    font-size: .7rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: .2rem .55rem;
+    border-radius: 20px;
+}
+
+.role-label {
+    border: 1.5px solid #dee2e6;
+    border-radius: 10px;
+    transition: border-color .15s, background .15s, color .15s;
+    cursor: pointer;
+
+    &:hover {
+        border-color: $nx-cyan;
+        background: #f0fafd;
+    }
+
+    .role-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        color: #64748b;
+        transition: background .15s, color .15s;
+        margin-bottom: .45rem;
+    }
+}
+
+.btn-check:checked + .role-label {
+    border-color: $nx-blue;
+    background: $nx-light;
+    color: $nx-navy;
+
+    .role-icon {
+        background: $nx-blue;
+        color: #fff;
+    }
+}
+
+.input-group-text {
+    border-color: #dee2e6;
+}
+
+.form-control {
+    &:focus,
+    &:focus ~ .input-group-text {
+        border-color: $nx-blue;
+        box-shadow: 0 0 0 .2rem rgba(21, 101, 192, .12);
+    }
+}
+
+.btn-nexlink {
+    background: linear-gradient(90deg, $nx-navy, $nx-blue);
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: .7rem 1rem;
+    width: 100%;
+    transition: opacity .15s, transform .1s;
+
+    &:hover {
+        opacity: .9;
+        transform: translateY(-1px);
+        color: #fff;
+    }
+
+    &:active {
+        transform: translateY(0);
+        color: #fff;
+    }
+}
+
+.nx-divider {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    color: #cbd5e1;
+    font-size: .75rem;
+
+    &::before,
+    &::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #e2e8f0;
+    }
+}
+
+.nx-muted-copy {
+    color: rgba(255, 255, 255, .5);
+    font-size: .75rem;
+}
+
+.nx-feature-title {
+    color: rgba(255, 255, 255, .9);
+}
+
+.nx-feature-copy {
+    color: rgba(255, 255, 255, .5);
+}
+
+.role-name {
+    font-size: .8rem;
+}
+
+.role-copy {
+    font-size: .7rem;
+}
+
+.login-shell {
+    width: 100%;
+}
+
+.login-card {
+    max-width: 460px;
+}
+
+@media (max-width: 575.98px) {
+    .login-shell {
+        padding: .75rem !important;
+    }
+
+    .login-card {
+        border: none;
+        box-shadow: none !important;
+    }
+
+    .role-grid {
+        --bs-gutter-x: .5rem;
+        --bs-gutter-y: .5rem;
+    }
+
+    .role-col {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    .role-option {
+        min-height: 64px;
+        align-items: flex-start !important;
+        justify-content: center;
+        text-align: left;
+        padding: .6rem .75rem !important;
+    }
+
+    .role-option .bi {
+        font-size: 1rem !important;
+    }
+
+    .mobile-stack {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: .35rem;
+    }
+}
