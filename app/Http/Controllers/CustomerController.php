@@ -11,7 +11,7 @@ class CustomerController extends Controller
     public function index()
     {
         $customers = Customer::with('assignedUser')->latest()->paginate(10);
-        return view('customer.index', compact('customers'));
+        return view('customers.index', compact('customers'));
     }
 
     public function create()
