@@ -29,7 +29,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/admin', [DashboardController::class, 'admin'])->middleware('role:admin')->name('dashboard.admin');
     Route::get('/dashboard/manager', [DashboardController::class, 'manager'])->middleware('role:manager')->name('dashboard.manager');
     Route::get('/dashboard/sales', [DashboardController::class, 'sales'])->middleware('role:sales')->name('dashboard.sales');
-    Route::redirect('/dashboard/staff', '/dashboard/sales')->name('dashboard.staff');
 
     // Admin only — user management
     Route::middleware('role:admin')->prefix('users')->name('users.')->group(function () {
