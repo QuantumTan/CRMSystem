@@ -1,18 +1,10 @@
 @extends('layouts.admin')
 
-@section('title', 'Dashboard')
+@section('title', 'Admin Dashboard')
 
 @section('content')
-	<div class="d-flex justify-content-between align-items-center mb-4">
-		<div>
-			<h1 class="h3 mb-1">Dashboard</h1>
-			<p class="text-muted mb-0">Welcome, {{ auth()->user()->name }}.</p>
-		</div>
-		<form action="{{ route('logout') }}" method="POST">
-			@csrf
-			<button type="submit" class="btn btn-outline-danger">Logout</button>
-		</form>
-	</div>
+	<h1 class="h3 mb-1">Admin Dashboard</h1>
+	<p class="text-muted mb-4">Role: Admin</p>
 
 	<div class="row g-3">
 		<div class="col-md-4">
@@ -23,7 +15,6 @@
 				</div>
 			</div>
 		</div>
-
 		<div class="col-md-4">
 			<div class="card border-0 shadow-sm">
 				<div class="card-body">
@@ -32,7 +23,6 @@
 				</div>
 			</div>
 		</div>
-
 		<div class="col-md-4">
 			<div class="card border-0 shadow-sm">
 				<div class="card-body">

@@ -87,7 +87,7 @@
                         {{-- Error alert --}}
                         @if ($errors->any())
                             <div class="alert alert-danger d-flex align-items-center gap-2 py-2 px-3 rounded-3 mb-4" role="alert">
-                                <i class="bi bi-exclamation-circle-fill flex-shrink-0"></i>
+                                <i class="bi bi-exclamation-circle-fill shrink-0"></i>
                                 <span class="small">{{ $errors->first() }}</span>
                             </div>
                         @endif
@@ -96,7 +96,7 @@
                         <h2 class="fw-bold mb-1" style="letter-spacing:-.03em;color:var(--nx-navy);">Welcome back</h2>
                         <p class="text-secondary mb-4 small">Select your role and sign in to continue.</p>
 
-                        <form method="POST" action="{{ route('login') }}">
+                        <form method="POST" action="{{ route('login.attempt') }}">
                             @csrf
 
                             @php
@@ -119,11 +119,11 @@
                                     ],
                                     [
                                         'id'          => 'role_sales',
-                                        'value'       => 'staff',
+                                        'value'       => 'sales',
                                         'label'       => 'Sales Staff',
                                         'description' => 'Field agent',
                                         'icon'        => 'bi-bag-fill',
-                                        'checked'     => old('role') === 'staff',
+                                        'checked'     => old('role') === 'sales',
                                     ],
                                 ];
                             @endphp

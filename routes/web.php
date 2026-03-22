@@ -26,6 +26,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/profile', [AuthController::class, 'profile'])->name('profile');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/admin', [DashboardController::class, 'admin'])->middleware('role:admin')->name('dashboard.admin');
+    Route::get('/dashboard/manager', [DashboardController::class, 'manager'])->middleware('role:manager')->name('dashboard.manager');
+    Route::get('/dashboard/sales', [DashboardController::class, 'sales'])->middleware('role:sales')->name('dashboard.sales');
+    Route::redirect('/dashboard/staff', '/dashboard/sales')->name('dashboard.staff');
 
     // Admin only — user management
     Route::middleware('role:admin')->prefix('users')->name('users.')->group(function () {
