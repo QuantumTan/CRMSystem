@@ -22,7 +22,7 @@ class RoleMiddleware
 
         // check user role
 
-        if(!$request->user()->hasAnyRole($roles)){
+        if(!$request->user()->hasAnyRole(...$roles)){
             abort(403, 'Unauthorized. Insufficient permissions.');
         }
         return $next($request);

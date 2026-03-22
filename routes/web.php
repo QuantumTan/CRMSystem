@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FollowUpController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -24,10 +25,20 @@ Route::middleware('guest')->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/profile', [AuthController::class, 'profile'])->name('profile');
-
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::prefix('customers')->name('customers.')->group(function () {
+    // Admin only — user management
+    Route::middleware('role:admin')->prefix('users')->name('users.')->group(function () {
+        Route::get('/', [UserController::class, 'index'])->name('index');
+        Route::get('/create', [UserController::class, 'create'])->name('create');
+        Route::post('/', [UserController::class, 'store'])->name('store');
+        Route::get('/{user}/edit', [UserController::class, 'edit'])->name('edit');
+        Route::put('/{user}', [UserController::class, 'update'])->name('update');
+        Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
+    });
+
+    // Admin and Sales — customer management
+    Route::middleware('role:admin,sales')->prefix('customers')->name('customers.')->group(function () {
         Route::get('/', [CustomerController::class, 'index'])->name('index');
         Route::get('/create', [CustomerController::class, 'create'])->name('create');
         Route::post('/', [CustomerController::class, 'store'])->name('store');
@@ -37,7 +48,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{customer}', [CustomerController::class, 'show'])->name('show');
     });
 
-    Route::prefix('leads')->name('leads.')->group(function () {
+    // Admin, Manager, Sales — leads
+    Route::middleware('role:admin,manager,sales')->prefix('leads')->name('leads.')->group(function () {
         Route::get('/', [LeadController::class, 'index'])->name('index');
         Route::get('/create', [LeadController::class, 'create'])->name('create');
         Route::post('/', [LeadController::class, 'store'])->name('store');
@@ -48,22 +60,26 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{lead}', [LeadController::class, 'show'])->name('show');
     });
 
-    Route::prefix('activities')->name('activities.')->group(function () {
-        Route::get('/', [ActivityController::class, 'index'])->name('index');
-        Route::get('/create', [ActivityController::class, 'create'])->name('create');
-        Route::post('/', [ActivityController::class, 'store'])->name('store');
+    // Admin, Manager, Sales — activities & follow-ups
+    Route::middleware('role:admin,manager,sales')->group(function () {
+        Route::prefix('activities')->name('activities.')->group(function () {
+            Route::get('/', [ActivityController::class, 'index'])->name('index');
+            Route::get('/create', [ActivityController::class, 'create'])->name('create');
+            Route::post('/', [ActivityController::class, 'store'])->name('store');
+        });
+
+        Route::prefix('follow-ups')->name('follow-ups.')->group(function () {
+            Route::get('/', [FollowUpController::class, 'index'])->name('index');
+            Route::get('/create', [FollowUpController::class, 'create'])->name('create');
+            Route::post('/', [FollowUpController::class, 'store'])->name('store');
+            Route::get('/{followUp}/edit', [FollowUpController::class, 'edit'])->name('edit');
+            Route::put('/{followUp}', [FollowUpController::class, 'update'])->name('update');
+            Route::patch('/{followUp}/complete', [FollowUpController::class, 'markComplete'])->name('complete');
+        });
     });
 
-    Route::prefix('follow-ups')->name('follow-ups.')->group(function () {
-        Route::get('/', [FollowUpController::class, 'index'])->name('index');
-        Route::get('/create', [FollowUpController::class, 'create'])->name('create');
-        Route::post('/', [FollowUpController::class, 'store'])->name('store');
-        Route::get('/{followUp}/edit', [FollowUpController::class, 'edit'])->name('edit');
-        Route::put('/{followUp}', [FollowUpController::class, 'update'])->name('update');
-        Route::patch('/{followUp}/complete', [FollowUpController::class, 'markComplete'])->name('complete');
-    });
-
-    Route::prefix('reports')->name('reports.')->group(function () {
+    // Admin and Manager only — reports
+    Route::middleware('role:admin,manager')->prefix('reports')->name('reports.')->group(function () {
         Route::get('/', [ReportController::class, 'index'])->name('index');
     });
 });
