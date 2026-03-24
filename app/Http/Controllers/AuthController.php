@@ -18,25 +18,17 @@ class AuthController extends Controller
         $credentials = $request->validate([
             'email'    => 'required|email|max:255',
             'password' => 'required',
-            'role'     => 'required|in:admin,manager,sales',
         ]);
 
-        if (Auth::attempt([
-            'email' => $credentials['email'],
-            'password' => $credentials['password'],
-            'role' => $credentials['role'],
-        ], $request->boolean('remember'))) {
-            $request->session()->regenerate();
-
-            $user = Auth::user();
-
-            return match ($user?->role) {
-                'admin' => redirect()->route('dashboard.admin'),
-                'manager' => redirect()->route('dashboard.manager'),
-                'sales' => redirect()->route('dashboard.sales'),
-                default => redirect('/login')->withErrors(['role' => 'Unauthorized role.']),
-            };
+        if (!Auth::attempt($credentials,$request->boolean('remember'))){
+            return back()->withErrors([
+                'email'=>'Invalid Credentials.',
+            ])->onlyInput('email');
         }
+
+        $request->session()->regenerate();
+
+        $user = Auth::user();
 
         return back()->withErrors([
             'email' => 'Invalid credentials or role mismatch.',

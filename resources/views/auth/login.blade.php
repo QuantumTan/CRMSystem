@@ -77,7 +77,6 @@
                 <div class="card border shadow-sm rounded-4 w-100" style="max-width:460px;">
                     <div class="card-body p-4 p-lg-5">
 
-                        {{-- Mobile logo --}}
                         <div class="d-flex d-lg-none align-items-center gap-2 mb-4">
                             <img src="{{ asset('assets/images/crm_logo.png') }}" alt="NexLink"
                                 style="width:36px;height:36px;object-fit:contain;">
@@ -94,66 +93,10 @@
 
                         {{-- Heading --}}
                         <h2 class="fw-bold mb-1" style="letter-spacing:-.03em;color:var(--nx-navy);">Welcome back</h2>
-                        <p class="text-secondary mb-4 small">Select your role and sign in to continue.</p>
+                        <p class="text-secondary mb-4 small">Sign in to continue.</p>
 
                         <form method="POST" action="{{ route('login.attempt') }}">
                             @csrf
-
-                            @php
-                                $roles = [
-                                    [
-                                        'id'          => 'role_admin',
-                                        'value'       => 'admin',
-                                        'label'       => 'Admin',
-                                        'description' => 'Full access',
-                                        'icon'        => 'bi-shield-lock-fill',
-                                        'checked'     => old('role', 'admin') === 'admin',
-                                    ],
-                                    [
-                                        'id'          => 'role_manager',
-                                        'value'       => 'manager',
-                                        'label'       => 'Manager',
-                                        'description' => 'Team lead',
-                                        'icon'        => 'bi-person-badge-fill',
-                                        'checked'     => old('role') === 'manager',
-                                    ],
-                                    [
-                                        'id'          => 'role_sales',
-                                        'value'       => 'sales',
-                                        'label'       => 'Sales Staff',
-                                        'description' => 'Field agent',
-                                        'icon'        => 'bi-bag-fill',
-                                        'checked'     => old('role') === 'sales',
-                                    ],
-                                ];
-                            @endphp
-
-                            {{-- Role selector --}}
-                            <div class="mb-4">
-                                <label class="form-label fw-semibold text-uppercase text-secondary small" style="letter-spacing:.05em;">
-                                    Sign in as
-                                </label>
-                                <div class="row g-2">
-                                    @foreach ($roles as $role)
-                                        <div class="col-4">
-                                            <input type="radio" class="btn-check" name="role"
-                                                id="{{ $role['id'] }}" value="{{ $role['value'] }}"
-                                                autocomplete="off" {{ $role['checked'] ? 'checked' : '' }}>
-                                            <label class="btn btn-outline-primary w-100 d-flex flex-column align-items-center gap-1 py-3 px-2 rounded-3"
-                                                for="{{ $role['id'] }}">
-                                                <i class="bi {{ $role['icon'] }} fs-4"></i>
-                                                <span class="fw-semibold small">{{ $role['label'] }}</span>
-                                                <span class="opacity-75" style="font-size:.7rem;">{{ $role['description'] }}</span>
-                                            </label>
-                                        </div>
-                                    @endforeach
-                                </div>
-                                @error('role')
-                                    <div class="text-danger small mt-1">
-                                        <i class="bi bi-exclamation-circle me-1"></i>{{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
 
                             {{-- Email --}}
                             <div class="mb-3">
