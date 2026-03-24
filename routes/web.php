@@ -25,6 +25,9 @@ Route::middleware('guest')->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/profile', [AuthController::class, 'profile'])->name('profile');
+    Route::get('/settings', function () {
+        return view('settings.index');
+    })->name('settings.index');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/admin', [DashboardController::class, 'admin'])->middleware('role:admin')->name('dashboard.admin');
     Route::get('/dashboard/manager', [DashboardController::class, 'manager'])->middleware('role:manager')->name('dashboard.manager');

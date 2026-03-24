@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>@yield('title', 'Admin') - {{ config('app.name', 'NexLink CRM') }}</title>
+	<title>@yield('title', 'CRM') - {{ config('app.name', 'NexLink CRM') }}</title>
 
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
 	<link rel="preconnect" href="https://fonts.bunny.net">
@@ -18,34 +18,96 @@
 </head>
 
 <body class="bg-light">
-	<nav class="navbar navbar-expand-lg bg-white border-bottom">
-		<div class="container">
-			<a class="navbar-brand fw-semibold" href="{{ route('dashboard') }}">{{ config('app.name', 'NexLink CRM') }}</a>
-			<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNav"
-				aria-controls="adminNav" aria-expanded="false" aria-label="Toggle navigation">
-				<span class="navbar-toggler-icon"></span>
-			</button>
+	<div class="crm-shell">
+		@include('layouts.partials.sidebar')
 
-			<div class="collapse navbar-collapse" id="adminNav">
+		<div class="crm-main">
+			<header class="crm-topbar bg-white border-bottom px-3 px-lg-4 py-3">
+				<div class="d-flex align-items-center justify-content-between gap-3">
+					<div class="d-flex align-items-center gap-2">
+						<button class="btn btn-outline-secondary btn-sm d-lg-none" type="button" id="sidebarMobileToggle"
+							aria-label="Open sidebar">
+							<i class="bi bi-list"></i>
+						</button>
+						<div>
+							<h1 class="h5 mb-0">@yield('title', 'Dashboard')</h1>
+							<div class="small text-muted">{{ auth()->user()->name }} ({{ ucfirst(auth()->user()->role) }})</div>
+						</div>
+					</div>
 
-				<form action="{{ route('logout') }}" method="POST" class="d-flex">
-					@csrf
-					<button type="submit" class="btn btn-sm btn-outline-secondary">Logout</button>
-				</form>
-			</div>
+					<div class="d-flex align-items-center gap-2">
+						<a href="{{ route('profile') }}" class="btn btn-sm btn-outline-primary">
+							<i class="bi bi-person"></i>
+							<span class="d-none d-md-inline ms-1">Profile</span>
+						</a>
+						<form action="{{ route('logout') }}" method="POST" class="d-inline">
+							@csrf
+							<button type="submit" class="btn btn-sm btn-outline-danger">
+								<i class="bi bi-box-arrow-right"></i>
+								<span class="d-none d-md-inline ms-1">Logout</span>
+							</button>
+						</form>
+					</div>
+				</div>
+			</header>
+
+			<main class="p-3 p-lg-4">
+				@if (session('success'))
+					<div class="alert alert-success">{{ session('success') }}</div>
+				@endif
+
+				@if (session('error'))
+					<div class="alert alert-danger">{{ session('error') }}</div>
+				@endif
+
+				@yield('content')
+			</main>
 		</div>
-	</nav>
+	</div>
 
-	<main class="container py-4">
-		@if (session('success'))
-			<div class="alert alert-success">{{ session('success') }}</div>
-		@endif
-
-		@yield('content')
-	</main>
+	<div class="crm-backdrop" id="crmBackdrop"></div>
 
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
 		integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
+	</script>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function() {
+			const storageKey = 'crmSidebarCollapsed';
+			const body = document.body;
+			const toggleBtn = document.getElementById('sidebarToggle');
+			const mobileToggleBtn = document.getElementById('sidebarMobileToggle');
+			const backdrop = document.getElementById('crmBackdrop');
+
+			if (localStorage.getItem(storageKey) === 'true') {
+				body.classList.add('sidebar-collapsed');
+			}
+
+			if (toggleBtn) {
+				toggleBtn.addEventListener('click', function() {
+					body.classList.toggle('sidebar-collapsed');
+					localStorage.setItem(storageKey, body.classList.contains('sidebar-collapsed') ? 'true' : 'false');
+				});
+			}
+
+			if (mobileToggleBtn) {
+				mobileToggleBtn.addEventListener('click', function() {
+					body.classList.toggle('sidebar-mobile-open');
+				});
+			}
+
+			if (backdrop) {
+				backdrop.addEventListener('click', function() {
+					body.classList.remove('sidebar-mobile-open');
+				});
+			}
+
+			window.addEventListener('resize', function() {
+				if (window.innerWidth >= 992) {
+					body.classList.remove('sidebar-mobile-open');
+				}
+			});
+		});
 	</script>
 </body>
 
