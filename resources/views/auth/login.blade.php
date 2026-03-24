@@ -95,7 +95,7 @@
                         <h2 class="fw-bold mb-1" style="letter-spacing:-.03em;color:var(--nx-navy);">Welcome back</h2>
                         <p class="text-secondary mb-4 small">Sign in to continue.</p>
 
-                        <form method="POST" action="{{ route('login.attempt') }}">
+                        <form method="POST" action="{{ route('login') }}">
                             @csrf
 
                             {{-- Email --}}
