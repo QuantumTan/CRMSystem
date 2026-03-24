@@ -43,15 +43,25 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
     });
 
+    // Admin, Manager, Sales — customer visibility
+    Route::middleware('role:admin,manager,sales')->prefix('customers')->name('customers.')->group(function () {
+        Route::get('/', [CustomerController::class, 'index'])->name('index');
+        Route::get('/{customer}', [CustomerController::class, 'show'])->name('show');
+    });
+
     // Admin and Sales — customer management
     Route::middleware('role:admin,sales')->prefix('customers')->name('customers.')->group(function () {
-        Route::get('/', [CustomerController::class, 'index'])->name('index');
         Route::get('/create', [CustomerController::class, 'create'])->name('create');
         Route::post('/', [CustomerController::class, 'store'])->name('store');
         Route::get('/{customer}/edit', [CustomerController::class, 'edit'])->name('edit');
         Route::put('/{customer}', [CustomerController::class, 'update'])->name('update');
         Route::delete('/{customer}', [CustomerController::class, 'destroy'])->name('destroy');
-        Route::get('/{customer}', [CustomerController::class, 'show'])->name('show');
+    });
+
+    // Admin and Manager — assignment review
+    Route::middleware('role:admin,manager')->prefix('customers')->name('customers.')->group(function () {
+        Route::patch('/{customer}/assignment/approve', [CustomerController::class, 'approveAssignment'])->name('assignment.approve');
+        Route::patch('/{customer}/assignment/reject', [CustomerController::class, 'rejectAssignment'])->name('assignment.reject');
     });
 
     // Admin, Manager, Sales — leads

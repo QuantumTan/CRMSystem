@@ -5,12 +5,29 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class CustomerController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $customers = Customer::with('assignedUser')->latest()->paginate(10);
+        $user = $request->user();
+
+        $customers = Customer::query()
+            ->with(['assignedUser', 'assignmentReviewer'])
+            ->latest();
+
+        if ($user?->hasRole('manager')) {
+            $customers->whereNotNull('assigned_user_id');
+        }
+
+        if ($request->filled('assignment_status')) {
+            $customers->where('assignment_status', $request->string('assignment_status')->toString());
+        }
+
+        $customers = $customers->paginate(10)->withQueryString();
+
         return view('customers.index', compact('customers'));
     }
 
@@ -27,6 +44,8 @@ class CustomerController extends Controller
 
     public function show(Customer $customer)
     {
+        $customer->load(['assignedUser', 'assignmentReviewer']);
+
         return view('customers.show', compact('customer'));
     }
 
@@ -45,5 +64,27 @@ class CustomerController extends Controller
     {
         $customer->delete();
         return redirect()->route('customers.index')->with('success', 'Customer deleted successfully.');
+    }
+
+    public function approveAssignment(Request $request, Customer $customer): RedirectResponse
+    {
+        $customer->update([
+            'assignment_status' => 'approved',
+            'assignment_reviewed_by' => $request->user()?->id,
+            'assignment_reviewed_at' => now(),
+        ]);
+
+        return redirect()->back()->with('success', 'Customer assignment approved.');
+    }
+
+    public function rejectAssignment(Request $request, Customer $customer): RedirectResponse
+    {
+        $customer->update([
+            'assignment_status' => 'rejected',
+            'assignment_reviewed_by' => $request->user()?->id,
+            'assignment_reviewed_at' => now(),
+        ]);
+
+        return redirect()->back()->with('success', 'Customer assignment rejected.');
     }
 }

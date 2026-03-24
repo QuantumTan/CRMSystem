@@ -328,15 +328,7 @@ body {
         margin-top: 0.35rem;
     }
 
-    &::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0.4rem;
-        right: 0.4rem;
-        height: 1px;
-        background: rgba(255, 255, 255, 0.11);
-    }
+    
 }
 
 .crm-section-title {
