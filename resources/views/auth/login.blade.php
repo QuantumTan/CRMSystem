@@ -106,7 +106,7 @@
                                         <i class="bi bi-envelope"></i>
                                     </span>
                                     <input id="email" type="email" name="email"
-                                        class="form-control bg-light border-start-0 ps-0 rounded-end-3 @error('email') is-invalid @enderror"
+                                        class="form-control p-2 bg-light border-start-0  rounded-end-3 @error('email') is-invalid @enderror"
                                         value="{{ old('email') }}" placeholder="you@company.com"
                                         required autofocus autocomplete="email">
                                     @error('email')
@@ -130,13 +130,9 @@
                                         <i class="bi bi-lock"></i>
                                     </span>
                                     <input id="password" type="password" name="password"
-                                        class="form-control bg-light border-start-0 border-end-0 ps-0 @error('password') is-invalid @enderror"
-                                        placeholder="••••••••" required autocomplete="current-password">
-                                    <button type="button"
-                                        class="input-group-text bg-light border-start-0 text-secondary rounded-end-3"
-                                        id="password-toggle" aria-label="Toggle password">
-                                        <i class="bi bi-eye" id="eye-icon"></i>
-                                    </button>
+                                        class="form-control bg-light border-start-0 border-end-0 p-2 @error('password') is-invalid @enderror"
+                                        placeholder="Enter your password" required autocomplete="current-password">
+
                                     @error('password')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -147,7 +143,7 @@
                             <div class="form-check mb-4">
                                 <input class="form-check-input" type="checkbox" id="remember" name="remember">
                                 <label class="form-check-label small text-secondary" for="remember">
-                                    Keep me signed in for 30 days
+                                    Remember Me
                                 </label>
                             </div>
 
