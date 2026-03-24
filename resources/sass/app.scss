@@ -229,6 +229,8 @@ body {
 :root {
     --crm-sidebar-expanded: 264px;
     --crm-sidebar-collapsed: 84px;
+    --crm-sidebar-bg: #1a2e5c;
+    --crm-sidebar-accent: #4f7df0;
 }
 
 .crm-shell {
@@ -238,7 +240,7 @@ body {
 
 .crm-sidebar {
     width: var(--crm-sidebar-expanded);
-    background: linear-gradient(165deg, #0d2156 0%, #123280 55%, #1657a1 100%);
+    background: var(--crm-sidebar-bg);
     color: #fff;
     display: flex;
     flex-direction: column;
@@ -251,7 +253,9 @@ body {
 
 .crm-sidebar-scroll {
     overflow-y: auto;
+    overflow-x: visible;
     flex: 1 1 auto;
+    padding-bottom: 0.15rem;
 }
 
 .crm-main {
@@ -267,6 +271,12 @@ body {
     z-index: 1030;
 }
 
+.crm-brand {
+    border-color: rgba(255, 255, 255, 0.14) !important;
+    position: relative;
+    min-height: 3.4rem;
+}
+
 .crm-brand-icon {
     width: 2rem;
     height: 2rem;
@@ -279,39 +289,76 @@ body {
 
 .crm-brand-link {
     min-width: 0;
+    padding-right: 2.2rem;
 }
 
 .crm-sidebar-toggle {
-    width: 1.9rem;
-    height: 1.9rem;
+    width: 2rem;
+    height: 1.75rem;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.09);
     color: #fff;
     flex-shrink: 0;
     margin-top: 0;
+    position: absolute;
+    top: 0.82rem;
+    right: 0.75rem;
+    padding: 0;
 
     &:hover {
-        background: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.16);
         color: #fff;
     }
 
     i {
         transition: transform 0.2s ease;
+        font-size: 0.78rem;
+        line-height: 1;
     }
+}
+
+.crm-nav-section {
+    position: relative;
+    padding-top: 0.35rem;
+
+    & + .crm-nav-section {
+        margin-top: 0.35rem;
+    }
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0.4rem;
+        right: 0.4rem;
+        height: 1px;
+        background: rgba(255, 255, 255, 0.11);
+    }
+}
+
+.crm-section-title {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.64rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    padding: 0 0.7rem 0.35rem;
 }
 
 .crm-nav-link {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.68rem 0.75rem;
+    padding: 0.52rem 0.68rem;
     border-radius: 0.65rem;
     color: rgba(255, 255, 255, 0.84);
     text-decoration: none;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
     font-weight: 500;
+    position: relative;
 
     &:hover {
         background: rgba(255, 255, 255, 0.12);
@@ -319,8 +366,19 @@ body {
     }
 
     &.active {
-        background: rgba(255, 255, 255, 0.2);
+        background: rgba(79, 125, 240, 0.16);
         color: #fff;
+
+        &::before {
+            content: "";
+            position: absolute;
+            left: -0.35rem;
+            top: 0.35rem;
+            bottom: 0.35rem;
+            width: 3px;
+            background: var(--crm-sidebar-accent);
+            border-radius: 4px;
+        }
     }
 
     i {
@@ -329,6 +387,88 @@ body {
         text-align: center;
         flex-shrink: 0;
     }
+}
+
+.crm-badge {
+    min-width: 1.7rem;
+    height: 1.35rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0 0.35rem;
+}
+
+.crm-badge-red {
+    background: #d9534f;
+    color: #fff;
+}
+
+.crm-badge-amber {
+    background: #f0ad4e;
+    color: #16284f;
+}
+
+.crm-profile-footer {
+    border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+.crm-profile-card {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.5rem;
+    border-radius: 0.75rem;
+    color: rgba(255, 255, 255, 0.9);
+    transition: background-color 0.2s ease;
+    position: relative;
+
+    &:hover,
+    &.active {
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+    }
+}
+
+.crm-avatar {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(79, 125, 240, 0.26);
+    border: 1px solid rgba(79, 125, 240, 0.48);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.crm-profile-meta {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.crm-profile-name {
+    font-size: 0.84rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.crm-profile-role {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.72rem;
+}
+
+.crm-profile-arrow {
+    margin-left: auto;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.6);
 }
 
 body.sidebar-collapsed {
@@ -346,19 +486,29 @@ body.sidebar-collapsed {
         justify-content: center !important;
         padding-left: 0.6rem !important;
         padding-right: 0.6rem !important;
+        min-height: auto;
     }
 
     .crm-brand-link {
-        width: 100%;
+        width: auto;
         justify-content: center;
         gap: 0;
+        padding-right: 0;
     }
 
     .crm-sidebar-toggle {
-        margin-top: 0.6rem !important;
+        margin-top: 0.55rem !important;
         width: 1.65rem;
-        height: 1.65rem;
+        height: 1.5rem;
         padding: 0;
+        position: static;
+    }
+
+    .crm-section-title,
+    .crm-badge,
+    .crm-profile-meta,
+    .crm-profile-arrow {
+        display: none !important;
     }
 
     .crm-sidebar-scroll {
@@ -366,16 +516,123 @@ body.sidebar-collapsed {
         padding-right: 0.5rem !important;
     }
 
+    .crm-nav-section {
+        padding-top: 0.2rem;
+    }
+
+    .crm-nav-section::before {
+        display: none;
+    }
+
     .crm-nav-link {
         justify-content: center;
+        position: relative;
+
+        &:hover::after {
+            content: attr(data-nav-label);
+            position: absolute;
+            left: calc(100% + 0.65rem);
+            top: 50%;
+            transform: translateY(-50%);
+            background: #0f1f48;
+            color: #fff;
+            padding: 0.3rem 0.52rem;
+            border-radius: 0.45rem;
+            font-size: 0.72rem;
+            white-space: nowrap;
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            z-index: 1060;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+            pointer-events: none;
+        }
 
         i {
             margin-right: 0;
         }
     }
 
+    .crm-profile-card {
+        justify-content: center;
+        padding-left: 0.35rem;
+        padding-right: 0.35rem;
+
+        &:hover::after {
+            content: "Profile";
+            position: absolute;
+            left: calc(100% + 0.65rem);
+            top: 50%;
+            transform: translateY(-50%);
+            background: #0f1f48;
+            color: #fff;
+            padding: 0.3rem 0.52rem;
+            border-radius: 0.45rem;
+            font-size: 0.72rem;
+            white-space: nowrap;
+            max-width: 180px;
+            z-index: 1060;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+            pointer-events: none;
+        }
+    }
+
     .crm-sidebar-toggle i {
         transform: rotate(180deg);
+    }
+}
+
+@media (min-width: 992px) and (max-width: 1366px) {
+    :root {
+        --crm-sidebar-expanded: 252px;
+        --crm-sidebar-collapsed: 78px;
+    }
+
+    .crm-brand {
+        min-height: 3.2rem;
+    }
+
+    .crm-nav-link {
+        padding: 0.48rem 0.62rem;
+    }
+
+    .crm-section-title {
+        padding: 0 0.65rem 0.28rem;
+    }
+}
+
+@media (min-width: 992px) and (max-height: 820px) {
+    .crm-brand {
+        min-height: 3rem;
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+    }
+
+    .crm-sidebar-toggle {
+        top: 0.65rem;
+    }
+
+    .crm-nav-section {
+        padding-top: 0.28rem;
+    }
+
+    .crm-section-title {
+        font-size: 0.6rem;
+        padding-bottom: 0.24rem;
+    }
+
+    .crm-nav-link {
+        padding: 0.42rem 0.58rem;
+        border-radius: 0.58rem;
+    }
+
+    .crm-profile-card {
+        padding: 0.42rem;
+    }
+
+    .crm-avatar {
+        width: 1.85rem;
+        height: 1.85rem;
     }
 }
 
