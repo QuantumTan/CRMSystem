@@ -327,8 +327,6 @@ body {
     & + .crm-nav-section {
         margin-top: 0.35rem;
     }
-
-    
 }
 
 .crm-section-title {
@@ -348,7 +346,9 @@ body {
     border-radius: 0.65rem;
     color: rgba(255, 255, 255, 0.84);
     text-decoration: none;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
     font-weight: 500;
     position: relative;
 

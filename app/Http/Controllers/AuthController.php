@@ -6,6 +6,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
+use function Pest\Laravel\session;
+
 class AuthController extends Controller
 {
     public function showLogin()
@@ -16,17 +18,19 @@ class AuthController extends Controller
     public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
-            'email'    => 'required|email|max:255',
+            'email' => 'required|email|max:255',
             'password' => 'required',
         ]);
 
-        if (!Auth::attempt($credentials,$request->boolean('remember'))){
+        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
             return back()->withErrors([
-                'email'=>'Invalid Credentials.',
+                'email' => 'Invalid Credentials.',
             ])->onlyInput('email');
         }
 
         $request->session()->regenerate();
+
+        session()->flash('swal_toast', 'You have logged in successfully!');
 
         $user = Auth::user();
 
@@ -40,12 +44,14 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect()->route('login');
     }
 
     public function profile()
     {
         $user = Auth::user();
+
         return view('auth.profile', compact('user'));
     }
 }

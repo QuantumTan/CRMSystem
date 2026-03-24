@@ -27,17 +27,17 @@ class User extends Authenticatable
 
     public function hasRole(string $role): bool
     {
-        return strtolower((string)$this->role)===strtolower($role);
+        return strtolower((string)$this->role) === strtolower($role);
     }
 
-    public function hasAnyRole(string ...$roles):bool
+    public function hasAnyRole(string ...$roles): bool
     {
         $normalizedRoles = array_map(
-            fn ($role) => strtolower((string) $role),
-             $roles
+            fn($role) => strtolower((string) $role),
+            $roles
         );
 
-          return in_array(strtolower((string) $this->role), $normalizedRoles, true);
+        return in_array(strtolower((string) $this->role), $normalizedRoles, true);
     }
 
     /**

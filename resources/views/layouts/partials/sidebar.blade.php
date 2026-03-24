@@ -128,7 +128,8 @@
                             <span class="crm-label">Users</span>
                         </a>
 
-                        <a href="{{ route('settings.index') }}" data-nav-link data-nav-label="Settings" title="Settings"
+                        <a href="{{ route('settings.index') }}" data-nav-link data-nav-label="Settings"
+                            title="Settings"
                             class="crm-nav-link {{ request()->routeIs('settings.*') ? 'active' : '' }}">
                             <i class="bi bi-gear"></i>
                             <span class="crm-label">Settings</span>
