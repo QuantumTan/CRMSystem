@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Pest\ArchPresets\Custom;
 
 class CustomerController extends Controller
 {
@@ -50,9 +51,15 @@ class CustomerController extends Controller
         // Inactive
         $customerIsInactive = Customer::where('status', 'inactive')->count();
 
+        //all customers
+        $totalCustomers = Customer::count();
+
+        $editing  = $request->filled('edit')   ? Customer::find($request->edit)   : null;
+        $deleting = $request->filled('delete') ? Customer::find($request->delete) : null;
+
         $customers = $customers->paginate(10)->withQueryString();
 
-        return view('customers.index', compact('customers', 'customerThisMonth', 'customerLastMonth', 'customerThisYear', 'customerSpecificMonth', 'customerIsActive', 'customerIsInactive'));
+        return view('customers.index', compact('customers', 'customerThisMonth', 'customerLastMonth', 'customerThisYear', 'customerSpecificMonth', 'customerIsActive', 'customerIsInactive', 'totalCustomers', 'editing', 'deleting'));
     }
 
     public function create()
