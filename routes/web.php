@@ -63,6 +63,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [LeadController::class, 'index'])->name('index');
         Route::get('/create', [LeadController::class, 'create'])->name('create');
         Route::post('/', [LeadController::class, 'store'])->name('store');
+        Route::patch('/{lead}/convert', [LeadController::class, 'convert'])->name('convert');
+        Route::patch('/{lead}/assign', [LeadController::class, 'assign'])->name('assign');
+        Route::patch('/{lead}/priority', [LeadController::class, 'setPriority'])->name('set-priority');
         Route::get('/{lead}/edit', [LeadController::class, 'edit'])->name('edit');
         Route::put('/{lead}', [LeadController::class, 'update'])->name('update');
         Route::delete('/{lead}', [LeadController::class, 'destroy'])->name('destroy');
