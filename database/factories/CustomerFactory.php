@@ -20,6 +20,8 @@ class CustomerFactory extends Factory
     {
         $assignmentStatus = fake()->randomElement(['pending', 'approved', 'rejected']);
         $isReviewed = in_array($assignmentStatus, ['approved', 'rejected']);
+        $salesAssigneeId = User::query()->where('role', 'sales')->inRandomOrder()->value('id')
+            ?? User::factory()->sales()->create()->id;
 
         return [
             'first_name' => fake()->firstName(),
@@ -29,7 +31,7 @@ class CustomerFactory extends Factory
             'company' => fake()->optional()->company(),
             'address' => fake()->optional()->address(),
             'status' => fake()->randomElement(['active', 'inactive']),
-            'assigned_user_id' => User::query()->inRandomOrder()->value('id'),
+            'assigned_user_id' => $salesAssigneeId,
             'assignment_status' => $assignmentStatus,
             'assignment_reviewed_by' => $isReviewed
                 ? User::query()->whereIn('role', ['admin', 'manager'])

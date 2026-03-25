@@ -40,22 +40,27 @@ Route::middleware(['auth'])->group(function () {
     // Admin, Manager, Sales — customer visibility
     Route::middleware('role:admin,manager,sales')->prefix('customers')->name('customers.')->group(function () {
         Route::get('/', [CustomerController::class, 'index'])->name('index');
-        Route::get('/{customer}', [CustomerController::class, 'show'])->name('show');
+        Route::get('/{customer}', [CustomerController::class, 'show'])->whereNumber('customer')->name('show');
     });
 
-    // Admin and Sales — customer management
+    // Admin and Sales — customer create/update
     Route::middleware('role:admin,sales')->prefix('customers')->name('customers.')->group(function () {
         Route::get('/create', [CustomerController::class, 'create'])->name('create');
         Route::post('/', [CustomerController::class, 'store'])->name('store');
-        Route::get('/{customer}/edit', [CustomerController::class, 'edit'])->name('edit');
-        Route::put('/{customer}', [CustomerController::class, 'update'])->name('update');
-        Route::delete('/{customer}', [CustomerController::class, 'destroy'])->name('destroy');
+        Route::get('/{customer}/edit', [CustomerController::class, 'edit'])->whereNumber('customer')->name('edit');
+        Route::put('/{customer}', [CustomerController::class, 'update'])->whereNumber('customer')->name('update');
+    });
+
+    // Admin only — customer delete
+    Route::middleware('role:admin')->prefix('customers')->name('customers.')->group(function () {
+        Route::delete('/{customer}', [CustomerController::class, 'destroy'])->whereNumber('customer')->name('destroy');
     });
 
     // Admin and Manager — assignment review
     Route::middleware('role:admin,manager')->prefix('customers')->name('customers.')->group(function () {
-        Route::patch('/{customer}/assignment/approve', [CustomerController::class, 'approveAssignment'])->name('assignment.approve');
-        Route::patch('/{customer}/assignment/reject', [CustomerController::class, 'rejectAssignment'])->name('assignment.reject');
+        Route::patch('/{customer}/reassign', [CustomerController::class, 'reassign'])->whereNumber('customer')->name('reassign');
+        Route::patch('/{customer}/assignment/approve', [CustomerController::class, 'approveAssignment'])->whereNumber('customer')->name('assignment.approve');
+        Route::patch('/{customer}/assignment/reject', [CustomerController::class, 'rejectAssignment'])->whereNumber('customer')->name('assignment.reject');
     });
 
     // Admin, Manager, Sales — leads

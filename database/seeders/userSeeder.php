@@ -13,26 +13,38 @@ class userSeeder extends Seeder
      */
     public function run(): void
     {
-        //
-        User::create([
-            'name' => 'Admin User',
+        User::updateOrCreate([
             'email' => 'admin@comp.com',
+        ], [
+            'name' => 'Admin User',
             'password' => Hash::make('admin'),
             'role' => 'admin',
         ]);
-        User::create([
-            'name' => 'Manager User',
+
+        User::updateOrCreate([
             'email' => 'manager@comp.com',
+        ], [
+            'name' => 'Manager User',
             'password' => Hash::make('manager'),
             'role' => 'manager',
         ]);
-        User::create([
-            'name' => 'Sales User',
-            'email' => 'sales@comp.com',
-            'password' => Hash::make('sales'),
-            'role' => 'sales',
-        ]);
 
-        // after creating the values register it to the databaseseeder
+        $salesAccounts = [
+            ['email' => 'sales@comp.com', 'name' => 'Sales User 1', 'password' => 'sales'],
+            ['email' => 'sales2@comp.com', 'name' => 'Sales User 2', 'password' => 'sales2'],
+            ['email' => 'sales3@comp.com', 'name' => 'Sales User 3', 'password' => 'sales3'],
+            ['email' => 'sales4@comp.com', 'name' => 'Sales User 4', 'password' => 'sales4'],
+            ['email' => 'sales5@comp.com', 'name' => 'Sales User 5', 'password' => 'sales5'],
+        ];
+
+        foreach ($salesAccounts as $account) {
+            User::updateOrCreate([
+                'email' => $account['email'],
+            ], [
+                'name' => $account['name'],
+                'password' => Hash::make($account['password']),
+                'role' => 'sales',
+            ]);
+        }
     }
 }

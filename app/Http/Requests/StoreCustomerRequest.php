@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreCustomerRequest extends FormRequest
 {
@@ -13,15 +14,32 @@ class StoreCustomerRequest extends FormRequest
 
     public function rules(): array
     {
+        $assignedUserRules = [
+            Rule::exists('users', 'id')->where(fn ($query) => $query->where('role', 'sales')),
+        ];
+
+        if ($this->user()?->hasRole('sales')) {
+            array_unshift($assignedUserRules, 'nullable');
+        } else {
+            array_unshift($assignedUserRules, 'required');
+        }
+
         return [
-            'first_name'       => 'required|string|max:255',
-            'last_name'        => 'required|string|max:255',
-            'email'            => 'required|email|unique:customers,email',
-            'phone'            => 'required|string|max:20',
-            'company'          => 'nullable|string|max:255',
-            'address'          => 'nullable|string',
-            'status'           => 'nullable|in:active,inactive',
-            'assigned_user_id' => 'nullable|exists:users,id',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email|unique:customers,email',
+            'phone' => 'required|string|max:20',
+            'company' => 'nullable|string|max:255',
+            'address' => 'nullable|string',
+            'status' => 'nullable|in:active,inactive',
+            'assigned_user_id' => $assignedUserRules,
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'assigned_user_id.exists' => 'Assigned user must be a Sales Staff account.',
         ];
     }
 }

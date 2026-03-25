@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('title', 'Customers')
 
@@ -30,20 +30,15 @@
                 </div>
                 <p class="text-muted mb-0 small">Viewing all customer records</p>
             </div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#customerModal">
-                <i class="bi bi-plus-lg"></i> Add Customer
-            </button>
+            @if ($isAdmin || $isSales)
+                <a href="{{ route('customers.create') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg"></i> Add Customer
+                </a>
+            @endif
         </div>
 
         @include('customers.partials._stats')
         @include('customers.partials.table')
 
     </div>
-
-    @include('customers.partials._modal-form')
-    @include('customers.partials._modal-delete')
 @endsection
-
-@push('scripts')
-    <script src="{{ asset('js/customers.js') }}"></script>
-@endpush

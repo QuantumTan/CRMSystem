@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Customer;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class CustomerSeeder extends Seeder
@@ -12,9 +13,38 @@ class CustomerSeeder extends Seeder
      */
     public function run(): void
     {
-        Customer::factory(50)->create();
-        Customer::factory(30)->approved()->create();
-        Customer::factory(10)->rejected()->create();
-        Customer::factory(5)->unassigned()->create();
+        $salesUsers = User::query()
+            ->where('role', 'sales')
+            ->orderBy('id')
+            ->get();
+
+        if ($salesUsers->isEmpty()) {
+            return;
+        }
+
+        foreach ($salesUsers as $salesUser) {
+            // Pending customers assigned to each sales user.
+            Customer::factory(8)
+                ->pending()
+                ->state([
+                    'assigned_user_id' => $salesUser->id,
+                ])
+                ->create();
+
+            // Reviewed assignment samples per sales user.
+            Customer::factory(3)
+                ->approved()
+                ->state([
+                    'assigned_user_id' => $salesUser->id,
+                ])
+                ->create();
+
+            Customer::factory(2)
+                ->rejected()
+                ->state([
+                    'assigned_user_id' => $salesUser->id,
+                ])
+                ->create();
+        }
     }
 }
