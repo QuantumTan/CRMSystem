@@ -56,6 +56,7 @@ class CustomerController extends Controller
 
         $editing  = $request->filled('edit')   ? Customer::find($request->edit)   : null;
         $deleting = $request->filled('delete') ? Customer::find($request->delete) : null;
+        
 
         $customers = $customers->paginate(10)->withQueryString();
 
