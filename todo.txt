@@ -1,0 +1,8 @@
+TODO
+(Manage customer module)
+1. Add views functionality 
+2. search functionality
+3. filter functionality
+4. export functionality
+5. role-based access on the manage customers
+6. Soft delete
