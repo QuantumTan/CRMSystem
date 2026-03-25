@@ -2,35 +2,31 @@
     $user = auth()->user();
     $role = $user?->role;
 
-    $isAdmin = $role === 'admin';
+    $isAdmin   = $role === 'admin';
     $isManager = $role === 'manager';
-    $isSales = $role === 'sales';
+    $isSales   = $role === 'sales';
 
-    $leadCount = 0;
+    $leadCount     = 0;
     $activityCount = 0;
     $followUpCount = 0;
 
     try {
-        $leadCount = \App\Models\Lead::count();
+        $leadCount     = \App\Models\Lead::count();
         $activityCount = \App\Models\Activity::count();
         $followUpCount = \App\Models\FollowUp::count();
-    } catch (\Throwable $e) {
-        // Keep sidebar usable even when tables are not ready.
-    }
+    } catch (\Throwable $e) {}
 
     $nameParts = preg_split('/\s+/', trim((string) ($user?->name ?? 'User')));
-    $initials = '';
-
+    $initials  = '';
     foreach (array_slice($nameParts, 0, 2) as $part) {
         $initials .= strtoupper(substr($part, 0, 1));
     }
-
-    if ($initials === '') {
-        $initials = 'U';
-    }
+    if ($initials === '') $initials = 'U';
 @endphp
 
 <aside class="crm-sidebar" id="crmSidebar">
+
+    {{-- Brand --}}
     <div class="crm-brand px-3 py-2 border-bottom d-flex align-items-center justify-content-between gap-2">
         <a href="{{ route('dashboard') }}"
             class="crm-brand-link text-decoration-none d-flex align-items-center gap-2 text-white">
@@ -38,55 +34,62 @@
                 style="width:36px;height:36px;object-fit:contain;">
             <span class="crm-label fw-semibold">NexLink CRM</span>
         </a>
-
-        <button class="crm-sidebar-toggle btn btn-sm d-none d-lg-inline-flex" type="button" id="sidebarToggle"
-            aria-label="Toggle sidebar">
+        <button class="crm-sidebar-toggle btn btn-sm d-none d-lg-inline-flex"
+            type="button" id="sidebarToggle" aria-label="Toggle sidebar">
             <i class="bi bi-chevron-left"></i>
         </button>
     </div>
 
     <div class="crm-sidebar-scroll px-2 py-2">
         <nav class="nav flex-column" id="crmSidebarNav">
+
+            {{-- Main --}}
             <section class="crm-nav-section" data-nav-section>
                 <div class="crm-section-title crm-label">Main</div>
                 <div class="d-flex flex-column gap-0">
-                    <a href="{{ route('dashboard') }}" data-nav-link data-nav-label="Dashboard" title="Dashboard"
+                    <a href="{{ route('dashboard') }}" data-nav-link data-nav-label="Dashboard"
+                        title="Dashboard"
                         class="crm-nav-link {{ request()->routeIs('dashboard*') ? 'active' : '' }}">
-                        <i class="bi bi-speedometer2"></i>
+                        <i class="bi bi-grid"></i>
                         <span class="crm-label">Dashboard</span>
                     </a>
                 </div>
             </section>
 
+            {{-- Performance --}}
             @if ($isAdmin || $isManager)
                 <section class="crm-nav-section" data-nav-section>
                     <div class="crm-section-title crm-label">Performance</div>
                     <div class="d-flex flex-column gap-0">
-                        <a href="{{ route('reports.index') }}" data-nav-link data-nav-label="Reports" title="Reports"
+                        <a href="{{ route('reports.index') }}" data-nav-link data-nav-label="Reports"
+                            title="Reports"
                             class="crm-nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
-                            <i class="bi bi-graph-up-arrow"></i>
+                            <i class="bi bi-bar-chart-steps"></i>
                             <span class="crm-label">Reports</span>
                         </a>
                     </div>
                 </section>
             @endif
 
+            {{-- Pipeline --}}
             <section class="crm-nav-section" data-nav-section>
                 <div class="crm-section-title crm-label">Pipeline</div>
                 <div class="d-flex flex-column gap-0">
+
                     @if ($isAdmin || $isManager || $isSales)
                         <a href="{{ route('customers.index') }}" data-nav-link data-nav-label="Customers"
                             title="Customers"
                             class="crm-nav-link {{ request()->routeIs('customers.*') ? 'active' : '' }}">
-                            <i class="bi bi-people"></i>
+                            <i class="bi bi-person-lines-fill"></i>
                             <span class="crm-label">Customers</span>
                         </a>
                     @endif
 
                     @if ($isAdmin || $isManager || $isSales)
-                        <a href="{{ route('leads.index') }}" data-nav-link data-nav-label="Leads" title="Leads"
+                        <a href="{{ route('leads.index') }}" data-nav-link data-nav-label="Leads"
+                            title="Leads"
                             class="crm-nav-link {{ request()->routeIs('leads.*') ? 'active' : '' }}">
-                            <i class="bi bi-funnel"></i>
+                            <i class="bi bi-send"></i>
                             <span class="crm-label">Leads</span>
                             @if ($leadCount > 0)
                                 <span class="crm-badge crm-badge-red ms-auto">{{ $leadCount }}</span>
@@ -98,48 +101,52 @@
                         <a href="{{ route('activities.index') }}" data-nav-link data-nav-label="Activities"
                             title="Activities"
                             class="crm-nav-link {{ request()->routeIs('activities.*') ? 'active' : '' }}">
-                            <i class="bi bi-journal-check"></i>
+                            <i class="bi bi-clipboard-pulse"></i>
                             <span class="crm-label">Activities</span>
                             @if ($activityCount > 0)
                                 <span class="crm-badge crm-badge-amber ms-auto">{{ $activityCount }}</span>
                             @endif
                         </a>
 
-                        <a href="{{ route('follow-ups.index') }}" data-nav-link data-nav-label="Follow-ups"
-                            title="Follow-ups"
+                        <a href="{{ route('follow-ups.index') }}" data-nav-link data-nav-label="Tasks & Reminders"
+                            title="Tasks & Reminders"
                             class="crm-nav-link {{ request()->routeIs('follow-ups.*') ? 'active' : '' }}">
-                            <i class="bi bi-alarm"></i>
+                            <i class="bi bi-check2-all"></i>
                             <span class="crm-label">Tasks & Reminders</span>
                             @if ($followUpCount > 0)
                                 <span class="crm-badge crm-badge-red ms-auto">{{ $followUpCount }}</span>
                             @endif
                         </a>
                     @endif
+
                 </div>
             </section>
 
+            {{-- Admin --}}
             @if ($isAdmin)
                 <section class="crm-nav-section" data-nav-section>
                     <div class="crm-section-title crm-label">Admin</div>
                     <div class="d-flex flex-column gap-0">
-                        <a href="{{ route('users.index') }}" data-nav-link data-nav-label="Users" title="Users"
+                        <a href="{{ route('users.index') }}" data-nav-link data-nav-label="Users"
+                            title="Users"
                             class="crm-nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
-                            <i class="bi bi-person-gear"></i>
+                            <i class="bi bi-people"></i>
                             <span class="crm-label">Users</span>
                         </a>
-
                         <a href="{{ route('settings.index') }}" data-nav-link data-nav-label="Settings"
                             title="Settings"
                             class="crm-nav-link {{ request()->routeIs('settings.*') ? 'active' : '' }}">
-                            <i class="bi bi-gear"></i>
+                            <i class="bi bi-sliders2"></i>
                             <span class="crm-label">Settings</span>
                         </a>
                     </div>
                 </section>
             @endif
+
         </nav>
     </div>
 
+    {{-- Profile Footer --}}
     <div class="crm-profile-footer px-2 pb-2 mt-auto border-top pt-2">
         <a href="{{ route('profile') }}"
             class="crm-profile-card text-decoration-none {{ request()->routeIs('profile') ? 'active' : '' }}">
@@ -151,4 +158,5 @@
             <i class="bi bi-chevron-right crm-profile-arrow crm-label"></i>
         </a>
     </div>
+
 </aside>
