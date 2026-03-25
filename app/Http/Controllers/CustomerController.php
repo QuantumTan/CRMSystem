@@ -49,45 +49,37 @@ class CustomerController extends Controller
 
         $baseStatsQuery = $this->applyVisibilityScope(Customer::query(), $request);
 
-        // Customer count
-        // This month
         $customerThisMonth = (clone $baseStatsQuery)->whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
             ->count();
 
-        // Last month
         $customerLastMonth = (clone $baseStatsQuery)->whereMonth('created_at', now()->subMonth()->month)
             ->whereYear('created_at', now()->subMonth()->year)
             ->count();
 
-        // Specific month (e.g. January 2025)
         $customerSpecificMonth = (clone $baseStatsQuery)->whereMonth('created_at', 1)
             ->whereYear('created_at', 2025)
             ->count();
 
-        // This year
         $customerThisYear = (clone $baseStatsQuery)->whereYear('created_at', now()->year)->count();
 
-        // Active
         $customerIsActive = (clone $baseStatsQuery)->where('status', 'active')->count();
-        // Inactive
         $customerIsInactive = (clone $baseStatsQuery)->where('status', 'inactive')->count();
 
-        // all customers
         $totalCustomers = (clone $baseStatsQuery)->count();
 
         $customers = $customersQuery->paginate(10)->withQueryString();
 
         return view('customers.index', [
-            'customers' => $customers,
-            'customerThisMonth' => $customerThisMonth,
-            'customerLastMonth' => $customerLastMonth,
-            'customerThisYear' => $customerThisYear,
-            'customerSpecificMonth' => $customerSpecificMonth,
-            'customerIsActive' => $customerIsActive,
-            'customerIsInactive' => $customerIsInactive,
-            'totalCustomers' => $totalCustomers,
-            'assignableUsers' => $this->assignableUsers(),
+            'customers'            => $customers,
+            'customerThisMonth'    => $customerThisMonth,
+            'customerLastMonth'    => $customerLastMonth,
+            'customerThisYear'     => $customerThisYear,
+            'customerSpecificMonth'=> $customerSpecificMonth,
+            'customerIsActive'     => $customerIsActive,
+            'customerIsInactive'   => $customerIsInactive,
+            'totalCustomers'       => $totalCustomers,
+            'assignableUsers'      => $this->assignableUsers(),
         ]);
     }
 
@@ -104,7 +96,6 @@ class CustomerController extends Controller
         $user = $request->user();
 
         if ($user?->hasRole('sales')) {
-            // Sales ownership is enforced server-side regardless of posted payload.
             $payload['assigned_user_id'] = $user->id;
         }
 
@@ -126,7 +117,7 @@ class CustomerController extends Controller
         $customer->load(['assignedUser', 'assignmentReviewer']);
 
         return view('customers.show', [
-            'customer' => $customer,
+            'customer'        => $customer,
             'assignableUsers' => $this->assignableUsers(),
         ]);
     }
@@ -136,7 +127,7 @@ class CustomerController extends Controller
         $this->ensureCustomerAccessible(request(), $customer);
 
         return view('customers.edit', [
-            'customer' => $customer,
+            'customer'        => $customer,
             'assignableUsers' => $this->assignableUsers(),
         ]);
     }
@@ -149,7 +140,6 @@ class CustomerController extends Controller
         $user = $request->user();
 
         if ($user?->hasRole('sales')) {
-            // Sales cannot reassign ownership to another user.
             $payload['assigned_user_id'] = $user->id;
         }
 
@@ -168,7 +158,7 @@ class CustomerController extends Controller
     {
         $this->ensureCustomerAccessible(request(), $customer);
 
-        $customer->delete();
+        $customer->delete(); 
 
         return redirect()->route('customers.index')->with('success', 'Customer deleted successfully.');
     }
@@ -189,8 +179,8 @@ class CustomerController extends Controller
         }
 
         $customer->update([
-            'assigned_user_id' => (int) $data['assigned_user_id'],
-            'assignment_status' => 'pending',
+            'assigned_user_id'       => (int) $data['assigned_user_id'],
+            'assignment_status'      => 'pending',
             'assignment_reviewed_by' => null,
             'assignment_reviewed_at' => null,
         ]);
@@ -201,7 +191,7 @@ class CustomerController extends Controller
     public function approveAssignment(Request $request, Customer $customer): RedirectResponse
     {
         $customer->update([
-            'assignment_status' => 'approved',
+            'assignment_status'      => 'approved',
             'assignment_reviewed_by' => $request->user()?->id,
             'assignment_reviewed_at' => now(),
         ]);
@@ -212,7 +202,7 @@ class CustomerController extends Controller
     public function rejectAssignment(Request $request, Customer $customer): RedirectResponse
     {
         $customer->update([
-            'assignment_status' => 'rejected',
+            'assignment_status'      => 'rejected',
             'assignment_reviewed_by' => $request->user()?->id,
             'assignment_reviewed_at' => now(),
         ]);

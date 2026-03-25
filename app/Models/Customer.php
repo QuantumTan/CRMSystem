@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Customer extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     protected $fillable = [
         'first_name',
@@ -22,7 +24,7 @@ class Customer extends Model
         'assignment_status',
         'assignment_reviewed_by',
         'assignment_reviewed_at',
-    ];
+,    ];
 
     protected $casts = [
         'assignment_reviewed_at' => 'datetime',

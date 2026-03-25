@@ -2,7 +2,6 @@ TODO
 
 (Manage Customer Module)
 1. FIX THE TOAST SUCCESSFUL NOTIF UNDER THE STAFF (FIX THE MESSAGE)
-2. SOFT DELETE
 
 (Core Module Development)
 1. Lead Module - CRUD operations
