@@ -1,8 +1,24 @@
 TODO
-(Manage customer module)
-1. Add views functionality 
-2. search functionality
-3. filter functionality
-4. export functionality
-5. role-based access on the manage customers
+
+(Manage Customer Module)
+1. Add view profile functionality 
+2. Search functionality
+3. Filter functionality
+4. Export functionality
+5. Role-based access on manage customers
 6. Soft delete
+
+(Core Module Development)
+1. Lead Module - CRUD operations
+2. Lead status updates
+3. Activity Module - logging interactions
+4. Follow-up Module - scheduling
+5. Dashboard Module with stats
+6. System Settings
+6. Notification (optional)
+
+(Support & Features)
+1. Reports Module
+2. Customer assignment to staff
+3. Validation for all forms
+

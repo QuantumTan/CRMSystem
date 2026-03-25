@@ -83,30 +83,29 @@
 
                     {{-- Search Input --}}
                     <div class="position-relative w-100 w-lg-auto" style="flex: 1; max-width: 100%;">
-                        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-                        <input type="text" id="searchInput" class="form-control form-control-sm ps-5 w-100"
-                            placeholder="Search name, email, phone…" onkeyup="filterTable()">
+                        <i class="bi bi-search position-absolute top-50  translate-middle-y ms-3 text-muted"></i>
+                        <input type="text" id="searchInput" class="form-control form-control-sm ps-5"
+                            style="width: 300px;" placeholder="Search name, email, phone…" onkeyup="filterTable()">
                     </div>
 
                     {{-- Filters --}}
                     <div class="d-flex flex-wrap gap-2 w-100 w-lg-auto">
-                        <select id="statusFilter" class="form-select form-select-sm flex-grow-1 w-auto"
-                            style="min-width: 120px;"">
+                        <select id="statusFilter" class="form-select form-select-sm  w-auto" style="min-width: 120px;"">
                             <option value="">All Status</option>
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
                         </select>
                         <button class="btn btn-dark btn-sm px-3 flex-grow-1 flex-md-grow-0"
                             onclick="filterTable()">Filter</button>
-                        <button class="btn btn-outline-secondary btn-sm flex-grow-1 flex-md-grow-0"">Reset</button>
+                        <button class="btn btn-outline-secondary btn-sm flex-md-grow-0"">Reset</button>
                     </div>
 
                     {{-- Export --}}
                     <div class="ms-lg-auto d-flex gap-2 w-100 w-lg-auto justify-content-end mt-2 mt-lg-0">
-                        <button class="btn btn-outline-secondary btn-sm flex-grow-1 flex-lg-grow-0"">
+                        <button class="btn btn-outline-secondary btn-sm  flex-lg-grow-0"">
                             <i class="bi bi-download"></i> CSV
                         </button>
-                        <button class="btn btn-outline-secondary btn-sm flex-grow-1 flex-lg-grow-0"">
+                        <button class="btn btn-outline-secondary btn-sm  flex-lg-grow-0"">
                             <i class="bi bi-file-pdf"></i> PDF
                         </button>
                     </div>
