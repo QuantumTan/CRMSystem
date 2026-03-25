@@ -160,11 +160,10 @@
                 </table>
             </div>
         </div>
-    </div>
+
         <div class="card-footer bg-white border-top py-3 mt-3">
             {{ $leads->links('pagination::bootstrap-5') }}
         </div>
     </div>
-            <p class="text-muted">Lead list will be displayed here.</p>
 
 @endsection
