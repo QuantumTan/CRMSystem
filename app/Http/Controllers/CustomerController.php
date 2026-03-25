@@ -56,9 +56,25 @@ class CustomerController extends Controller
 
         $editing  = $request->filled('edit')   ? Customer::find($request->edit)   : null;
         $deleting = $request->filled('delete') ? Customer::find($request->delete) : null;
-        
 
-        $customers = $customers->paginate(10)->withQueryString();
+        // search and filter
+        $query = Customer::query();
+
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by status
+        if ($status = $request->input('status')) {
+            $query->where('status', $status);
+        }
+
+        $customers = $query->latest()->paginate(10)->withQueryString();
 
         return view('customers.index', compact('customers', 'customerThisMonth', 'customerLastMonth', 'customerThisYear', 'customerSpecificMonth', 'customerIsActive', 'customerIsInactive', 'totalCustomers', 'editing', 'deleting'));
     }
