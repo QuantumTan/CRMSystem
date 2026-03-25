@@ -1,12 +1,8 @@
 TODO
 
 (Manage Customer Module)
-1. Add view profile functionality 
-2. Search functionality
-3. Filter functionality
-4. Export functionality
-5. Role-based access on manage customers
-6. Soft delete
+1. FIX THE TOAST SUCCESSFUL NOTIF UNDER THE STAFF (FIX THE MESSAGE)
+2. SOFT DELETE
 
 (Core Module Development)
 1. Lead Module - CRUD operations
