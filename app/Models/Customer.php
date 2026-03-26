@@ -24,7 +24,7 @@ class Customer extends Model
         'assignment_status',
         'assignment_reviewed_by',
         'assignment_reviewed_at',
-,    ];
+  ];
 
     protected $casts = [
         'assignment_reviewed_at' => 'datetime',
