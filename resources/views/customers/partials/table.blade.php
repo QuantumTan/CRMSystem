@@ -5,16 +5,12 @@
     @endphp
 
     <div class="card-header bg-white border-bottom p-3">
-        <form action="{{ route('customers.index') }}" method="GET" class="d-flex flex-column flex-lg-row align-items-lg-center gap-3">
+        <form action="{{ route('customers.index') }}" method="GET"
+            class="d-flex flex-column flex-lg-row align-items-lg-center gap-3">
             <div class="position-relative" style="max-width: 320px; flex: 1;">
                 <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
-                <input
-                    type="text"
-                    name="search"
-                    class="form-control form-control-sm ps-5"
-                    placeholder="Search name, email, phone, company..."
-                    value="{{ request('search') }}"
-                >
+                <input type="text" name="search" class="form-control form-control-sm ps-5"
+                    placeholder="Search name, email, phone, company..." value="{{ request('search') }}">
             </div>
 
             <div class="d-flex flex-wrap gap-2">
@@ -23,15 +19,17 @@
                     <option value="active" @selected(request('status') === 'active')>Active</option>
                     <option value="inactive" @selected(request('status') === 'inactive')>Inactive</option>
                 </select>
+                @if ($isAdmin || $isManager)
+                    <select name="assigned_user_id" class="form-select form-select-sm w-auto" style="min-width: 170px;">
+                        <option value="">All Assignees</option>
+                        @foreach ($assignableUsers as $assignableUser)
+                            <option value="{{ $assignableUser->id }}" @selected((string) request('assigned_user_id') === (string) $assignableUser->id)>
+                                {{ $assignableUser->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                @endif
 
-                <select name="assigned_user_id" class="form-select form-select-sm w-auto" style="min-width: 170px;">
-                    <option value="">All Assignees</option>
-                    @foreach ($assignableUsers as $assignableUser)
-                        <option value="{{ $assignableUser->id }}" @selected((string) request('assigned_user_id') === (string) $assignableUser->id)>
-                            {{ $assignableUser->name }}
-                        </option>
-                    @endforeach
-                </select>
 
                 <button type="submit" class="btn btn-dark btn-sm px-3">Filter</button>
                 <a href="{{ route('customers.index') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
@@ -75,15 +73,19 @@
                         <td class="small text-muted py-3">{{ $customer->created_at->format('M d, Y') }}</td>
                         <td class="py-3">
                             <div class="d-flex justify-content-end gap-2">
-                                <a href="{{ route('customers.show', $customer) }}" class="btn btn-sm btn-light border text-primary">View</a>
+                                <a href="{{ route('customers.show', $customer) }}"
+                                    class="btn btn-sm btn-light border text-primary">View</a>
                                 @if ($isAdmin || $isSales)
-                                    <a href="{{ route('customers.edit', $customer) }}" class="btn btn-sm btn-light border text-dark">Edit</a>
+                                    <a href="{{ route('customers.edit', $customer) }}"
+                                        class="btn btn-sm btn-light border text-dark">Edit</a>
                                 @endif
                                 @if ($isAdmin)
-                                    <form method="POST" action="{{ route('customers.destroy', $customer) }}" onsubmit="return confirm('Delete this customer?');">
+                                    <form method="POST" action="{{ route('customers.destroy', $customer) }}"
+                                        onsubmit="return confirm('Delete this customer?');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-light border text-danger">Delete</button>
+                                        <button type="submit"
+                                            class="btn btn-sm btn-light border text-danger">Delete</button>
                                     </form>
                                 @endif
                             </div>
