@@ -34,22 +34,22 @@
                     @csrf
 
                     <div class="col-md-6">
-                        <label class="form-label">First Name</label>
+                        <label class="form-label">First Name  <span class="text-danger">*</span></label>
                         <input type="text" name="first_name" class="form-control" value="{{ old('first_name') }}" required>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label">Last Name</label>
+                        <label class="form-label">Last Name  <span class="text-danger">*</span></label>
                         <input type="text" name="last_name" class="form-control" value="{{ old('last_name') }}" required>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label">Email</label>
+                        <label class="form-label">Email  <span class="text-danger">*</span></label>
                         <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label">Phone Number</label>
+                        <label class="form-label">Phone Number  <span class="text-danger">*</span></label>
                         <input type="text" name="phone" class="form-control" value="{{ old('phone') }}" required>
                     </div>
 
@@ -59,7 +59,7 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label">Status</label>
+                        <label class="form-label">Status  <span class="text-danger">*</span></label>
                         <select name="status" class="form-select">
                             <option value="active" @selected(old('status', 'active') === 'active')>Active</option>
                             <option value="inactive" @selected(old('status') === 'inactive')>Inactive</option>
@@ -68,13 +68,13 @@
 
                     @if ($isSales)
                         <div class="col-md-6">
-                            <label class="form-label">Assigned User</label>
+                            <label class="form-label">Assigned User  <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" value="{{ auth()->user()?->name }} (Sales Staff)" disabled>
                             <input type="hidden" name="assigned_user_id" value="{{ auth()->id() }}">
                         </div>
                     @else
                         <div class="col-md-6">
-                            <label class="form-label">Assigned User</label>
+                            <label class="form-label">Assigned User  <span class="text-danger">*</span></label>
                             <select name="assigned_user_id" class="form-select" required>
                                 <option value="">Select Sales Staff</option>
                                 @foreach ($assignableUsers as $assignableUser)
