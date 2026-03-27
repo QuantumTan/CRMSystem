@@ -63,6 +63,10 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/{customer}/assignment/reject', [CustomerController::class, 'rejectAssignment'])->whereNumber('customer')->name('assignment.reject');
     });
 
+    // TODO: split the features the users can only access
+    // 1. admin and sales can manage the leads
+    // 2. manager can only view the lead progress
+
     // Admin, Manager, Sales — leads
     Route::middleware('role:admin,manager,sales')->prefix('leads')->name('leads.')->group(function () {
         Route::get('/', [LeadController::class, 'index'])->name('index');

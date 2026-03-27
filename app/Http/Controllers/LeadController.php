@@ -31,10 +31,16 @@ class LeadController extends Controller
 
     public function index(Request $request): View
     {
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', 'in:' . implode(',', self::STATUS_OPTIONS)],
+            'priority' => ['nullable', 'in:' . implode(',', self::PRIORITY_OPTIONS)],
+        ]);
+
         $leadQuery = Lead::query()->with(['assignedUser', 'customer'])->latest();
 
-        if ($request->filled('search')) {
-            $search = (string) $request->string('search');
+        if (! empty($filters['search'])) {
+            $search = $this->escapeLike((string) $filters['search']);
 
             $leadQuery->where(function ($query) use ($search): void {
                 $query
@@ -45,12 +51,12 @@ class LeadController extends Controller
             });
         }
 
-        if ($request->filled('status')) {
-            $leadQuery->where('status', (string) $request->string('status'));
+        if (! empty($filters['status'])) {
+            $leadQuery->where('status', (string) $filters['status']);
         }
 
-        if ($request->filled('priority')) {
-            $leadQuery->where('priority', (string) $request->string('priority'));
+        if (! empty($filters['priority'])) {
+            $leadQuery->where('priority', (string) $filters['priority']);
         }
 
         $leads = $leadQuery->paginate(10)->withQueryString();
@@ -114,7 +120,7 @@ class LeadController extends Controller
     public function updateStatus(Request $request, Lead $lead): RedirectResponse
     {
         $data = $request->validate([
-            'status' => ['required', 'in:'.implode(',', self::STATUS_OPTIONS)],
+            'status' => ['required', 'in:' . implode(',', self::STATUS_OPTIONS)],
         ]);
 
         $lead->update([
@@ -140,7 +146,7 @@ class LeadController extends Controller
     public function setPriority(Request $request, Lead $lead): RedirectResponse
     {
         $data = $request->validate([
-            'priority' => ['required', 'in:'.implode(',', self::PRIORITY_OPTIONS)],
+            'priority' => ['required', 'in:' . implode(',', self::PRIORITY_OPTIONS)],
         ]);
 
         $lead->update([
@@ -163,7 +169,7 @@ class LeadController extends Controller
             $lastName = '-';
         }
 
-        $fallbackEmail = 'lead-'.$lead->id.'@nexlink.local';
+        $fallbackEmail = 'lead-' . $lead->id . '@nexlink.local';
         $email = $lead->email ?: $fallbackEmail;
 
         $customer = Customer::query()->firstOrCreate(
@@ -195,5 +201,10 @@ class LeadController extends Controller
     private function assignableUsers()
     {
         return User::query()->whereIn('role', ['admin', 'manager', 'sales'])->orderBy('name')->get();
+    }
+
+    private function escapeLike(string $value): string
+    {
+        return addcslashes($value, '\\%_');
     }
 }

@@ -15,6 +15,13 @@ class CustomerController extends Controller
 {
     public function index(Request $request): View
     {
+        $filters = $request->validate([
+            'assignment_status' => ['nullable', 'in:pending,approved,rejected'],
+            'search' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', 'in:active,inactive'],
+            'assigned_user_id' => ['nullable', 'integer', 'exists:users,id'],
+        ]);
+
         $customersQuery = $this->applyVisibilityScope(
             Customer::query()->with(['assignedUser', 'assignmentReviewer']),
             $request
@@ -22,12 +29,12 @@ class CustomerController extends Controller
             ->with(['assignedUser', 'assignmentReviewer'])
             ->latest();
 
-        if ($request->filled('assignment_status')) {
-            $customersQuery->where('assignment_status', $request->string('assignment_status')->toString());
+        if (! empty($filters['assignment_status'])) {
+            $customersQuery->where('assignment_status', (string) $filters['assignment_status']);
         }
 
-        if ($request->filled('search')) {
-            $search = (string) $request->string('search');
+        if (! empty($filters['search'])) {
+            $search = $this->escapeLike((string) $filters['search']);
 
             $customersQuery->where(function ($query) use ($search): void {
                 $query
@@ -39,12 +46,12 @@ class CustomerController extends Controller
             });
         }
 
-        if ($request->filled('status')) {
-            $customersQuery->where('status', (string) $request->string('status'));
+        if (! empty($filters['status'])) {
+            $customersQuery->where('status', (string) $filters['status']);
         }
 
-        if ($request->filled('assigned_user_id')) {
-            $customersQuery->where('assigned_user_id', (int) $request->integer('assigned_user_id'));
+        if (! empty($filters['assigned_user_id'])) {
+            $customersQuery->where('assigned_user_id', (int) $filters['assigned_user_id']);
         }
 
         $baseStatsQuery = $this->applyVisibilityScope(Customer::query(), $request);
@@ -71,15 +78,15 @@ class CustomerController extends Controller
         $customers = $customersQuery->paginate(10)->withQueryString();
 
         return view('customers.index', [
-            'customers'            => $customers,
-            'customerThisMonth'    => $customerThisMonth,
-            'customerLastMonth'    => $customerLastMonth,
-            'customerThisYear'     => $customerThisYear,
-            'customerSpecificMonth'=> $customerSpecificMonth,
-            'customerIsActive'     => $customerIsActive,
-            'customerIsInactive'   => $customerIsInactive,
-            'totalCustomers'       => $totalCustomers,
-            'assignableUsers'      => $this->assignableUsers(),
+            'customers' => $customers,
+            'customerThisMonth' => $customerThisMonth,
+            'customerLastMonth' => $customerLastMonth,
+            'customerThisYear' => $customerThisYear,
+            'customerSpecificMonth' => $customerSpecificMonth,
+            'customerIsActive' => $customerIsActive,
+            'customerIsInactive' => $customerIsInactive,
+            'totalCustomers' => $totalCustomers,
+            'assignableUsers' => $this->assignableUsers(),
         ]);
     }
 
@@ -117,7 +124,7 @@ class CustomerController extends Controller
         $customer->load(['assignedUser', 'assignmentReviewer']);
 
         return view('customers.show', [
-            'customer'        => $customer,
+            'customer' => $customer,
             'assignableUsers' => $this->assignableUsers(),
         ]);
     }
@@ -127,7 +134,7 @@ class CustomerController extends Controller
         $this->ensureCustomerAccessible(request(), $customer);
 
         return view('customers.edit', [
-            'customer'        => $customer,
+            'customer' => $customer,
             'assignableUsers' => $this->assignableUsers(),
         ]);
     }
@@ -158,7 +165,7 @@ class CustomerController extends Controller
     {
         $this->ensureCustomerAccessible(request(), $customer);
 
-        $customer->delete(); 
+        $customer->delete();
 
         return redirect()->route('customers.index')->with('success', 'Customer deleted successfully.');
     }
@@ -179,8 +186,8 @@ class CustomerController extends Controller
         }
 
         $customer->update([
-            'assigned_user_id'       => (int) $data['assigned_user_id'],
-            'assignment_status'      => 'pending',
+            'assigned_user_id' => (int) $data['assigned_user_id'],
+            'assignment_status' => 'pending',
             'assignment_reviewed_by' => null,
             'assignment_reviewed_at' => null,
         ]);
@@ -191,7 +198,7 @@ class CustomerController extends Controller
     public function approveAssignment(Request $request, Customer $customer): RedirectResponse
     {
         $customer->update([
-            'assignment_status'      => 'approved',
+            'assignment_status' => 'approved',
             'assignment_reviewed_by' => $request->user()?->id,
             'assignment_reviewed_at' => now(),
         ]);
@@ -202,7 +209,7 @@ class CustomerController extends Controller
     public function rejectAssignment(Request $request, Customer $customer): RedirectResponse
     {
         $customer->update([
-            'assignment_status'      => 'rejected',
+            'assignment_status' => 'rejected',
             'assignment_reviewed_by' => $request->user()?->id,
             'assignment_reviewed_at' => now(),
         ]);
@@ -238,5 +245,10 @@ class CustomerController extends Controller
         if ($user?->hasRole('sales') && (int) $customer->assigned_user_id !== (int) $user->id) {
             abort(403, 'Unauthorized. You can only access customers assigned to you.');
         }
+    }
+
+    private function escapeLike(string $value): string
+    {
+        return addcslashes($value, '\\%_');
     }
 }
