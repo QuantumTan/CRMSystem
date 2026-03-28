@@ -29,8 +29,10 @@
                             aria-label="Open sidebar">
                             <i class="bi bi-list"></i>
                         </button>
+                        {{-- Page header --}}
+                        
                         <div>
-                            <h1 class="h5 mb-0">@yield('title', 'Dashboard')</h1>
+                            <h1 class="fs-3 fw-bold mb-0">@yield('title', 'Dashboard')</h1>
                             <div class="small text-muted">{{ auth()->user()->name }} ({{ ucfirst(auth()->user()->role) }})</div>
                         </div>
                     </div>
