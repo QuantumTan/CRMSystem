@@ -15,7 +15,7 @@
                     placeholder="Search name, email, phone, company..." value="{{ request('search') }}">
             </div>
 
-            <div class="d-flex flex-wrap gap-2">
+            <div class="d-flex flex-wrap   gap-2">
                 <select name="status" class="form-select form-select-sm w-auto" style="min-width: 130px;">
                     <option value="">All Status</option>
                     <option value="active" @selected(request('status') === 'active')>Active</option>
@@ -33,8 +33,8 @@
                 @endif
 
 
-                <button type="submit" class="btn btn-dark btn-sm px-3">Filter</button>
-                <a href="{{ route('customers.index') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
+                <button type="submit" class="btn btn-primary btn-sm px-3">Filter</button>
+                <a href="{{ route('customers.index') }}" class="btn btn-outline-primary btn-sm">Reset</a>
             </div>
         </form>
     </div>
