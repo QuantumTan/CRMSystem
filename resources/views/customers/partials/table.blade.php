@@ -31,6 +31,16 @@
                         @endforeach
                     </select>
                 @endif
+                @if ($isAdmin || $isManager)
+                    <select name="assignment_status" class="form-select form-select-sm w-auto">
+                        <option value="">All Assignment Status</option>
+                        @foreach ($assignmentStatuses as $assignmentStatus)
+                            <option value="{{$assignmentStatus}}" @@selected((string) request('assignment_status') === $assignmentStatus)>
+                                {{ucfirst($assignmentStatus)}}
+                            </option>
+                        @endforeach
+                    </select>
+                @endif
 
 
                 <button type="submit" class="btn btn-primary btn-sm px-3">Filter</button>
@@ -63,14 +73,26 @@
                         <td class="small text-muted py-3">#{{ $customer->id }}</td>
                         <td class="small text-muted py-3">{{ $customer->first_name }}</td>
                         <td class="small text-muted py-3">{{ $customer->last_name }}</td>
-                        <td class="small text-muted text-break py-3">{{ $customer->email }}</td>
+                        <td class="small text-muted  py-3">{{ $customer->email }}</td>
                         <td class="small text-muted py-3">{{ $customer->phone }}</td>
                         <td class="small text-muted py-3">{{ $customer->company ?: 'N/A' }}</td>
                         <td class="small text-muted py-3">{{ $customer->address ?: 'N/A' }}</td>
                         <td class="py-3">
                             <x-status-badge :status="$customer->status" />
                         </td>
-                        <td class="small text-muted py-3">{{ ucfirst($customer->assignment_status ?? 'pending') }}</td>
+                        <td class="py-3">
+                            @php
+                                $assignmentStatus = $customer->assignment_status ?? 'pending';
+                                $badgeClass = match ($assignmentStatus) {
+                                    'approved' => 'badge bg-success-subtle text-success border border-success-subtle',
+                                    'rejected' => 'badge bg-danger-subtle text-danger border border-danger-subtle',
+                                    'pending' => 'badge bg-warning-subtle text-warning border border-warning-subtle',
+                                    default
+                                        => 'badge bg-secondary-subtle text-secondary border border-secondary-subtle',
+                                };
+                            @endphp
+                            <span class="{{ $badgeClass }}">{{ ucfirst($assignmentStatus) }}</span>
+                        </td>
                         <td class="small text-muted py-3">{{ $customer->assignedUser?->name ?: 'Unassigned' }}</td>
                         <td class="small text-muted py-3">{{ $customer->created_at->format('M d, Y') }}</td>
                         <td class="py-3">

@@ -78,6 +78,7 @@ class CustomerController extends Controller
 
         $customers = $customersQuery->paginate(10)->withQueryString();
         $deleting = isset($filters['delete']) ? Customer::find($filters['delete']) : null;
+        $assignmentStatuses = ['pending', 'approved', 'rejected'];
         return view('customers.index', [
             'customers' => $customers,
             'customerThisMonth' => $customerThisMonth,
@@ -88,7 +89,8 @@ class CustomerController extends Controller
             'customerIsInactive' => $customerIsInactive,
             'totalCustomers' => $totalCustomers,
             'assignableUsers' => $this->assignableUsers(),
-            'deleting'=> $deleting,
+            'deleting' => $deleting,
+            'assignmentStatuses' => $assignmentStatuses,
         ]);
     }
 
