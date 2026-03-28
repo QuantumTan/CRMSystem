@@ -1,3 +1,5 @@
+@include('customers.partials._modal-delete', ['deleting' => $deleting ?? null])
+
 <div class="card border-0 shadow-sm">
     @php
         $isAdmin = auth()->user()?->role === 'admin';
@@ -80,13 +82,8 @@
                                         class="btn btn-sm btn-light border text-dark">Edit</a>
                                 @endif
                                 @if ($isAdmin)
-                                    <form method="POST" action="{{ route('customers.destroy', $customer) }}"
-                                        onsubmit="return confirm('Delete this customer?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                            class="btn btn-sm btn-light border text-danger">Delete</button>
-                                    </form>
+                                    <a href="{{ route('customers.index', ['delete' => $customer->id]) }}"
+                                        class="btn btn-sm btn-light border text-danger">Delete</a>
                                 @endif
                             </div>
                         </td>

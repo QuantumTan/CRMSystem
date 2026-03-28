@@ -20,6 +20,7 @@ class CustomerController extends Controller
             'search' => ['nullable', 'string', 'max:100'],
             'status' => ['nullable', 'in:active,inactive'],
             'assigned_user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'delete' => ['nullable', 'integer', 'exists:customers,id'],
         ]);
 
         $customersQuery = $this->applyVisibilityScope(
@@ -76,7 +77,7 @@ class CustomerController extends Controller
         $totalCustomers = (clone $baseStatsQuery)->count();
 
         $customers = $customersQuery->paginate(10)->withQueryString();
-
+        $deleting = isset($filters['delete']) ? Customer::find($filters['delete']) : null;
         return view('customers.index', [
             'customers' => $customers,
             'customerThisMonth' => $customerThisMonth,
@@ -87,6 +88,7 @@ class CustomerController extends Controller
             'customerIsInactive' => $customerIsInactive,
             'totalCustomers' => $totalCustomers,
             'assignableUsers' => $this->assignableUsers(),
+            'deleting'=> $deleting,
         ]);
     }
 
