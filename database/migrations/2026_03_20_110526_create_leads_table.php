@@ -27,7 +27,7 @@ return new class extends Migration
                 'won',
                 'lost'
             ])->default('new');
-            $table->enum('priority', ['low', 'medium', 'high'])->default('medium');
+            $table->enum('priority', ['low', 'medium', 'high', 'critical'])->default('medium');
             $table->decimal('expected_value', 10, 2)->nullable();
             $table->text('notes')->nullable();
             $table->foreignId('assigned_user_id')->nullable()->constrained('users')->nullOnDelete();

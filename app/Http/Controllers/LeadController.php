@@ -27,6 +27,7 @@ class LeadController extends Controller
         'low',
         'medium',
         'high',
+        'critical'
     ];
 
     public function index(Request $request): View

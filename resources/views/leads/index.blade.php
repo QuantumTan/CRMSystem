@@ -3,7 +3,7 @@
 @section('title', 'Leads')
 
 @section('content')
-    <div class="container-fluid px-3 px-md-4 py-4">
+    {{-- <div class="container-fluid px-3 px-md-4 py-4">
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
             <div>
                 <h4 class="mb-1 fw-semibold">Leads</h4>
@@ -164,6 +164,8 @@
         <div class="card-footer bg-white border-top py-3 mt-3">
             {{ $leads->links('pagination::bootstrap-5') }}
         </div>
-    </div>
+    </div> --}}
+
+    {{-- TODO: implement a kanban --}}
 
 @endsection
