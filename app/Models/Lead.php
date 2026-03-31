@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\DB; 
+use Illuminate\Support\Facades\DB;
 
 class Lead extends Model
 {
@@ -67,13 +67,13 @@ class Lead extends Model
     // activities related to the leads
     public function activities()
     {
-        return $this->morphMany(Activity::class, 'activitable');
+        return $this->hasMany(Activity::class, 'lead_id');
     }
 
     // follow-ups related to the lead
     public function followUps()
     {
-        return $this->morphMany(FollowUp::class, 'followupable');
+        return $this->hasMany(FollowUp::class, 'lead_id');
     }
 
     // helper metods
@@ -188,7 +188,6 @@ class Lead extends Model
                 'last_name' => $this->extractLastName($this->name),
                 'email' => $this->email,
                 'phone' => $this->phone,
-                'company' => $this->company,
                 'status' => 'active',
                 'assigned_user_id' => $this->assigned_user_id,
                 'source' => $this->source,
@@ -203,14 +202,14 @@ class Lead extends Model
 
             // Optional: Move activities to customer
             $this->activities()->update([
-                'activitable_id' => $customer->id,
-                'activitable_type' => Customer::class,
+                'customer_id' => $customer->id,
+                'lead_id' => null,
             ]);
 
             // Optional: Move follow-ups to customer
             $this->followUps()->update([
-                'followupable_id' => $customer->id,
-                'followupable_type' => Customer::class,
+                'customer_id' => $customer->id,
+                'lead_id' => null,
             ]);
 
             DB::commit();
@@ -222,7 +221,7 @@ class Lead extends Model
         }
     }
 
-     // LOST LEAD METHODS
+    // LOST LEAD METHODS
 
     // mark lead as lost
     public function markAsLost(string $reason, ?string $category = null): void
@@ -328,5 +327,39 @@ class Lead extends Model
     public function scopeAssignedTo($query, int $userId)
     {
         return $query->where('assigned_user_id', $userId);
+    }
+
+    // NAME EXTRACTION HELPERS
+
+    /**
+     * Extracts the first name from a full name string.
+     */
+    public function extractFirstName(?string $fullName): string
+    {
+        if (empty(trim($fullName))) {
+            return 'Unknown';
+        }
+
+        $parts = explode(' ', trim($fullName));
+        return $parts[0];
+    }
+
+    /**
+     * Extracts the last name from a full name string.
+     */
+    public function extractLastName(?string $fullName): string
+    {
+        if (empty(trim($fullName))) {
+            return '';
+        }
+
+        $parts = explode(' ', trim($fullName));
+
+        if (count($parts) > 1) {
+            array_shift($parts); // Remove the first name from the array
+            return implode(' ', $parts); // Combine the remaining parts
+        }
+
+        return ''; // Return empty string if no last name exists
     }
 }

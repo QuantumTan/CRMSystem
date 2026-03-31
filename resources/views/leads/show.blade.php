@@ -36,7 +36,6 @@
         body {
             font-family: 'DM Sans', sans-serif;
             background-color: #f8f9fa;
-            /* BS light */
         }
 
         .font-serif {
@@ -62,7 +61,31 @@
             </div>
 
             @if ($user && ($user->hasRole('admin') || $user->hasRole('sales')))
-                <div class="d-flex gap-2">
+                <div class="d-flex flex-wrap gap-2">
+                    
+                    {{-- ── CONVERT TO CUSTOMER BUTTON ───────────────────────── --}}
+                    @if(strtolower($lead->status) === 'won' && empty($lead->customer_id))
+                        <form action="{{ route('leads.convert', $lead) }}" method="POST" class="d-inline-block">
+                            @csrf
+                            <button type="submit" class="btn btn-success d-inline-flex align-items-center gap-2 px-3 fw-medium" 
+                                    style="font-size: 0.875rem;" 
+                                    onclick="return confirm('Are you sure you want to convert this lead into a customer?');">
+                                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+                                    <path d="M10.5 4.5l3 3m0 0l-3 3m3-3H2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Convert to Customer
+                            </button>
+                        </form>
+                    @elseif(!empty($lead->customer_id))
+                        <a href="{{ route('customers.show', $lead->customer_id) }}" class="btn btn-info text-white d-inline-flex align-items-center gap-2 px-3 fw-medium" style="font-size: 0.875rem;">
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+                                <circle cx="8" cy="5.5" r="3" />
+                                <path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6" />
+                            </svg>
+                            View Customer
+                        </a>
+                    @endif
+
                     <a href="{{ route('leads.edit', $lead) }}"
                         class="btn btn-light border shadow-sm d-inline-flex align-items-center gap-2 px-3 fw-medium"
                         style="font-size: 0.875rem;">
@@ -112,11 +135,11 @@
                                     @endphp
                                     <span
                                         class="badge rounded-pill bg-{{ $sColor }} bg-opacity-10 text-{{ $sColor }} fw-medium px-2 py-1">
-                                        {{ $lead->status }}
+                                        {{ ucfirst($lead->status) }}
                                     </span>
                                     <span
                                         class="badge rounded-pill bg-{{ $pColor }} bg-opacity-10 text-{{ $pColor }} fw-medium px-2 py-1">
-                                        {{ $lead->priority }} Priority
+                                        {{ ucfirst($lead->priority) }} Priority
                                     </span>
                                 </div>
                             </div>
@@ -297,8 +320,8 @@
                                     'Negotiation',
                                     'Won',
                                 ];
-                                $activeIndex = array_search($lead->status, $pipelineSteps);
-                                $isLost = $lead->status === 'Lost';
+                                $activeIndex = array_search(ucfirst($lead->status), $pipelineSteps);
+                                $isLost = strtolower($lead->status) === 'lost';
                             @endphp
 
                             @foreach ($pipelineSteps as $i => $step)
@@ -366,7 +389,7 @@
                                 <div class="bg-light rounded-3 p-3 h-100">
                                     <div class="text-uppercase text-muted fw-bold mb-1"
                                         style="font-size: 0.65rem; letter-spacing: 0.05em;">Priority</div>
-                                    <div class="fs-6 fw-bold text-dark lh-1 mt-2">{{ $lead->priority }}</div>
+                                    <div class="fs-6 fw-bold text-dark lh-1 mt-2">{{ ucfirst($lead->priority) }}</div>
                                 </div>
                             </div>
                         </div>
@@ -389,7 +412,8 @@
 
                         @if (isset($activities) && $activities->count())
                             <div class="d-flex flex-column gap-3 mb-4">
-                                @foreach ($activities as $loop)
+                                {{-- BUG FIX: Changed $loop to $activity --}}
+                                @foreach ($activities as $activity)
                                     <div class="d-flex gap-3 {{ !$loop->last ? 'pb-3 border-bottom' : '' }}">
                                         @php
                                             $aType = $activity->type ?? '';

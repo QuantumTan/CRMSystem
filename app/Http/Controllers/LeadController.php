@@ -9,7 +9,6 @@ use App\Models\Lead;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -61,6 +60,8 @@ class LeadController extends Controller
         $filters = $request->validate([
             'search'        => ['nullable', 'string', 'max:100'],
             'assigned_user' => ['nullable', 'exists:users,id'],
+            'status'        => ['nullable', 'string'],
+            'priority'      => ['nullable', 'string'],
         ]);
 
         $leadQuery = Lead::query()->with(['assignedUser', 'convertedToCustomer']);
@@ -76,6 +77,14 @@ class LeadController extends Controller
 
         if (!empty($filters['assigned_user'])) {
             $leadQuery->where('assigned_user_id', $filters['assigned_user']);
+        }
+        
+        if (!empty($filters['status'])) {
+            $leadQuery->where('status', $filters['status']);
+        }
+
+        if (!empty($filters['priority'])) {
+            $leadQuery->where('priority', $filters['priority']);
         }
 
         $allLeads = $leadQuery->get();
@@ -107,7 +116,7 @@ class LeadController extends Controller
                         ->orWhere('phone', 'like', "%{$request->search}%");
                 });
             })
-            ->when($request->status,        fn($q) => $q->where('status', $request->status))
+            ->when($request->status,      fn($q) => $q->where('status', $request->status))
             ->when($request->priority,      fn($q) => $q->where('priority', $request->priority))
             ->when($request->assigned_user, fn($q) => $q->where('assigned_user_id', $request->assigned_user))
             ->latest()
@@ -195,11 +204,9 @@ class LeadController extends Controller
 
     /**
      * Update only the status of a specific lead.
-     * Supports JSON (Kanban drag-and-drop) and standard HTTP form submissions.
-     * NOTE: "lost" status is never sent here from the Kanban — the JS redirects
-     * directly to the lost-form before making any AJAX call.
+     * Triggered by the drag-and-drop form.
      */
-    public function updateStatus(Request $request, Lead $lead): JsonResponse|RedirectResponse
+    public function updateStatus(Request $request, Lead $lead): RedirectResponse
     {
         $this->authorizeAccess($request, allowManager: true);
 
@@ -210,39 +217,15 @@ class LeadController extends Controller
         $oldStatus = $lead->status;
         $newStatus = $data['status'];
 
-        // Handle special case: marking as WON
         if ($newStatus === 'won' && $oldStatus !== 'won') {
             $lead->update(['status' => 'won']);
-
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success'     => true,
-                    'message'     => 'Lead marked as won! Ready to convert?',
-                    'lead'        => $lead,
-                    'old_status'  => $oldStatus,
-                    'new_status'  => $newStatus,
-                    'can_convert' => true,
-                ]);
-            }
-
             return redirect()->route('leads.show', $lead)
                 ->with('success', 'Lead marked as won! Click "Convert to Customer" when ready.');
         }
 
-        // Normal status update
         $lead->update(['status' => $newStatus]);
 
-        if ($request->expectsJson()) {
-            return response()->json([
-                'success'    => true,
-                'message'    => "Lead moved from {$oldStatus} to {$newStatus}",
-                'lead'       => $lead,
-                'old_status' => $oldStatus,
-                'new_status' => $newStatus,
-            ]);
-        }
-
-        return redirect()->route('leads.index')->with('success', 'Lead status updated.');
+        return redirect()->back()->with('success', "Lead moved from {$oldStatus} to {$newStatus}.");
     }
 
     /**
@@ -270,8 +253,7 @@ class LeadController extends Controller
 
         $lead->markAsLost($data['lost_reason'], $data['lost_category']);
 
-        return redirect()->route('leads.index')
-            ->with('success', 'Lead marked as lost.');
+        return redirect()->route('leads.index')->with('success', 'Lead marked as lost.');
     }
 
     /**
@@ -307,7 +289,7 @@ class LeadController extends Controller
             'assigned_user_id' => $data['assigned_user_id'] ?? null,
         ]);
 
-        return redirect()->route('leads.index')->with('success', 'Lead assignee updated.');
+        return redirect()->back()->with('success', 'Lead assignee updated.');
     }
 
     /**
@@ -323,7 +305,7 @@ class LeadController extends Controller
 
         $lead->update(['priority' => $data['priority']]);
 
-        return redirect()->route('leads.index')->with('success', 'Lead priority updated.');
+        return redirect()->back()->with('success', 'Lead priority updated.');
     }
 
     /**
@@ -357,32 +339,18 @@ class LeadController extends Controller
     /**
      * Remove the specified lead from the database.
      */
-    public function destroy(Request $request, Lead $lead): RedirectResponse|JsonResponse
+    public function destroy(Request $request, Lead $lead): RedirectResponse
     {
         $this->authorizeAccess($request);
 
         if ($lead->isConverted()) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Cannot delete leads that have been converted to customers.',
-                ], 422);
-            }
-
-            return redirect()->route('leads.index')
+            return redirect()->back()
                 ->with('error', 'Cannot delete leads that have been converted to customers.');
         }
 
         $lead->delete();
 
-        if ($request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Lead deleted successfully',
-            ]);
-        }
-
-        return redirect()->route('leads.index')->with('success', 'Lead deleted successfully.');
+        return redirect()->back()->with('success', 'Lead deleted successfully.');
     }
 
     /**
