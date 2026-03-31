@@ -23,7 +23,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('leads', function (Blueprint $table) {
-            // Revert to string if needed (adjust as appropriate for your previous type)
             $table->string('priority')->default('medium')->change();
         });
     }

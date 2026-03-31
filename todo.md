@@ -5,6 +5,9 @@ TODO
 
 (Core Module Development)
 1. Lead Module - CRUD operations
+DONE: FIX THE LEADS MIGRATION -> MODEL -> REQUESTS -> CONTROLLER -> ROUTES
+TODO:
+    UI implementation and fix
 Admin
     - admin full crud access 
     - assign leads to any staff member (one only)

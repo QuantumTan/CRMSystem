@@ -63,26 +63,30 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/{customer}/assignment/reject', [CustomerController::class, 'rejectAssignment'])->whereNumber('customer')->name('assignment.reject');
     });
 
-    // TODO: split the features the users can only access
-    // 1. admin and sales can manage the leads
-    // 2. manager can only view the lead progress
-
     // Admin, Manager, Sales — leads
     Route::middleware('role:admin,manager,sales')->prefix('leads')->name('leads.')->group(function () {
-        // kanban routes line 73 - 74
+        // Kanban routes
         Route::get('/kanban', [LeadController::class, 'kanban'])->name('kanban');
         Route::patch('/kanban/{lead}/status', [LeadController::class, 'updateStatus'])->name('kanban.update-status');
+        // Standard CRUD routes
         Route::get('/', [LeadController::class, 'index'])->name('index');
         Route::get('/create', [LeadController::class, 'create'])->name('create');
         Route::post('/', [LeadController::class, 'store'])->name('store');
-        Route::patch('/{lead}/convert', [LeadController::class, 'convert'])->name('convert');
-        Route::patch('/{lead}/assign', [LeadController::class, 'assign'])->name('assign');
-        Route::patch('/{lead}/priority', [LeadController::class, 'setPriority'])->name('set-priority');
+        Route::get('/{lead}', [LeadController::class, 'show'])->name('show');
         Route::get('/{lead}/edit', [LeadController::class, 'edit'])->name('edit');
         Route::put('/{lead}', [LeadController::class, 'update'])->name('update');
         Route::delete('/{lead}', [LeadController::class, 'destroy'])->name('destroy');
+        // Lead management actions
         Route::patch('/{lead}/status', [LeadController::class, 'updateStatus'])->name('update-status');
-        Route::get('/{lead}', [LeadController::class, 'show'])->name('show');
+        Route::patch('/{lead}/assign', [LeadController::class, 'assign'])->name('assign');
+        Route::patch('/{lead}/priority', [LeadController::class, 'setPriority'])->name('set-priority');
+        // Lost lead handling
+        Route::get('/{lead}/lost-form', [LeadController::class, 'showLostForm'])->name('lost-form');
+        Route::post('/{lead}/mark-lost', [LeadController::class, 'markAsLost'])->name('mark-lost');
+        // Reopen lost lead
+        Route::post('/{lead}/reopen', [LeadController::class, 'reopen'])->name('reopen');
+        // Conversion routes 
+        Route::post('/{lead}/convert', [LeadController::class, 'convert'])->name('convert');
     });
 
     // Admin, Manager, Sales — activities & follow-ups
