@@ -35,6 +35,7 @@ return new class extends Migration
             $table->foreignId('assigned_user_id')->nullable()->constrained('users')->nullOnDelete();
             // conversion lead tracking 
             $table->foreignId('converted_to_customer_id')->nullable()->constrained('customers')->nullOnDelete();
+            $table->timestamp('converted_at')->nullable();
             // lost lead
             $table->string('lost_reason')->nullable();
             $table->string('lost_category')->nullable();

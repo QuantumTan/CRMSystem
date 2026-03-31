@@ -43,32 +43,30 @@ class LeadController extends Controller
      * Lost categories for reporting.
      */
     private const LOST_CATEGORIES = [
-        'budget' => 'Budget too high',
-        'competitor' => 'Chose competitor',
-        'timing' => 'Wrong timing',
-        'not_interested' => 'Not interested',
-        'no_decision' => 'No decision maker',
-        'other' => 'Other',
+        'budget'        => 'Budget too high',
+        'competitor'    => 'Chose competitor',
+        'timing'        => 'Wrong timing',
+        'not_interested'=> 'Not interested',
+        'no_decision'   => 'No decision maker',
+        'other'         => 'Other',
     ];
 
     /**
      * Display the drag-and-drop Kanban board view for leads.
-     * Groups leads by their current status for visual pipeline management.
      */
     public function kanban(Request $request): View
     {
         $this->authorizeAccess($request, allowManager: true);
 
         $filters = $request->validate([
-            'search' => ['nullable', 'string', 'max:100'],
+            'search'        => ['nullable', 'string', 'max:100'],
             'assigned_user' => ['nullable', 'exists:users,id'],
         ]);
 
-        $leadQuery = Lead::query()->with(['assignedUser', 'convertedToCustomer']); // FIXED: changed 'customer' to 'convertedToCustomer'
+        $leadQuery = Lead::query()->with(['assignedUser', 'convertedToCustomer']);
 
         if (!empty($filters['search'])) {
             $search = $this->escapeLike((string) $filters['search']);
-
             $leadQuery->where(function (Builder $query) use ($search): void {
                 $query->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
@@ -88,9 +86,9 @@ class LeadController extends Controller
         }
 
         return view('leads.kanban', [
-            'statuses' => self::STATUS_OPTIONS,
+            'statuses'      => self::STATUS_OPTIONS,
             'leadsByStatus' => $leadsByStatus,
-            'users' => $this->assignableUsers(),
+            'users'         => $this->assignableUsers(),
         ]);
     }
 
@@ -101,7 +99,7 @@ class LeadController extends Controller
     {
         $this->authorizeAccess($request, allowManager: true);
 
-        $leads = Lead::with('assignedUser', 'convertedToCustomer') // FIXED: changed 'customer' to 'convertedToCustomer'
+        $leads = Lead::with('assignedUser', 'convertedToCustomer')
             ->when($request->search, function ($q) use ($request) {
                 $q->where(function ($q) use ($request) {
                     $q->where('name', 'like', "%{$request->search}%")
@@ -109,18 +107,18 @@ class LeadController extends Controller
                         ->orWhere('phone', 'like', "%{$request->search}%");
                 });
             })
-            ->when($request->status, fn($q) => $q->where('status', $request->status))
-            ->when($request->priority, fn($q) => $q->where('priority', $request->priority))
+            ->when($request->status,        fn($q) => $q->where('status', $request->status))
+            ->when($request->priority,      fn($q) => $q->where('priority', $request->priority))
             ->when($request->assigned_user, fn($q) => $q->where('assigned_user_id', $request->assigned_user))
             ->latest()
             ->paginate(15);
 
         return view('leads.index', [
-            'leads' => $leads,
-            'statusOptions' => self::STATUS_OPTIONS,
+            'leads'           => $leads,
+            'statusOptions'   => self::STATUS_OPTIONS,
             'priorityOptions' => self::PRIORITY_OPTIONS,
             'assignableUsers' => $this->assignableUsers(),
-            'users' => User::orderBy('name')->get(),
+            'users'           => User::orderBy('name')->get(),
         ]);
     }
 
@@ -132,7 +130,7 @@ class LeadController extends Controller
         $this->authorizeAccess($request);
 
         return view('leads.create', [
-            'statusOptions' => self::STATUS_OPTIONS,
+            'statusOptions'   => self::STATUS_OPTIONS,
             'priorityOptions' => self::PRIORITY_OPTIONS,
             'assignableUsers' => $this->assignableUsers(),
         ]);
@@ -140,8 +138,6 @@ class LeadController extends Controller
 
     /**
      * Store a newly created lead in the database.
-     * Automatically assigns the lead to the authenticated user if they are in sales
-     * and left the assignment blank.
      */
     public function store(StoreLeadRequest $request): RedirectResponse
     {
@@ -165,7 +161,7 @@ class LeadController extends Controller
     {
         $this->authorizeAccess($request, allowManager: true);
 
-        $lead->load(['assignedUser', 'convertedToCustomer']); 
+        $lead->load(['assignedUser', 'convertedToCustomer']);
 
         return view('leads.show', compact('lead'));
     }
@@ -178,8 +174,8 @@ class LeadController extends Controller
         $this->authorizeAccess($request);
 
         return view('leads.edit', [
-            'lead' => $lead,
-            'statusOptions' => self::STATUS_OPTIONS,
+            'lead'            => $lead,
+            'statusOptions'   => self::STATUS_OPTIONS,
             'priorityOptions' => self::PRIORITY_OPTIONS,
             'assignableUsers' => $this->assignableUsers(),
         ]);
@@ -199,12 +195,13 @@ class LeadController extends Controller
 
     /**
      * Update only the status of a specific lead.
-     * Designed to support both asynchronous JSON requests (e.g., Kanban drag-and-drop) 
-     * and standard HTTP form submissions.
+     * Supports JSON (Kanban drag-and-drop) and standard HTTP form submissions.
+     * NOTE: "lost" status is never sent here from the Kanban — the JS redirects
+     * directly to the lost-form before making any AJAX call.
      */
     public function updateStatus(Request $request, Lead $lead): JsonResponse|RedirectResponse
     {
-        $this->authorizeAccess($request);
+        $this->authorizeAccess($request, allowManager: true);
 
         $data = $request->validate([
             'status' => ['required', 'in:' . implode(',', self::STATUS_OPTIONS)],
@@ -213,31 +210,17 @@ class LeadController extends Controller
         $oldStatus = $lead->status;
         $newStatus = $data['status'];
 
-        // Handle special case: marking as LOST - redirect to lost form
-        if ($newStatus === 'lost' && $oldStatus !== 'lost') {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Please provide a reason for losing this lead.',
-                    'requires_reason' => true,
-                ]);
-            }
-
-            return redirect()->route('leads.lost-form', $lead)
-                ->with('warning', 'Please tell us why this lead was lost.');
-        }
-
         // Handle special case: marking as WON
         if ($newStatus === 'won' && $oldStatus !== 'won') {
             $lead->update(['status' => 'won']);
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'success' => true,
-                    'message' => "Lead marked as won! Ready to convert?",
-                    'lead' => $lead,
-                    'old_status' => $oldStatus,
-                    'new_status' => $newStatus,
+                    'success'     => true,
+                    'message'     => 'Lead marked as won! Ready to convert?',
+                    'lead'        => $lead,
+                    'old_status'  => $oldStatus,
+                    'new_status'  => $newStatus,
                     'can_convert' => true,
                 ]);
             }
@@ -251,9 +234,9 @@ class LeadController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'success' => true,
-                'message' => "Lead moved from {$oldStatus} to {$newStatus}",
-                'lead' => $lead,
+                'success'    => true,
+                'message'    => "Lead moved from {$oldStatus} to {$newStatus}",
+                'lead'       => $lead,
                 'old_status' => $oldStatus,
                 'new_status' => $newStatus,
             ]);
@@ -267,10 +250,8 @@ class LeadController extends Controller
      */
     public function showLostForm(Lead $lead): View
     {
-        $this->authorizeAccess(request());
-
         return view('leads.lost-form', [
-            'lead' => $lead,
+            'lead'           => $lead,
             'lostCategories' => self::LOST_CATEGORIES,
         ]);
     }
@@ -283,8 +264,8 @@ class LeadController extends Controller
         $this->authorizeAccess($request);
 
         $data = $request->validate([
-            'lost_reason' => ['required', 'string', 'min:3', 'max:500'],
-            'lost_category' => ['required', 'in:' . implode(',', array_keys(self::LOST_CATEGORIES))],
+            'lost_reason'    => ['required', 'string', 'min:3', 'max:500'],
+            'lost_category'  => ['required', 'in:' . implode(',', array_keys(self::LOST_CATEGORIES))],
         ]);
 
         $lead->markAsLost($data['lost_reason'], $data['lost_category']);
@@ -340,9 +321,7 @@ class LeadController extends Controller
             'priority' => ['required', 'in:' . implode(',', self::PRIORITY_OPTIONS)],
         ]);
 
-        $lead->update([
-            'priority' => $data['priority'],
-        ]);
+        $lead->update(['priority' => $data['priority']]);
 
         return redirect()->route('leads.index')->with('success', 'Lead priority updated.');
     }
@@ -354,20 +333,17 @@ class LeadController extends Controller
     {
         $this->authorizeAccess($request);
 
-        // Check if lead is already converted
         if ($lead->isConverted()) {
             return redirect()->route('leads.show', $lead)
                 ->with('error', 'This lead has already been converted to a customer.');
         }
 
-        // Check if lead is won
         if (!$lead->isWon()) {
             return redirect()->route('leads.show', $lead)
                 ->with('error', 'Only leads with "Won" status can be converted to customers.');
         }
 
         try {
-            // Use the model's conversion method
             $customer = $lead->convertToCustomer();
 
             return redirect()->route('customers.show', $customer)
@@ -380,18 +356,16 @@ class LeadController extends Controller
 
     /**
      * Remove the specified lead from the database.
-     * Supports both JSON responses for AJAX deletion and standard HTTP redirects.
      */
     public function destroy(Request $request, Lead $lead): RedirectResponse|JsonResponse
     {
         $this->authorizeAccess($request);
 
-        // Warn if lead was converted
         if ($lead->isConverted()) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Cannot delete leads that have been converted to customers.'
+                    'message' => 'Cannot delete leads that have been converted to customers.',
                 ], 422);
             }
 
@@ -404,7 +378,7 @@ class LeadController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Lead deleted successfully'
+                'message' => 'Lead deleted successfully',
             ]);
         }
 
@@ -413,9 +387,6 @@ class LeadController extends Controller
 
     /**
      * Centralized authorization check for lead actions.
-     * Prevents unauthorized users from accessing or modifying lead data.
-     * allowManager Whether users with the 'manager' role bypass the check (read-only views)
-
      */
     private function authorizeAccess(Request $request, bool $allowManager = false): void
     {
@@ -435,7 +406,7 @@ class LeadController extends Controller
     }
 
     /**
-     * Retrieve a collection of users who are eligible to be assigned to leads.
+     * Retrieve users eligible to be assigned to leads.
      */
     private function assignableUsers(): Collection
     {
@@ -446,7 +417,7 @@ class LeadController extends Controller
     }
 
     /**
-     * Escape special characters in a string to safely use it in an SQL LIKE query
+     * Escape special characters for SQL LIKE queries.
      */
     private function escapeLike(string $value): string
     {
