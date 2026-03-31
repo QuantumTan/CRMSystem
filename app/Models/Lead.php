@@ -39,4 +39,16 @@ class Lead extends Model
     {
         return $this->belongsTo(User::class, 'assigned_user_id');
     }
+    public static function getStatuses(): array
+    {
+        return [
+            'new',
+            'contacted',
+            'qualified',
+            'proposal_sent',
+            'negotiation',
+            'won',
+            'lost',
+        ];
+    }
 }

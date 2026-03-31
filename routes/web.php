@@ -69,6 +69,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Admin, Manager, Sales — leads
     Route::middleware('role:admin,manager,sales')->prefix('leads')->name('leads.')->group(function () {
+        // kanban routes line 73 - 74
+        Route::get('/kanban', [LeadController::class, 'kanban'])->name('kanban');
+        Route::patch('/kanban/{lead}/status', [LeadController::class, 'updateStatus'])->name('kanban.update-status');
         Route::get('/', [LeadController::class, 'index'])->name('index');
         Route::get('/create', [LeadController::class, 'create'])->name('create');
         Route::post('/', [LeadController::class, 'store'])->name('store');

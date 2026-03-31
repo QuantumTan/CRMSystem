@@ -3,6 +3,11 @@
 @section('title', 'Add Lead')
 
 @section('content')
+    @php $user = auth()->user(); @endphp
+    @if (!($user && ($user->hasRole('admin') || $user->hasRole('sales'))))
+        <div class="alert alert-danger">You do not have permission to add leads.</div>
+        @return
+    @endif
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="h3 mb-1">Add Lead</h1>

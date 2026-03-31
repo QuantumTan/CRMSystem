@@ -15,6 +15,7 @@
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/sass/app.scss', 'resources/js/app.js'])
     @endif
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 
 <body class="bg-light">
