@@ -315,7 +315,7 @@ class LeadController extends Controller
         $nameParts = preg_split('/\s+/', trim($lead->name));
         $firstName = $nameParts[0] ?? 'Prospect';
         $lastName = trim(implode(' ', array_slice($nameParts, 1)));
-        
+
         if ($lastName === '') {
             $lastName = '-';
         }
