@@ -22,32 +22,20 @@ class LeadController extends Controller
     /**
      * Standard status workflow for a lead.
      */
-    private const STATUS_OPTIONS = [
-        'new',
-        'contacted',
-        'qualified',
-        'proposal_sent',
-        'negotiation',
-        'won',
-        'lost',
-    ];
+    private const STATUS_OPTIONS = ['new', 'contacted', 'qualified', 'proposal_sent', 'negotiation', 'won', 'lost'];
 
-    private const PRIORITY_OPTIONS = [
-        'low',
-        'medium',
-        'high',
-    ];
+    private const PRIORITY_OPTIONS = ['low', 'medium', 'high'];
 
     /**
      * Lost categories for reporting.
      */
     private const LOST_CATEGORIES = [
-        'budget'        => 'Budget too high',
-        'competitor'    => 'Chose competitor',
-        'timing'        => 'Wrong timing',
-        'not_interested'=> 'Not interested',
-        'no_decision'   => 'No decision maker',
-        'other'         => 'Other',
+        'budget' => 'Budget too high',
+        'competitor' => 'Chose competitor',
+        'timing' => 'Wrong timing',
+        'not_interested' => 'Not interested',
+        'no_decision' => 'No decision maker',
+        'other' => 'Other',
     ];
 
     /**
@@ -58,10 +46,10 @@ class LeadController extends Controller
         $this->authorizeAccess($request, allowManager: true);
 
         $filters = $request->validate([
-            'search'        => ['nullable', 'string', 'max:100'],
+            'search' => ['nullable', 'string', 'max:100'],
             'assigned_user' => ['nullable', 'exists:users,id'],
-            'status'        => ['nullable', 'string'],
-            'priority'      => ['nullable', 'string'],
+            'status' => ['nullable', 'string'],
+            'priority' => ['nullable', 'string'],
         ]);
 
         $leadQuery = Lead::query()->with(['assignedUser', 'convertedToCustomer']);
@@ -69,7 +57,8 @@ class LeadController extends Controller
         if (!empty($filters['search'])) {
             $search = $this->escapeLike((string) $filters['search']);
             $leadQuery->where(function (Builder $query) use ($search): void {
-                $query->where('name', 'like', "%{$search}%")
+                $query
+                    ->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
                     ->orWhere('phone', 'like', "%{$search}%");
             });
@@ -78,7 +67,7 @@ class LeadController extends Controller
         if (!empty($filters['assigned_user'])) {
             $leadQuery->where('assigned_user_id', $filters['assigned_user']);
         }
-        
+
         if (!empty($filters['status'])) {
             $leadQuery->where('status', $filters['status']);
         }
@@ -95,9 +84,9 @@ class LeadController extends Controller
         }
 
         return view('leads.kanban', [
-            'statuses'      => self::STATUS_OPTIONS,
+            'statuses' => self::STATUS_OPTIONS,
             'leadsByStatus' => $leadsByStatus,
-            'users'         => $this->assignableUsers(),
+            'users' => $this->assignableUsers(),
         ]);
     }
 
@@ -116,18 +105,18 @@ class LeadController extends Controller
                         ->orWhere('phone', 'like', "%{$request->search}%");
                 });
             })
-            ->when($request->status,      fn($q) => $q->where('status', $request->status))
-            ->when($request->priority,      fn($q) => $q->where('priority', $request->priority))
+            ->when($request->status, fn($q) => $q->where('status', $request->status))
+            ->when($request->priority, fn($q) => $q->where('priority', $request->priority))
             ->when($request->assigned_user, fn($q) => $q->where('assigned_user_id', $request->assigned_user))
             ->latest()
             ->paginate(15);
 
         return view('leads.index', [
-            'leads'           => $leads,
-            'statusOptions'   => self::STATUS_OPTIONS,
+            'leads' => $leads,
+            'statusOptions' => self::STATUS_OPTIONS,
             'priorityOptions' => self::PRIORITY_OPTIONS,
             'assignableUsers' => $this->assignableUsers(),
-            'users'           => User::orderBy('name')->get(),
+            'users' => User::orderBy('name')->get(),
         ]);
     }
 
@@ -139,7 +128,7 @@ class LeadController extends Controller
         $this->authorizeAccess($request);
 
         return view('leads.create', [
-            'statusOptions'   => self::STATUS_OPTIONS,
+            'statusOptions' => self::STATUS_OPTIONS,
             'priorityOptions' => self::PRIORITY_OPTIONS,
             'assignableUsers' => $this->assignableUsers(),
         ]);
@@ -183,8 +172,8 @@ class LeadController extends Controller
         $this->authorizeAccess($request);
 
         return view('leads.edit', [
-            'lead'            => $lead,
-            'statusOptions'   => self::STATUS_OPTIONS,
+            'lead' => $lead,
+            'statusOptions' => self::STATUS_OPTIONS,
             'priorityOptions' => self::PRIORITY_OPTIONS,
             'assignableUsers' => $this->assignableUsers(),
         ]);
@@ -219,13 +208,14 @@ class LeadController extends Controller
 
         if ($newStatus === 'won' && $oldStatus !== 'won') {
             $lead->update(['status' => 'won']);
-            return redirect()->route('leads.show', $lead)
-                ->with('success', 'Lead marked as won! Click "Convert to Customer" when ready.');
+            return redirect()->route('leads.show', $lead)->with('success', 'Lead marked as won! Click "Convert to Customer" when ready.');
         }
 
         $lead->update(['status' => $newStatus]);
 
-        return redirect()->back()->with('success', "Lead moved from {$oldStatus} to {$newStatus}.");
+        return redirect()
+            ->back()
+            ->with('success', "Lead moved from {$oldStatus} to {$newStatus}.");
     }
 
     /**
@@ -234,7 +224,7 @@ class LeadController extends Controller
     public function showLostForm(Lead $lead): View
     {
         return view('leads.lost-form', [
-            'lead'           => $lead,
+            'lead' => $lead,
             'lostCategories' => self::LOST_CATEGORIES,
         ]);
     }
@@ -247,8 +237,8 @@ class LeadController extends Controller
         $this->authorizeAccess($request);
 
         $data = $request->validate([
-            'lost_reason'    => ['required', 'string', 'min:3', 'max:500'],
-            'lost_category'  => ['required', 'in:' . implode(',', array_keys(self::LOST_CATEGORIES))],
+            'lost_reason' => ['required', 'string', 'min:3', 'max:500'],
+            'lost_category' => ['required', 'in:' . implode(',', array_keys(self::LOST_CATEGORIES))],
         ]);
 
         $lead->markAsLost($data['lost_reason'], $data['lost_category']);
@@ -264,14 +254,12 @@ class LeadController extends Controller
         $this->authorizeAccess($request);
 
         if (!$lead->isLost()) {
-            return redirect()->route('leads.show', $lead)
-                ->with('error', 'Only lost leads can be reopened.');
+            return redirect()->route('leads.show', $lead)->with('error', 'Only lost leads can be reopened.');
         }
 
         $lead->reopen('contacted');
 
-        return redirect()->route('leads.show', $lead)
-            ->with('success', 'Lead has been reopened and is now active.');
+        return redirect()->route('leads.show', $lead)->with('success', 'Lead has been reopened and is now active.');
     }
 
     /**
@@ -316,22 +304,22 @@ class LeadController extends Controller
         $this->authorizeAccess($request);
 
         if ($lead->isConverted()) {
-            return redirect()->route('leads.show', $lead)
-                ->with('error', 'This lead has already been converted to a customer.');
+            return redirect()->route('leads.show', $lead)->with('error', 'This lead has already been converted to a customer.');
         }
 
         if (!$lead->isWon()) {
-            return redirect()->route('leads.show', $lead)
-                ->with('error', 'Only leads with "Won" status can be converted to customers.');
+            return redirect()->route('leads.show', $lead)->with('error', 'Only leads with "Won" status can be converted to customers.');
         }
 
         try {
             $customer = $lead->convertToCustomer();
 
-            return redirect()->route('customers.show', $customer)
+            return redirect()
+                ->route('customers.show', $customer)
                 ->with('success', "Lead successfully converted to customer: {$customer->name}");
         } catch (\Exception $e) {
-            return redirect()->route('leads.show', $lead)
+            return redirect()
+                ->route('leads.show', $lead)
                 ->with('error', 'Conversion failed: ' . $e->getMessage());
         }
     }
@@ -344,8 +332,7 @@ class LeadController extends Controller
         $this->authorizeAccess($request);
 
         if ($lead->isConverted()) {
-            return redirect()->back()
-                ->with('error', 'Cannot delete leads that have been converted to customers.');
+            return redirect()->back()->with('error', 'Cannot delete leads that have been converted to customers.');
         }
 
         $lead->delete();
