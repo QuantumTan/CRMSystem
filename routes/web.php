@@ -63,23 +63,30 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/{customer}/assignment/reject', [CustomerController::class, 'rejectAssignment'])->whereNumber('customer')->name('assignment.reject');
     });
 
-    // TODO: split the features the users can only access
-    // 1. admin and sales can manage the leads
-    // 2. manager can only view the lead progress
-
     // Admin, Manager, Sales — leads
     Route::middleware('role:admin,manager,sales')->prefix('leads')->name('leads.')->group(function () {
-        Route::get('/', [LeadController::class, 'index'])->name('index');
+        //  Kanban routes (specific)
+        Route::get('/kanban', [LeadController::class, 'kanban'])->name('kanban');
+        Route::patch('/kanban/{lead}/status', [LeadController::class, 'updateStatus'])->name('kanban.update-status');
+
+        //  Other specific routes (BEFORE generic {lead})
         Route::get('/create', [LeadController::class, 'create'])->name('create');
-        Route::post('/', [LeadController::class, 'store'])->name('store');
-        Route::patch('/{lead}/convert', [LeadController::class, 'convert'])->name('convert');
+        Route::get('/{lead}/edit', [LeadController::class, 'edit'])->name('edit');
+        Route::get('/{lead}/lost-form', [LeadController::class, 'showLostForm'])->name('lost-form');
+        Route::post('/{lead}/mark-lost', [LeadController::class, 'markAsLost'])->name('mark-lost');
+        Route::get('/{lead}/lost-form', [LeadController::class, 'showLostForm'])->name('lost-form');
+        Route::post('/{lead}/reopen', [LeadController::class, 'reopen'])->name('reopen');
+        Route::post('/{lead}/convert', [LeadController::class, 'convert'])->name('convert');
+        Route::patch('/{lead}/status', [LeadController::class, 'updateStatus'])->name('update-status');
         Route::patch('/{lead}/assign', [LeadController::class, 'assign'])->name('assign');
         Route::patch('/{lead}/priority', [LeadController::class, 'setPriority'])->name('set-priority');
-        Route::get('/{lead}/edit', [LeadController::class, 'edit'])->name('edit');
+
+        // Generic routes (LAST - catch-all)
+        Route::post('/', [LeadController::class, 'store'])->name('store');
+        Route::get('/', [LeadController::class, 'index'])->name('index');
+        Route::get('/{lead}', [LeadController::class, 'show'])->name('show');
         Route::put('/{lead}', [LeadController::class, 'update'])->name('update');
         Route::delete('/{lead}', [LeadController::class, 'destroy'])->name('destroy');
-        Route::patch('/{lead}/status', [LeadController::class, 'updateStatus'])->name('update-status');
-        Route::get('/{lead}', [LeadController::class, 'show'])->name('show');
     });
 
     // Admin, Manager, Sales — activities & follow-ups
