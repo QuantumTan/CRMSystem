@@ -121,13 +121,13 @@
                             <div class="col-12">
                                 <div class="p-3 rounded-3 border">
                                     <div class="small text-muted">Total Expected Value</div>
-                                    <div class="fs-5 fw-semibold">${{ number_format($data['salesPipelineSummary']['total_expected_value'], 2) }}</div>
+                                    <div class="fs-5 fw-semibold">Php {{ number_format($data['salesPipelineSummary']['total_expected_value'], 2) }}</div>
                                 </div>
                             </div>
                             <div class="col-12">
                                 <div class="p-3 rounded-3 border">
                                     <div class="small text-muted">Active Pipeline Value</div>
-                                    <div class="fs-5 fw-semibold">${{ number_format($data['salesPipelineSummary']['active_expected_value'], 2) }}</div>
+                                    <div class="fs-5 fw-semibold">Php {{ number_format($data['salesPipelineSummary']['active_expected_value'], 2) }}</div>
                                 </div>
                             </div>
                         </div>
