@@ -85,9 +85,11 @@
 
         {{-- activity --}}
         <div class="mt-4">
-    @include('activities._form', ['lead' => null, 'customer' => $customer])
-    @include('activities._timeline', ['activities' => $activities])
-</div>
+            @can('create', \App\Models\Activity::class)
+                @include('activities._form', ['lead' => null, 'customer' => $customer])
+            @endcan
+            @include('activities._timeline', ['activities' => $activities])
+        </div>
 
         <div class="d-flex flex-wrap gap-2">
             @if ($isAdmin || $isSales)

@@ -404,7 +404,9 @@
 
                 {{-- Activity card --}}
                 <div class="mt-4">
-                    @include('activities._form', ['lead' => $lead, 'customer' => null])
+                    @can('create', \App\Models\Activity::class)
+                        @include('activities._form', ['lead' => $lead, 'customer' => null])
+                    @endcan
                     @include('activities._timeline', ['activities' => $activities])
                 </div>
 

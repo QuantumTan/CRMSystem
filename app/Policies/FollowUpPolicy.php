@@ -22,24 +22,12 @@ class FollowUpPolicy
             return false;
         }
 
-        if ($followUp->user_id === $user->id) {
-            return true;
-        }
-
-        if ($followUp->lead && $followUp->lead->assigned_user_id === $user->id) {
-            return true;
-        }
-
-        if ($followUp->customer && $followUp->customer->assigned_user_id === $user->id) {
-            return true;
-        }
-
-        return false;
+        return $followUp->user_id === $user->id;
     }
 
     public function create(User $user): bool
     {
-        return in_array($user->role, ['admin', 'manager', 'sales'], true);
+        return in_array($user->role, ['admin', 'sales'], true);
     }
 
     public function update(User $user, FollowUp $followUp): bool
@@ -49,7 +37,7 @@ class FollowUpPolicy
         }
 
         if ($user->role === 'manager') {
-            return $followUp->status !== 'completed';
+            return false;
         }
 
         if ($user->role === 'sales') {
@@ -57,17 +45,7 @@ class FollowUpPolicy
                 return false;
             }
 
-            if ($followUp->user_id === $user->id) {
-                return true;
-            }
-
-            if ($followUp->lead && $followUp->lead->assigned_user_id === $user->id) {
-                return true;
-            }
-
-            if ($followUp->customer && $followUp->customer->assigned_user_id === $user->id) {
-                return true;
-            }
+            return $followUp->user_id === $user->id;
         }
 
         return false;

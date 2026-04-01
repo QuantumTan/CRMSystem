@@ -125,7 +125,7 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{lead}', [LeadController::class, 'destroy'])->name('destroy');
         });
 
-    // Admin, Manager, Sales — activities & follow-ups
+    // Admin, Manager, Sales — activities & follow-ups visibility
     Route::middleware('role:admin,manager,sales')->group(function () {
         Route::prefix('activities')->name('activities.')->group(function () {
             Route::get('/', [ActivityController::class, 'index'])->name('index');
@@ -140,13 +140,28 @@ Route::middleware(['auth'])->group(function () {
             ->name('follow-ups.')
             ->group(function () {
                 Route::get('/', [FollowUpController::class, 'index'])->name('index');
-                Route::get('/create', [FollowUpController::class, 'create'])->name('create');
-                Route::post('/', [FollowUpController::class, 'store'])->name('store');
-                Route::get('/{followUp}/edit', [FollowUpController::class, 'edit'])->name('edit');
-                Route::put('/{followUp}', [FollowUpController::class, 'update'])->name('update');
-                Route::patch('/{followUp}/complete', [FollowUpController::class, 'markComplete'])->name('complete');
             });
     });
+
+    // Admin and Sales — follow-up write actions
+    Route::middleware('role:admin,sales')
+        ->prefix('follow-ups')
+        ->name('follow-ups.')
+        ->group(function () {
+            Route::get('/create', [FollowUpController::class, 'create'])->name('create');
+            Route::post('/', [FollowUpController::class, 'store'])->name('store');
+            Route::get('/{followUp}/edit', [FollowUpController::class, 'edit'])->name('edit');
+            Route::put('/{followUp}', [FollowUpController::class, 'update'])->name('update');
+            Route::patch('/{followUp}/complete', [FollowUpController::class, 'markComplete'])->name('complete');
+        });
+
+    // Admin only — follow-up reopen action
+    Route::middleware('role:admin')
+        ->prefix('follow-ups')
+        ->name('follow-ups.')
+        ->group(function () {
+            Route::patch('/{followUp}/reopen', [FollowUpController::class, 'reopen'])->name('reopen');
+        });
 
     // Admin and Manager only — reports
     Route::middleware('role:admin,manager')

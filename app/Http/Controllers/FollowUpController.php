@@ -25,16 +25,7 @@ class FollowUpController extends Controller
         $query = FollowUp::with(['customer', 'lead', 'user'])->latest('due_date');
 
         if ($user->role === 'sales') {
-            $query->where(function ($nestedQuery) use ($user) {
-                $nestedQuery
-                    ->where('user_id', $user->id)
-                    ->orWhereHas('lead', function ($leadQuery) use ($user) {
-                        $leadQuery->where('assigned_user_id', $user->id);
-                    })
-                    ->orWhereHas('customer', function ($customerQuery) use ($user) {
-                        $customerQuery->where('assigned_user_id', $user->id);
-                    });
-            });
+            $query->where('user_id', $user->id);
         }
 
         if ($request->filled('search')) {
@@ -223,5 +214,14 @@ class FollowUpController extends Controller
         $followUp->update(['status' => 'completed']);
 
         return redirect()->route('follow-ups.index')->with('success', 'Follow-up marked as completed.');
+    }
+
+    public function reopen(FollowUp $followUp): RedirectResponse
+    {
+        abort_unless(Auth::user()?->role === 'admin', 403);
+
+        $followUp->update(['status' => 'pending']);
+
+        return redirect()->route('follow-ups.index')->with('success', 'Follow-up reopened successfully.');
     }
 }

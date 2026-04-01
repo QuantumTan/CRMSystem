@@ -36,7 +36,7 @@ class ActivityPolicy
 
     public function create(User $user): bool
     {
-        return in_array($user->role, ['admin', 'manager', 'sales']);
+        return in_array($user->role, ['admin', 'sales'], true);
     }
 
     public function update(User $user, Activity $activity): bool
@@ -44,6 +44,11 @@ class ActivityPolicy
         // Admin can update any
         if ($user->role === 'admin') {
             return true;
+        }
+
+        // Managers are monitor/review only.
+        if ($user->role === 'manager') {
+            return false;
         }
 
         // If the user created the activity, allow

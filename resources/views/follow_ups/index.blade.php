@@ -28,9 +28,11 @@
                 </div>
                 <p class="text-muted mb-0 small">Manage upcoming follow-up tasks</p>
             </div>
-            <a href="{{ route('follow-ups.create') }}" class="btn btn-primary">
-                <i class="bi bi-plus-lg"></i> Add Follow-up
-            </a>
+            @can('create', \App\Models\FollowUp::class)
+                <a href="{{ route('follow-ups.create') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg"></i> Add Follow-up
+                </a>
+            @endcan
         </div>
 
         <div class="card border-0 shadow-sm mb-4">
@@ -111,10 +113,18 @@
                                                     <button type="submit" class="btn btn-sm btn-light border text-success">Complete</button>
                                                 </form>
                                             @else
-                                                <span class="text-muted small">Locked</span>
+                                                @if ($isAdmin)
+                                                    <form action="{{ route('follow-ups.reopen', $followUp) }}" method="POST">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <button type="submit" class="btn btn-sm btn-light border text-warning">Reopen</button>
+                                                    </form>
+                                                @else
+                                                    <span class="text-muted small">Locked</span>
+                                                @endif
                                             @endif
                                         @else
-                                            <span class="text-muted small">No access</span>
+                                            <span class="text-muted small">View only</span>
                                         @endcan
                                     </div>
                                 </td>

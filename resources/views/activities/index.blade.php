@@ -19,9 +19,11 @@
                     </div>
                 </div>
             </div>
-            <a href="{{ route('activities.create') }}" class="btn btn-primary btn-sm px-3 shadow-sm">
-                <i class="bi bi-plus-lg me-1"></i> Log Activity
-            </a>
+            @can('create', \App\Models\Activity::class)
+                <a href="{{ route('activities.create') }}" class="btn btn-primary btn-sm px-3 shadow-sm">
+                    <i class="bi bi-plus-lg me-1"></i> Log Activity
+                </a>
+            @endcan
         </div>
 
         {{-- Filter Card --}}
