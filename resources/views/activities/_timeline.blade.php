@@ -1,11 +1,12 @@
 {{-- resources/views/activities/_timeline.blade.php --}}
 {{-- Usage: @include('activities._timeline', ['activities' => $lead->activities]) --}}
 
-<div class="card border-0 shadow-sm">
+<div class="card border-0 shadow-sm rounded-4">
     <div class="card-body p-4">
 
-        <h6 class="fw-semibold mb-4">
-            <i class="bi bi-clock-history me-2 text-primary"></i>Activity History
+        <h6 class="fw-semibold mb-4 d-flex align-items-center gap-2">
+            <i class="bi bi-clock-history fs-5 text-primary"></i>
+            Activity History
         </h6>
 
         @if ($activities->isEmpty())
@@ -14,73 +15,69 @@
                 <p class="mt-3 small mb-0">No activities logged yet.</p>
             </div>
         @else
-            <div class="activity-timeline">
-                @foreach ($activities as $activity)
-                    <div class="timeline-item d-flex gap-3 pb-4">
-
-                        <div class="timeline-icon flex-shrink-0 d-flex align-items-center justify-content-center rounded-circle text-white"
-                             style="width: 36px; height: 36px; background-color: {{ $activity->type_color }}; margin-top: 2px;">
-                            <i class="bi {{ $activity->type_icon }}" style="font-size: 0.8rem;"></i>
-                        </div>
-
-                        <div class="flex-grow-1">
-                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-1">
-                                <div>
-                                    <span class="badge rounded-pill fw-medium px-2 py-1"
-                                          style="background-color: {{ $activity->type_color }}; color: white; font-size: 0.75rem;">
-                                        {{ $activity->type_label }}
-                                    </span>
-                                    <span class="small text-muted ms-2">
-                                        by {{ $activity->user->name ?? 'Unknown' }}
-                                    </span>
-                                </div>
-
-                                <div class="d-flex align-items-center gap-2">
-                                    <small class="text-muted"
-                                           title="{{ $activity->activity_date->format('M d, Y h:i A') }}">
-                                        {{ $activity->activity_date->diffForHumans() }}
-                                    </small>
-
-                                    <a href="{{ route('activities.edit', $activity) }}"
-                                       class="btn btn-sm btn-outline-secondary py-0 px-2" title="Edit">
-                                        <i class="bi bi-pencil" style="font-size: 0.7rem;"></i>
-                                    </a>
-
-                                    <form action="{{ route('activities.destroy', $activity) }}" method="POST"
-                                          onsubmit="return confirm('Delete this activity?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                                class="btn btn-sm btn-outline-danger py-0 px-2" title="Delete">
-                                            <i class="bi bi-trash" style="font-size: 0.7rem;"></i>
-                                        </button>
-                                    </form>
-                                </div>
+            <div class="position-relative">
+                {{-- Timeline container --}}
+                <div class="timeline-container">
+                    @foreach ($activities as $activity)
+                        <div class="d-flex gap-3 pb-4 position-relative timeline-item">
+                            {{-- Icon with background --}}
+                            <div class="flex-shrink-0 d-flex align-items-center justify-content-center rounded-circle text-white shadow-sm"
+                                style="width: 40px; height: 40px; background-color: {{ $activity->type_color }};">
+                                <i class="bi {{ $activity->type_icon }} fs-6"></i>
                             </div>
 
-                            <p class="mb-1 small text-dark" style="white-space: pre-line;">{{ $activity->description }}</p>
+                            {{-- Content --}}
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+                                    <div>
+                                        <span class="badge rounded-pill fw-medium px-2 py-1"
+                                            style="background-color: {{ $activity->type_color }}; color: white;">
+                                            {{ $activity->type_label }}
+                                        </span>
+                                        <span class="small text-muted ms-2">
+                                            <i class="bi bi-person-circle me-1"></i>
+                                            {{ $activity->user->name ?? 'Unknown' }}
+                                        </span>
+                                    </div>
 
-                            @if ($activity->customer)
-                                <small class="text-muted">
-                                    <i class="bi bi-person me-1"></i>
-                                    <a href="{{ route('customers.show', $activity->customer) }}"
-                                       class="text-muted text-decoration-none">
-                                        {{ $activity->customer->first_name }} {{ $activity->customer->last_name }}
-                                    </a>
-                                </small>
-                            @endif
-                            @if ($activity->lead)
-                                <small class="text-muted">
-                                    <i class="bi bi-funnel me-1"></i>
-                                    <a href="{{ route('leads.show', $activity->lead) }}"
-                                       class="text-muted text-decoration-none">
-                                        {{ $activity->lead->name }}
-                                    </a>
-                                </small>
-                            @endif
+                                    <div class="d-flex align-items-center gap-2">
+                                        <small class="text-muted" data-bs-toggle="tooltip"
+                                            title="{{ $activity->activity_date->format('M d, Y h:i A') }}">
+                                            <i class="bi bi-calendar3 me-1"></i>
+                                            {{ $activity->activity_date->diffForHumans() }}
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <p class="mb-2 text-dark small" style="white-space: pre-line;">
+                                    {{ $activity->description }}
+                                </p>
+
+                                {{-- Linked records --}}
+                                <div class="d-flex flex-wrap gap-3 mt-1">
+                                    @if ($activity->customer)
+                                        <small class="text-muted">
+                                            <i class="bi bi-person me-1"></i>
+                                            <a href="{{ route('customers.show', $activity->customer) }}"
+                                                class="text-muted text-decoration-none">
+                                                {{ $activity->customer->first_name }} {{ $activity->customer->last_name }}
+                                            </a>
+                                        </small>
+                                    @endif
+                                    @if ($activity->lead)
+                                        <small class="text-muted">
+                                            <i class="bi bi-funnel me-1"></i>
+                                            <a href="{{ route('leads.show', $activity->lead) }}"
+                                                class="text-muted text-decoration-none">
+                                                {{ $activity->lead->name }}
+                                            </a>
+                                        </small>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                @endforeach
+                    @endforeach
+                </div>
             </div>
         @endif
 
@@ -88,13 +85,20 @@
 </div>
 
 <style>
-    .activity-timeline { position: relative; }
-    .activity-timeline::before {
+    /* Minimal custom CSS for the timeline line */
+    .timeline-container {
+        position: relative;
+    }
+
+    .timeline-container::before {
         content: '';
         position: absolute;
-        left: 17px; top: 0; bottom: 0;
+        left: 20px;      /* Center of the icon (40px width / 2 = 20px) */
+        top: 0;
+        bottom: 0;
         width: 2px;
-        background: #f1f3f5;
+        background-color: #dee2e6;  /* Bootstrap's gray-300 */
     }
-    .timeline-item:last-child { padding-bottom: 0 !important; }
+
 </style>
+

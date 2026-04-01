@@ -18,7 +18,12 @@
     </div>
 
     <div style="max-width: 640px;">
-        @include('activities._form', ['lead' => null, 'customer' => null])
+        @include('activities._form', [
+            'lead' => null,
+            'customer' => null,
+            'leads' => $leads,
+            'customers' => $customers,
+        ])
     </div>
 
 </div>

@@ -25,6 +25,40 @@
                 <input type="hidden" name="customer_id" value="{{ $customer->id }}">
             @endif
 
+            @if (empty($lead) && empty($customer))
+                <div class="row g-3 mb-3">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-medium">Customer (optional)</label>
+                        <select name="customer_id" class="form-select form-select-sm @error('customer_id') is-invalid @enderror">
+                            <option value="">Select customer</option>
+                            @foreach (($customers ?? collect()) as $customerOption)
+                                <option value="{{ $customerOption->id }}" @selected(old('customer_id') == $customerOption->id)>
+                                    {{ $customerOption->first_name }} {{ $customerOption->last_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('customer_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-medium">Lead (optional)</label>
+                        <select name="lead_id" class="form-select form-select-sm @error('lead_id') is-invalid @enderror">
+                            <option value="">Select lead</option>
+                            @foreach (($leads ?? collect()) as $leadOption)
+                                <option value="{{ $leadOption->id }}" @selected(old('lead_id') == $leadOption->id)>
+                                    {{ $leadOption->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('lead_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+            @endif
+
             <div class="d-flex gap-2 mb-3 flex-wrap">
                 @foreach ([
                     'call'    => ['bi-telephone-fill',     'success', 'Call'],
