@@ -3,19 +3,74 @@
 @section('title', 'Reports')
 
 @section('content')
+    @php
+        $activeFilters = $filters ?? ['from' => request('from'), 'to' => request('to')];
+        $hasDateFilter = filled($activeFilters['from'] ?? null) || filled($activeFilters['to'] ?? null);
+        $exportQuery = array_filter([
+            'from' => $activeFilters['from'] ?? null,
+            'to' => $activeFilters['to'] ?? null,
+        ]);
+    @endphp
+
     <div class="container-fluid px-3 px-md-4 py-4">
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
             <div>
                 <h2 class="mb-1 fs-3 fw-semibold">Reports</h2>
-                <p class="text-muted mb-0 small">Team and pipeline reporting for admin and managers.</p>
+                <p class="text-muted mb-0 small">
+                    Team and pipeline reporting for admin and managers.
+                    @if ($hasDateFilter)
+                        <span class="d-inline-block ms-1">
+                            Filtered from {{ $activeFilters['from'] ?: 'Start' }} to {{ $activeFilters['to'] ?: 'Now' }}.
+                        </span>
+                    @endif
+                </p>
             </div>
             <div class="d-flex gap-2">
-                <a href="{{ route('reports.export.csv') }}" class="btn btn-outline-primary btn-sm">
+                <a href="{{ route('reports.export.csv', $exportQuery) }}" class="btn btn-outline-primary btn-sm">
                     <i class="bi bi-filetype-csv me-1"></i>Export CSV
                 </a>
-                <a href="{{ route('reports.export.pdf') }}" class="btn btn-primary btn-sm">
+                <a href="{{ route('reports.export.pdf', $exportQuery) }}" class="btn btn-primary btn-sm">
                     <i class="bi bi-filetype-pdf me-1"></i>Export PDF
                 </a>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <form action="{{ route('reports.index') }}" method="GET" class="row g-3 align-items-end">
+                    <div class="col-12 col-md-4">
+                        <label for="from" class="form-label mb-1">From Date</label>
+                        <input
+                            type="date"
+                            id="from"
+                            name="from"
+                            value="{{ $activeFilters['from'] }}"
+                            class="form-control @error('from') is-invalid @enderror"
+                        >
+                        @error('from')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label for="to" class="form-label mb-1">To Date</label>
+                        <input
+                            type="date"
+                            id="to"
+                            name="to"
+                            value="{{ $activeFilters['to'] }}"
+                            class="form-control @error('to') is-invalid @enderror"
+                        >
+                        @error('to')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="col-12 col-md-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-funnel me-1"></i>Apply Filter
+                        </button>
+                        <a href="{{ route('reports.index') }}" class="btn btn-outline-secondary">Reset</a>
+                    </div>
+                </form>
             </div>
         </div>
 

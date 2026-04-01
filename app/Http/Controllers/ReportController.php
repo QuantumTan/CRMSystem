@@ -7,6 +7,7 @@ use App\Models\Customer;
 use App\Models\FollowUp;
 use App\Models\Lead;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
@@ -16,17 +17,19 @@ class ReportController extends Controller
     public function index(Request $request): View
     {
         $this->ensureAuthorized($request);
+        $filters = $this->validatedDateRange($request);
 
-        $data = $this->buildReportData();
+        $data = $this->buildReportData($filters['from'], $filters['to']);
 
-        return view('reports.index', compact('data'));
+        return view('reports.index', compact('data', 'filters'));
     }
 
     public function exportCsv(Request $request): Response
     {
         $this->ensureAuthorized($request);
+        $filters = $this->validatedDateRange($request);
 
-        $data = $this->buildReportData();
+        $data = $this->buildReportData($filters['from'], $filters['to']);
         $csv = $this->buildCsvContent($data);
         $fileName = 'reports-'.now()->format('Ymd-His').'.csv';
 
@@ -39,8 +42,9 @@ class ReportController extends Controller
     public function exportPdf(Request $request): Response
     {
         $this->ensureAuthorized($request);
+        $filters = $this->validatedDateRange($request);
 
-        $data = $this->buildReportData();
+        $data = $this->buildReportData($filters['from'], $filters['to']);
         $pdf = $this->buildSimplePdf($data);
         $fileName = 'reports-'.now()->format('Ymd-His').'.pdf';
 
@@ -59,13 +63,27 @@ class ReportController extends Controller
         );
     }
 
-    private function buildReportData(): array
+    private function validatedDateRange(Request $request): array
+    {
+        $validated = $request->validate([
+            'from' => ['nullable', 'date'],
+            'to' => ['nullable', 'date', 'after_or_equal:from'],
+        ]);
+
+        return [
+            'from' => $validated['from'] ?? null,
+            'to' => $validated['to'] ?? null,
+        ];
+    }
+
+    private function buildReportData(?string $fromDate = null, ?string $toDate = null): array
     {
         $leadStatuses = Lead::getStatuses();
-        $leadStatusCounts = Lead::query()
+        $leadStatusCountsQuery = Lead::query()
             ->selectRaw('status, count(*) as total')
-            ->groupBy('status')
-            ->pluck('total', 'status');
+            ->groupBy('status');
+        $this->applyDateRange($leadStatusCountsQuery, 'created_at', $fromDate, $toDate);
+        $leadStatusCounts = $leadStatusCountsQuery->pluck('total', 'status');
 
         $leadsByStatus = collect($leadStatuses)
             ->map(fn (string $status): array => [
@@ -73,40 +91,75 @@ class ReportController extends Controller
                 'total' => (int) ($leadStatusCounts[$status] ?? 0),
             ]);
 
+        $activityTotalsByUser = Activity::query()
+            ->selectRaw('user_id, count(*) as total_activities')
+            ->groupBy('user_id');
+        $this->applyDateRange($activityTotalsByUser, 'activity_date', $fromDate, $toDate);
+
         $userActivity = User::query()
-            ->leftJoin('activities', 'users.id', '=', 'activities.user_id')
-            ->selectRaw('users.name, users.role, count(activities.id) as total_activities')
-            ->groupBy('users.id', 'users.name', 'users.role')
+            ->leftJoinSub($activityTotalsByUser, 'activity_totals', function ($join): void {
+                $join->on('users.id', '=', 'activity_totals.user_id');
+            })
+            ->selectRaw('users.name, users.role, COALESCE(activity_totals.total_activities, 0) as total_activities')
             ->orderByDesc('total_activities')
             ->get();
 
-        $totalLeads = Lead::count();
-        $wonLeads = Lead::where('status', 'won')->count();
-        $lostLeads = Lead::where('status', 'lost')->count();
+        $leadBaseQuery = Lead::query();
+        $this->applyDateRange($leadBaseQuery, 'created_at', $fromDate, $toDate);
+
+        $totalLeads = (clone $leadBaseQuery)->count();
+        $wonLeads = (clone $leadBaseQuery)->where('status', 'won')->count();
+        $lostLeads = (clone $leadBaseQuery)->where('status', 'lost')->count();
         $activePipelineLeads = max($totalLeads - $wonLeads - $lostLeads, 0);
 
+        $customerCountQuery = Customer::query();
+        $this->applyDateRange($customerCountQuery, 'created_at', $fromDate, $toDate);
+
+        $totalExpectedValueQuery = Lead::query();
+        $this->applyDateRange($totalExpectedValueQuery, 'created_at', $fromDate, $toDate);
+
+        $activeExpectedValueQuery = Lead::query()->whereNotIn('status', ['won', 'lost']);
+        $this->applyDateRange($activeExpectedValueQuery, 'created_at', $fromDate, $toDate);
+
+        $completedFollowUpsQuery = FollowUp::query()->where('status', 'completed');
+        $this->applyDateRange($completedFollowUpsQuery, 'due_date', $fromDate, $toDate);
+
+        $pendingFollowUpsQuery = FollowUp::query()->where('status', 'pending');
+        $this->applyDateRange($pendingFollowUpsQuery, 'due_date', $fromDate, $toDate);
+
+        $overdueFollowUpsQuery = FollowUp::query()
+            ->where('status', 'pending')
+            ->whereDate('due_date', '<', now()->toDateString());
+        $this->applyDateRange($overdueFollowUpsQuery, 'due_date', $fromDate, $toDate);
+
+        $activitiesByTypeQuery = Activity::query()
+            ->selectRaw('activity_type, count(*) as total')
+            ->groupBy('activity_type')
+            ->orderByDesc('total');
+        $this->applyDateRange($activitiesByTypeQuery, 'activity_date', $fromDate, $toDate);
+
         $data = [
-            'totalCustomers' => Customer::count(),
+            'totalCustomers' => $customerCountQuery->count(),
             'leadsByStatus' => $leadsByStatus,
             'salesPipelineSummary' => [
                 'total_leads' => $totalLeads,
                 'active_pipeline_leads' => $activePipelineLeads,
                 'won_leads' => $wonLeads,
                 'lost_leads' => $lostLeads,
-                'total_expected_value' => (float) Lead::sum('expected_value'),
-                'active_expected_value' => (float) Lead::whereNotIn('status', ['won', 'lost'])->sum('expected_value'),
+                'total_expected_value' => (float) $totalExpectedValueQuery->sum('expected_value'),
+                'active_expected_value' => (float) $activeExpectedValueQuery->sum('expected_value'),
             ],
             'userActivity' => $userActivity,
             'followUpCompletion' => [
-                'completed' => FollowUp::where('status', 'completed')->count(),
-                'pending' => FollowUp::where('status', 'pending')->count(),
-                'overdue' => FollowUp::where('status', 'pending')->whereDate('due_date', '<', now()->toDateString())->count(),
+                'completed' => $completedFollowUpsQuery->count(),
+                'pending' => $pendingFollowUpsQuery->count(),
+                'overdue' => $overdueFollowUpsQuery->count(),
             ],
-            'activitiesByType' => Activity::query()
-                ->selectRaw('activity_type, count(*) as total')
-                ->groupBy('activity_type')
-                ->orderByDesc('total')
-                ->get(),
+            'activitiesByType' => $activitiesByTypeQuery->get(),
+            'filters' => [
+                'from' => $fromDate,
+                'to' => $toDate,
+            ],
         ];
 
         $totalFollowUps = $data['followUpCompletion']['completed'] + $data['followUpCompletion']['pending'];
@@ -117,11 +170,28 @@ class ReportController extends Controller
         return $data;
     }
 
+    private function applyDateRange(Builder $query, string $dateColumn, ?string $fromDate, ?string $toDate): void
+    {
+        if ($fromDate !== null) {
+            $query->whereDate($dateColumn, '>=', $fromDate);
+        }
+
+        if ($toDate !== null) {
+            $query->whereDate($dateColumn, '<=', $toDate);
+        }
+    }
+
     private function buildCsvContent(array $data): string
     {
+        $dateRangeLabel = 'All Dates';
+        if ($data['filters']['from'] || $data['filters']['to']) {
+            $dateRangeLabel = ($data['filters']['from'] ?? 'Start').' to '.($data['filters']['to'] ?? 'Now');
+        }
+
         $rows = [
             ['Report', 'Value'],
             ['Generated At', now()->toDateTimeString()],
+            ['Date Range', $dateRangeLabel],
             ['Total Customers', (string) $data['totalCustomers']],
             ['Pipeline Leads', (string) $data['salesPipelineSummary']['active_pipeline_leads']],
             ['Won Leads', (string) $data['salesPipelineSummary']['won_leads']],
@@ -165,9 +235,15 @@ class ReportController extends Controller
 
     private function buildSimplePdf(array $data): string
     {
+        $dateRangeLabel = 'All Dates';
+        if ($data['filters']['from'] || $data['filters']['to']) {
+            $dateRangeLabel = ($data['filters']['from'] ?? 'Start').' to '.($data['filters']['to'] ?? 'Now');
+        }
+
         $lines = [
             'CRM Reports Summary',
             'Generated At: '.now()->toDateTimeString(),
+            'Date Range: '.$dateRangeLabel,
             '',
             'Total Customers: '.$data['totalCustomers'],
             'Pipeline Leads: '.$data['salesPipelineSummary']['active_pipeline_leads'],
