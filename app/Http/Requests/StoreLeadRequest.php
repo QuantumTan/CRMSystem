@@ -17,7 +17,6 @@ class StoreLeadRequest extends FormRequest
             'name' => 'required|string|max:255',
             'email' => 'nullable|email',
             'phone' => 'nullable|string|max:20',
-            'company' => 'nullable|string|max:255',
             'source' => 'nullable|string|max:255',
             'status' => 'required|in:new,contacted,qualified,proposal_sent,negotiation,won,lost',
             'priority' => 'required|in:low,medium,high',
@@ -26,5 +25,4 @@ class StoreLeadRequest extends FormRequest
             'assigned_user_id' => 'nullable|exists:users,id',
         ];
     }
-
 }

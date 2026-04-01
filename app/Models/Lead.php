@@ -48,7 +48,7 @@ class Lead extends Model
         static::addGlobalScope('sales_visibility', function (Builder $query): void {
             $user = Auth::user();
 
-            if ($user && $user->hasRole('sales')) {
+            if ($user instanceof User && $user->hasRole('sales')) {
                 $query->where('assigned_user_id', $user->id);
             }
         });
@@ -257,36 +257,6 @@ class Lead extends Model
             'lost_category' => null,
             'lost_at' => null,
         ]);
-    }
-
-    /**
-     * Get priority badge class for HTML
-     */
-    public function getPriorityBadgeClass(): string
-    {
-        return match ($this->priority) {
-            'high' => 'danger',
-            'medium' => 'warning',
-            'low' => 'info',
-            default => 'secondary',
-        };
-    }
-
-    /**
-     * Get status badge class for HTML
-     */
-    public function getStatusBadgeClass(): string
-    {
-        return match ($this->status) {
-            'new' => 'primary',
-            'contacted' => 'info',
-            'qualified' => 'success',
-            'proposal_sent' => 'warning',
-            'negotiation' => 'dark',
-            'won' => 'success',
-            'lost' => 'danger',
-            default => 'secondary',
-        };
     }
 
     // SCOPES FOR QUERYING

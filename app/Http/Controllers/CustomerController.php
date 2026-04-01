@@ -24,14 +24,13 @@ class CustomerController extends Controller
         ]);
 
         $customersQuery = $this->applyVisibilityScope(Customer::query()->with(['assignedUser', 'assignmentReviewer']), $request)
-            ->with(['assignedUser', 'assignmentReviewer'])
             ->latest();
 
-        if (!empty($filters['assignment_status'])) {
+        if (! empty($filters['assignment_status'])) {
             $customersQuery->where('assignment_status', (string) $filters['assignment_status']);
         }
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $search = $this->escapeLike((string) $filters['search']);
 
             $customersQuery->where(function ($query) use ($search): void {
@@ -44,11 +43,11 @@ class CustomerController extends Controller
             });
         }
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $customersQuery->where('status', (string) $filters['status']);
         }
 
-        if (!empty($filters['assigned_user_id'])) {
+        if (! empty($filters['assigned_user_id'])) {
             $customersQuery->where('assigned_user_id', (int) $filters['assigned_user_id']);
         }
 
@@ -73,6 +72,7 @@ class CustomerController extends Controller
         $customers = $customersQuery->paginate(10)->withQueryString();
         $deleting = isset($filters['delete']) ? Customer::find($filters['delete']) : null;
         $assignmentStatuses = ['pending', 'approved', 'rejected'];
+
         return view('customers.index', [
             'customers' => $customers,
             'customerThisMonth' => $customerThisMonth,
@@ -104,7 +104,7 @@ class CustomerController extends Controller
             $payload['assigned_user_id'] = $user->id;
         }
 
-        if (!empty($payload['assigned_user_id'])) {
+        if (! empty($payload['assigned_user_id'])) {
             $payload['assignment_status'] = 'pending';
             $payload['assignment_reviewed_by'] = null;
             $payload['assignment_reviewed_at'] = null;
@@ -179,7 +179,7 @@ class CustomerController extends Controller
 
         $salesUser = User::query()->where('id', (int) $data['assigned_user_id'])->where('role', 'sales')->exists();
 
-        if (!$salesUser) {
+        if (! $salesUser) {
             return redirect()->back()->with('error', 'Assigned user must be a Sales Staff account.');
         }
 

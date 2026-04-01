@@ -112,7 +112,6 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{lead}/edit', [LeadController::class, 'edit'])->name('edit');
             Route::get('/{lead}/lost-form', [LeadController::class, 'showLostForm'])->name('lost-form');
             Route::post('/{lead}/mark-lost', [LeadController::class, 'markAsLost'])->name('mark-lost');
-            Route::get('/{lead}/lost-form', [LeadController::class, 'showLostForm'])->name('lost-form');
             Route::post('/{lead}/reopen', [LeadController::class, 'reopen'])->name('reopen');
             Route::post('/{lead}/convert', [LeadController::class, 'convert'])->name('convert');
             Route::patch('/{lead}/status', [LeadController::class, 'updateStatus'])
