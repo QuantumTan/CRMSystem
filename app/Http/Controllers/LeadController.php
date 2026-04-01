@@ -11,8 +11,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
  * Controller for managing Leads within the CRM.
@@ -42,16 +42,16 @@ class LeadController extends Controller
     /**
      * General access check for lead-related actions.
      *
-     * @param  Lead|null  $lead  The lead being accessed (required for write actions)
-     * @param  bool  $write  Whether the action modifies data
-     *
-     * @throws HttpException
+     * @param Request $request
+     * @param Lead|null $lead   The lead being accessed (required for write actions)
+     * @param bool $write       Whether the action modifies data
+     * @throws \Symfony\Component\HttpKernel\Exception\HttpException
      */
     private function authorizeLeadAccess(Request $request, ?Lead $lead = null, bool $write = false): void
     {
         $user = $request->user();
 
-        if (! $user) {
+        if (!$user) {
             abort(403, 'Unauthorized.');
         }
 
@@ -64,25 +64,26 @@ class LeadController extends Controller
         if ($user->hasRole('manager')) {
             // Managers are allowed to update status via kanban, so we allow write for status updates
             // But for other write actions (edit, delete, convert, assign, etc.), deny
-            if ($write && ! $this->isStatusUpdateAction($request)) {
+            if ($write && !$this->isStatusUpdateAction($request)) {
                 abort(403, 'Managers cannot modify leads except for status changes.');
             }
-
             return;
         }
 
         // Sales can create leads (no lead exists yet) and modify only leads assigned to them
         if ($user->hasRole('sales')) {
-            if ($write && $lead && $lead->assigned_user_id !== $user->id) {
-                abort(403, 'You can only modify leads assigned to you.');
-            }
+            if ($lead && $lead->assigned_user_id !== $user->id) {
+                if ($write) {
+                    abort(403, 'You can only modify leads assigned to you.');
+                }
 
+                abort(403, 'You can only view leads assigned to you.');
+            }
             return;
         }
 
         abort(403, 'Unauthorized.');
     }
-
     /**
      * Determine if the current request is a status update (used by managers).
      */
@@ -110,8 +111,9 @@ class LeadController extends Controller
         ]);
 
         $leadQuery = Lead::query()->with(['assignedUser', 'convertedToCustomer']);
+        $this->applyLeadVisibilityScope($leadQuery, $request);
 
-        if (! empty($filters['search'])) {
+        if (!empty($filters['search'])) {
             $search = $this->escapeLike((string) $filters['search']);
             $leadQuery->where(function (Builder $query) use ($search): void {
                 $query
@@ -121,15 +123,15 @@ class LeadController extends Controller
             });
         }
 
-        if (! empty($filters['assigned_user'])) {
+        if (!empty($filters['assigned_user']) && !$request->user()?->hasRole('sales')) {
             $leadQuery->where('assigned_user_id', $filters['assigned_user']);
         }
 
-        if (! empty($filters['status'])) {
+        if (!empty($filters['status'])) {
             $leadQuery->where('status', $filters['status']);
         }
 
-        if (! empty($filters['priority'])) {
+        if (!empty($filters['priority'])) {
             $leadQuery->where('priority', $filters['priority']);
         }
 
@@ -143,7 +145,7 @@ class LeadController extends Controller
         return view('leads.kanban', [
             'statuses' => self::STATUS_OPTIONS,
             'leadsByStatus' => $leadsByStatus,
-            'users' => $this->assignableUsers(),
+            'users' => $this->assignableUsers($request),
         ]);
     }
 
@@ -155,7 +157,10 @@ class LeadController extends Controller
         $this->authorizeLeadAccess($request, null, false); // view only
         $this->authorizeAccess($request, allowManager: true);
 
-        $leads = Lead::with('assignedUser', 'convertedToCustomer')
+        $leadQuery = Lead::with('assignedUser', 'convertedToCustomer');
+        $this->applyLeadVisibilityScope($leadQuery, $request);
+
+        $leads = $leadQuery
             ->when($request->search, function ($q) use ($request) {
                 $q->where(function ($q) use ($request) {
                     $q->where('name', 'like', "%{$request->search}%")
@@ -163,9 +168,9 @@ class LeadController extends Controller
                         ->orWhere('phone', 'like', "%{$request->search}%");
                 });
             })
-            ->when($request->status, fn ($q) => $q->where('status', $request->status))
-            ->when($request->priority, fn ($q) => $q->where('priority', $request->priority))
-            ->when($request->assigned_user, fn ($q) => $q->where('assigned_user_id', $request->assigned_user))
+            ->when($request->status, fn($q) => $q->where('status', $request->status))
+            ->when($request->priority, fn($q) => $q->where('priority', $request->priority))
+            ->when($request->assigned_user && !$request->user()?->hasRole('sales'), fn($q) => $q->where('assigned_user_id', $request->assigned_user))
             ->latest()
             ->paginate(15);
 
@@ -173,8 +178,8 @@ class LeadController extends Controller
             'leads' => $leads,
             'statusOptions' => self::STATUS_OPTIONS,
             'priorityOptions' => self::PRIORITY_OPTIONS,
-            'assignableUsers' => $this->assignableUsers(),
-            'users' => User::orderBy('name')->get(),
+            'assignableUsers' => $this->assignableUsers($request),
+            'users' => $this->assignableUsers($request),
         ]);
     }
 
@@ -190,7 +195,7 @@ class LeadController extends Controller
         return view('leads.create', [
             'statusOptions' => self::STATUS_OPTIONS,
             'priorityOptions' => self::PRIORITY_OPTIONS,
-            'assignableUsers' => $this->assignableUsers(),
+            'assignableUsers' => $this->assignableUsers($request),
         ]);
     }
 
@@ -205,7 +210,7 @@ class LeadController extends Controller
 
         $payload = $request->validated();
 
-        if ($request->user()?->hasRole('sales') && empty($payload['assigned_user_id'])) {
+        if ($request->user()?->hasRole('sales')) {
             $payload['assigned_user_id'] = $request->user()?->id;
         }
 
@@ -219,7 +224,7 @@ class LeadController extends Controller
      */
     public function show(Request $request, Lead $lead): View
     {
-        $this->authorizeLeadAccess($request, null, false); // view only
+        $this->authorizeLeadAccess($request, $lead, false); // view only
         $this->authorizeAccess($request, allowManager: true);
 
         $lead->load(['assignedUser', 'convertedToCustomer']);
@@ -246,7 +251,7 @@ class LeadController extends Controller
             'lead' => $lead,
             'statusOptions' => self::STATUS_OPTIONS,
             'priorityOptions' => self::PRIORITY_OPTIONS,
-            'assignableUsers' => $this->assignableUsers(),
+            'assignableUsers' => $this->assignableUsers($request),
         ]);
     }
 
@@ -259,7 +264,13 @@ class LeadController extends Controller
         $this->authorizeLeadAccess($request, $lead, true);
         $this->authorizeAccess($request);
 
-        $lead->update($request->validated());
+        $payload = $request->validated();
+
+        if ($request->user()?->hasRole('sales')) {
+            $payload['assigned_user_id'] = $request->user()?->id;
+        }
+
+        $lead->update($payload);
 
         return redirect()->route('leads.index')->with('success', 'Lead updated successfully.');
     }
@@ -275,7 +286,7 @@ class LeadController extends Controller
         $this->authorizeAccess($request, allowManager: true);
 
         $data = $request->validate([
-            'status' => ['required', 'in:'.implode(',', self::STATUS_OPTIONS)],
+            'status' => ['required', 'in:' . implode(',', self::STATUS_OPTIONS)],
         ]);
 
         $oldStatus = $lead->status;
@@ -283,7 +294,6 @@ class LeadController extends Controller
 
         if ($newStatus === 'won' && $oldStatus !== 'won') {
             $lead->update(['status' => 'won']);
-
             return redirect()->route('leads.show', $lead)->with('success', 'Lead marked as won! Click "Convert to Customer" when ready.');
         }
 
@@ -301,7 +311,6 @@ class LeadController extends Controller
     {
         // This is a view action, but we'll check write because it leads to marking lost
         $this->authorizeLeadAccess($request, $lead, true);
-
         return view('leads.lost-form', [
             'lead' => $lead,
             'lostCategories' => self::LOST_CATEGORIES,
@@ -313,11 +322,12 @@ class LeadController extends Controller
      */
     public function markAsLost(Request $request, Lead $lead): RedirectResponse
     {
+        $this->authorizeLeadAccess($request, $lead, true); // write
         $this->authorizeAccess($request);
 
         $data = $request->validate([
             'lost_reason' => ['required', 'string', 'min:3', 'max:500'],
-            'lost_category' => ['required', 'in:'.implode(',', array_keys(self::LOST_CATEGORIES))],
+            'lost_category' => ['required', 'in:' . implode(',', array_keys(self::LOST_CATEGORIES))],
         ]);
 
         $lead->markAsLost($data['lost_reason'], $data['lost_category']);
@@ -330,9 +340,10 @@ class LeadController extends Controller
      */
     public function reopen(Request $request, Lead $lead): RedirectResponse
     {
+        $this->authorizeLeadAccess($request, $lead, true); // write
         $this->authorizeAccess($request);
 
-        if (! $lead->isLost()) {
+        if (!$lead->isLost()) {
             return redirect()->route('leads.show', $lead)->with('error', 'Only lost leads can be reopened.');
         }
 
@@ -348,7 +359,7 @@ class LeadController extends Controller
     {
         // Only admin can reassign leads (sales cannot reassign)
         $user = $request->user();
-        if (! $user->hasRole('admin')) {
+        if (!$user->hasRole('admin')) {
             abort(403, 'Only administrators can reassign leads.');
         }
 
@@ -376,7 +387,7 @@ class LeadController extends Controller
         $this->authorizeAccess($request);
 
         $data = $request->validate([
-            'priority' => ['required', 'in:'.implode(',', self::PRIORITY_OPTIONS)],
+            'priority' => ['required', 'in:' . implode(',', self::PRIORITY_OPTIONS)],
         ]);
 
         $lead->update(['priority' => $data['priority']]);
@@ -389,13 +400,14 @@ class LeadController extends Controller
      */
     public function convert(Request $request, Lead $lead): RedirectResponse
     {
+        $this->authorizeLeadAccess($request, $lead, true); // write – sales must own the lead
         $this->authorizeAccess($request);
 
         if ($lead->isConverted()) {
             return redirect()->route('leads.show', $lead)->with('error', 'This lead has already been converted to a customer.');
         }
 
-        if (! $lead->isWon()) {
+        if (!$lead->isWon()) {
             return redirect()->route('leads.show', $lead)->with('error', 'Only leads with "Won" status can be converted to customers.');
         }
 
@@ -408,7 +420,7 @@ class LeadController extends Controller
         } catch (\Exception $e) {
             return redirect()
                 ->route('leads.show', $lead)
-                ->with('error', 'Conversion failed: '.$e->getMessage());
+                ->with('error', 'Conversion failed: ' . $e->getMessage());
         }
     }
 
@@ -417,6 +429,10 @@ class LeadController extends Controller
      */
     public function destroy(Request $request, Lead $lead): RedirectResponse
     {
+        $user = $request->user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'Only administrators can delete leads.');
+        }
         $this->authorizeAccess($request);
 
         if ($lead->isConverted()) {
@@ -435,7 +451,7 @@ class LeadController extends Controller
     {
         $user = $request->user();
 
-        if (! $user) {
+        if (!$user) {
             abort(403, 'Unauthorized.');
         }
 
@@ -443,7 +459,7 @@ class LeadController extends Controller
             return;
         }
 
-        if (! $user->hasAnyRole('admin', 'sales')) {
+        if (!$user->hasAnyRole('admin', 'sales')) {
             abort(403, 'Unauthorized.');
         }
     }
@@ -451,8 +467,17 @@ class LeadController extends Controller
     /**
      * Retrieve users eligible to be assigned to leads.
      */
-    private function assignableUsers(): Collection
+    private function assignableUsers(?Request $request = null): Collection
     {
+        $user = $request?->user() ?? Auth::user();
+
+        if ($user?->hasRole('sales')) {
+            return User::query()
+                ->whereKey($user->id)
+                ->orderBy('name')
+                ->get();
+        }
+
         return User::query()
             ->whereIn('role', ['admin', 'manager', 'sales'])
             ->orderBy('name')
@@ -465,5 +490,22 @@ class LeadController extends Controller
     private function escapeLike(string $value): string
     {
         return addcslashes($value, '\\%_');
+    }
+
+    /**
+     * Restrict lead visibility based on role.
+     * Sales users can only see leads assigned to them.
+     */
+    private function applyLeadVisibilityScope(Builder $query, Request $request): void
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            abort(403, 'Unauthorized.');
+        }
+
+        if ($user->hasRole('sales')) {
+            $query->where('assigned_user_id', $user->id);
+        }
     }
 }

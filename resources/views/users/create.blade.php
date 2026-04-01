@@ -3,16 +3,69 @@
 @section('title', 'Add User')
 
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-1">Add User</h1>
+    <div class="container-fluid px-3 px-md-4 py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="mb-1 fw-semibold">Add User</h4>
+                <p class="text-muted mb-0 small">Create a new system user account.</p>
+            </div>
+            <a href="{{ route('users.index') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
         </div>
-        <a href="{{ route('users.index') }}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-1"></i> Back
-        </a>
+
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <form method="POST" action="{{ route('users.store') }}" class="row g-3">
+                    @csrf
+
+                    <div class="col-md-6">
+                        <label class="form-label">Full Name <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" value="{{ old('name') }}" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Email <span class="text-danger">*</span></label>
+                        <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Role <span class="text-danger">*</span></label>
+                        <select name="role" class="form-select" required>
+                            <option value="">Select role</option>
+                            <option value="admin" @selected(old('role') === 'admin')>Admin</option>
+                            <option value="manager" @selected(old('role') === 'manager')>Manager</option>
+                            <option value="sales" @selected(old('role') === 'sales')>Sales Staff</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Password <span class="text-danger">*</span></label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                        <input type="password" name="password_confirmation" class="form-control" required>
+                    </div>
+
+                    <div class="col-12 d-flex justify-content-end gap-2 mt-2">
+                        <a href="{{ route('users.index') }}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Create User</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-
-
-            <p class="text-muted">User creation form will be displayed here.</p>
 
 @endsection
