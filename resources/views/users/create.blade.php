@@ -26,17 +26,19 @@
 
         <div class="card border-0 shadow-sm">
             <div class="card-body">
-                <form method="POST" action="{{ route('users.store') }}" class="row g-3">
+                <form method="POST" action="{{ route('users.store') }}" class="row g-3" autocomplete="off">
                     @csrf
 
                     <div class="col-md-6">
                         <label class="form-label">Full Name <span class="text-danger">*</span></label>
-                        <input type="text" name="name" class="form-control" value="{{ old('name') }}" required>
+                        <input type="text" name="name" class="form-control" value="{{ old('name') }}"
+                            autocomplete="name" required>
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label">Email <span class="text-danger">*</span></label>
-                        <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
+                        <input type="email" name="email" class="form-control" value="{{ old('email') }}"
+                            autocomplete="username" required>
                     </div>
 
                     <div class="col-md-6">
@@ -51,12 +53,14 @@
 
                     <div class="col-md-6">
                         <label class="form-label">Password <span class="text-danger">*</span></label>
-                        <input type="password" name="password" class="form-control" required>
+                        <input type="password" name="password" class="form-control" autocomplete="new-password"
+                            required>
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
-                        <input type="password" name="password_confirmation" class="form-control" required>
+                        <input type="password" name="password_confirmation" class="form-control"
+                            autocomplete="new-password" required>
                     </div>
 
                     <div class="col-12 d-flex justify-content-end gap-2 mt-2">
