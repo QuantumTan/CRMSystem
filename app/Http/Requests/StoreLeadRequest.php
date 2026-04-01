@@ -19,7 +19,7 @@ class StoreLeadRequest extends FormRequest
             'phone' => 'nullable|string|max:20',
             'source' => 'nullable|string|max:255',
             'status' => 'required|in:new,contacted,qualified,proposal_sent,negotiation,won,lost',
-            'priority' => 'required|in:low,medium,high',
+            'priority' => 'required|in:low,medium,high,critical',
             'expected_value' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
             'assigned_user_id' => 'nullable|exists:users,id',

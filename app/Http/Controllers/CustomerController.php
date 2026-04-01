@@ -235,8 +235,13 @@ class CustomerController extends Controller
     {
         $user = $request->user();
 
-        if ($user?->hasRole('sales') && (int) $customer->assigned_user_id !== (int) $user->id) {
-            abort(403, 'Unauthorized. You can only access customers assigned to you.');
+        if ($user?->hasRole('sales')) {
+            $isAssignedToSalesUser = (int) $customer->assigned_user_id === (int) $user->id;
+            $isAssignmentApproved = $customer->assignment_status === 'approved';
+
+            if (! $isAssignedToSalesUser || ! $isAssignmentApproved) {
+                abort(403, 'Unauthorized. You can only access customers assigned to you with approved assignment.');
+            }
         }
     }
 

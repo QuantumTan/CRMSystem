@@ -110,6 +110,7 @@ class Lead extends Model
             'low',
             'medium',
             'high',
+            'critical',
         ];
     }
 
@@ -192,17 +193,24 @@ class Lead extends Model
         DB::beginTransaction();
 
         try {
-            // Create customer from lead data
-            $customer = Customer::create([
+            $customerPayload = [
                 'first_name' => $this->extractFirstName($this->name),
                 'last_name' => $this->extractLastName($this->name),
                 'email' => $this->email,
                 'phone' => $this->phone,
                 'status' => 'active',
                 'assigned_user_id' => $this->assigned_user_id,
-                'source' => $this->source,
-                'converted_from_lead_id' => $this->id,
-            ]);
+            ];
+
+            // Ensure the assigned sales owner can access converted customers immediately.
+            if ($this->assigned_user_id !== null) {
+                $customerPayload['assignment_status'] = 'approved';
+                $customerPayload['assignment_reviewed_by'] = Auth::id();
+                $customerPayload['assignment_reviewed_at'] = now();
+            }
+
+            // Create customer from lead data
+            $customer = Customer::create($customerPayload);
 
             // Update lead with conversion info
             $this->update([

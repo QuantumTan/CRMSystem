@@ -26,7 +26,7 @@ class LeadController extends Controller
      */
     private const STATUS_OPTIONS = ['new', 'contacted', 'qualified', 'proposal_sent', 'negotiation', 'won', 'lost'];
 
-    private const PRIORITY_OPTIONS = ['low', 'medium', 'high'];
+    private const PRIORITY_OPTIONS = ['low', 'medium', 'high', 'critical'];
 
     /**
      * Lost categories for reporting.
@@ -406,10 +406,11 @@ class LeadController extends Controller
 
         try {
             $customer = $lead->convertToCustomer();
+            $customerName = trim($customer->first_name.' '.$customer->last_name);
 
             return redirect()
                 ->route('customers.show', $customer)
-                ->with('success', "Lead successfully converted to customer: {$customer->name}");
+                ->with('success', "Lead successfully converted to customer: {$customerName}");
         } catch (\Exception $e) {
             return redirect()
                 ->route('leads.show', $lead)
