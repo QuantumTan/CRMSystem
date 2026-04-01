@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class Lead extends Model
@@ -39,14 +41,23 @@ class Lead extends Model
     }
 
     // auto-generate lead_id when creating
-    protected static function boot()
+    protected static function boot(): void
     {
         parent::boot();
+
+        static::addGlobalScope('sales_visibility', function (Builder $query): void {
+            $user = Auth::user();
+
+            if ($user && $user->hasRole('sales')) {
+                $query->where('assigned_user_id', $user->id);
+            }
+        });
+
         static::creating(function ($lead) {
-            if (!$lead->lead_id) {
+            if (! $lead->lead_id) {
                 $latest = self::latest('id')->first();
                 $nextId = $latest ? $latest->id + 1 : 1;
-                $lead->lead_id = 'LEAD-' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
+                $lead->lead_id = 'LEAD-'.str_pad($nextId, 4, '0', STR_PAD_LEFT);
             }
         });
     }
@@ -153,16 +164,15 @@ class Lead extends Model
 
     public function isActive(): bool
     {
-        return !in_array($this->status, ['won', 'lost']);
+        return ! in_array($this->status, ['won', 'lost']);
     }
-
 
     // CONVERSION METHODS
 
     // check if lead has been converted to the customer
     public function isConverted(): bool
     {
-        return !is_null($this->converted_to_customer_id);
+        return ! is_null($this->converted_to_customer_id);
     }
 
     // convert lead to customer
@@ -174,7 +184,7 @@ class Lead extends Model
         }
 
         // Only won leads can be converted
-        if (!$this->isWon()) {
+        if (! $this->isWon()) {
             throw new \Exception('Only leads with "Won" status can be converted to customers.');
         }
 
@@ -237,7 +247,7 @@ class Lead extends Model
     // reopen lost
     public function reopen(string $newStatus = 'contacted'): void
     {
-        if (!$this->isLost()) {
+        if (! $this->isLost()) {
             throw new \Exception('Only lost leads can be reopened.');
         }
 
@@ -341,6 +351,7 @@ class Lead extends Model
         }
 
         $parts = explode(' ', trim($fullName));
+
         return $parts[0];
     }
 
@@ -357,11 +368,10 @@ class Lead extends Model
 
         if (count($parts) > 1) {
             array_shift($parts); // Remove the first name from the array
+
             return implode(' ', $parts); // Combine the remaining parts
         }
 
         return ''; // Return empty string if no last name exists
     }
-
-
 }
