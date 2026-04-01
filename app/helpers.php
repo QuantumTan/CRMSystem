@@ -1,29 +1,33 @@
 <?php
 
-if (!function_exists('getStatusColor')) {
+if (! function_exists('getStatusColor')) {
     function getStatusColor(string $status): string
     {
-        return match ($status) {
-            'New'=> '#6c757d',
-            'Contacted'=> '#0d6efd',
-            'Qualified'=> '#198754',
-            'Proposal Sent' => '#0dcaf0',
-            'Negotiation'=> '#fd7e14',
-            'Won'=> '#28a745',
-            'Lost'=> '#dc3545',
-            default=> '#6c757d',
+        $normalizedStatus = strtolower(str_replace('-', ' ', trim($status)));
+
+        return match ($normalizedStatus) {
+            'new' => '#2563eb',
+            'contacted' => '#0891b2',
+            'qualified' => '#16a34a',
+            'proposal sent', 'proposal_sent' => '#d97706',
+            'negotiation' => '#ea580c',
+            'won' => '#15803d',
+            'lost' => '#dc2626',
+            default => '#2563eb',
         };
     }
 }
 
-if (!function_exists('getPriorityColor')) {
+if (! function_exists('getPriorityColor')) {
     function getPriorityColor(string $priority): string
     {
-        return match ($priority) {
-            'High'=> '#dc3545',
-            'Medium' => '#fd7e14',
-            'Low'=> '#28a745',
-            default=> '#6c757d',
+        $normalizedPriority = strtolower(trim($priority));
+
+        return match ($normalizedPriority) {
+            'high' => '#dc2626',
+            'medium' => '#d97706',
+            'low' => '#16a34a',
+            default => '#2563eb',
         };
     }
 }

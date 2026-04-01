@@ -28,7 +28,7 @@
                 </a>
 
                 @if ($currentUser && ($currentUser->hasRole('admin') || $currentUser->hasRole('sales')))
-                    <a href="{{ route('leads.create') }}" class="btn btn-primary d-flex align-items-center gap-2">
+                    <a href="{{ route('leads.create') }}" class="btn btn-primary crm-module-add-btn d-flex align-items-center gap-2">
                         <i class="bi bi-plus"></i>
                         Add Lead
                     </a>
@@ -37,7 +37,7 @@
         </div>
 
         {{-- FILTER TOOLKIT  --}}
-        <div class="card border-0 shadow-sm mb-4">
+        <div class="card border-0 shadow-sm mb-4 crm-toolkit">
             <div class="card-body p-3">
                 <form action="{{ route('leads.index') }}" method="GET"
                     class="d-flex flex-column flex-lg-row align-items-lg-center gap-3">
@@ -93,7 +93,7 @@
         {{-- TABLE --}}
         <div class="card border-0 shadow-sm">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-hover align-middle mb-0 crm-data-table">
                     <thead class="table-light">
                         <tr>
                             <th class="ps-4 py-3 fw-semibold small text-uppercase text-muted">Lead</th>
@@ -141,18 +141,32 @@
 
                                 {{-- Status --}}
                                 <td>
-                                    <span class="badge rounded-pill"
-                                        style="background-color: {{ getStatusColor($lead->status) }}; font-size: 0.75rem;">
-                                        {{ $lead->status }}
-                                    </span>
+                                    @php
+                                        $leadStatus = strtolower((string) $lead->status);
+                                        $leadStatusClass = match ($leadStatus) {
+                                            'new' => 'crm-table-status crm-table-status-primary',
+                                            'contacted' => 'crm-table-status crm-table-status-info',
+                                            'qualified', 'won' => 'crm-table-status crm-table-status-success',
+                                            'proposal sent', 'proposal_sent', 'negotiation' => 'crm-table-status crm-table-status-warning',
+                                            'lost' => 'crm-table-status crm-table-status-danger',
+                                            default => 'crm-table-status crm-table-status-primary',
+                                        };
+                                    @endphp
+                                    <span class="{{ $leadStatusClass }}">{{ ucfirst($lead->status) }}</span>
                                 </td>
 
                                 {{-- Priority --}}
                                 <td>
-                                    <span class="badge rounded-pill"
-                                        style="background-color: {{ getPriorityColor($lead->priority) }}; font-size: 0.75rem; color: white;">
-                                        {{ $lead->priority }}
-                                    </span>
+                                    @php
+                                        $leadPriority = strtolower((string) $lead->priority);
+                                        $leadPriorityClass = match ($leadPriority) {
+                                            'high' => 'crm-table-status crm-table-status-danger',
+                                            'medium' => 'crm-table-status crm-table-status-warning',
+                                            'low' => 'crm-table-status crm-table-status-success',
+                                            default => 'crm-table-status crm-table-status-primary',
+                                        };
+                                    @endphp
+                                    <span class="{{ $leadPriorityClass }}">{{ ucfirst($lead->priority) }}</span>
                                 </td>
 
                                 {{-- Expected Value --}}
@@ -183,7 +197,7 @@
                                 {{-- Source --}}
                                 <td>
                                     @if ($lead->source)
-                                        <span class="badge bg-light text-dark border small">{{ $lead->source }}</span>
+                                        <span class="crm-table-meta">{{ $lead->source }}</span>
                                     @else
                                         <span class="text-muted small">—</span>
                                     @endif
@@ -198,19 +212,19 @@
 
                                 {{-- Actions --}}
                                 <td class="pe-4 text-end">
-                                    <div class="d-flex justify-content-end gap-1">
-                                        <a href="{{ route('leads.show', $lead) }}" class="btn btn-sm btn-outline-primary"
-                                            title="View">
-                                            <i class="bi bi-eye"></i>
+                                    <div class="d-flex justify-content-end gap-1 flex-wrap">
+                                        <a href="{{ route('leads.show', $lead) }}"
+                                            class="btn btn-sm btn-outline-primary crm-action-btn" title="View">
+                                            View
                                         </a>
                                         @if ($currentUser && ($currentUser->hasRole('admin') || $currentUser->hasRole('sales')))
                                             <a href="{{ route('leads.edit', $lead) }}"
-                                                class="btn btn-sm btn-outline-warning" title="Edit">
-                                                <i class="bi bi-pencil"></i>
+                                                class="btn btn-sm btn-outline-warning crm-action-btn" title="Edit">
+                                                Edit
                                             </a>
-                                            <button type="button" class="btn btn-sm btn-outline-danger delete-lead"
+                                            <button type="button" class="btn btn-sm btn-outline-danger delete-lead crm-action-btn"
                                                 data-lead-id="{{ $lead->id }}" title="Delete">
-                                                <i class="bi bi-trash"></i>
+                                                Delete
                                             </button>
                                         @endif
                                     </div>
@@ -341,10 +355,6 @@
             font-size: 0.7rem;
             font-weight: bold;
             flex-shrink: 0;
-        }
-
-        .table>tbody>tr:last-child>td {
-            border-bottom: none;
         }
     </style>
 @endsection

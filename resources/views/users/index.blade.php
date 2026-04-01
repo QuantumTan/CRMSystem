@@ -15,14 +15,14 @@
                 </div>
                 <p class="text-muted mb-0 small">Manage system users and access roles</p>
             </div>
-            <a href="{{ route('users.create') }}" class="btn btn-primary">
+            <a href="{{ route('users.create') }}" class="btn btn-primary crm-module-add-btn">
                 <i class="bi bi-plus-lg"></i> Add User
             </a>
         </div>
 
         <div class="card border-0 shadow-sm">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-hover align-middle mb-0 crm-data-table">
                     <thead class="table-light">
                         <tr>
                             <th class="small text-muted py-3">Name</th>
@@ -43,7 +43,16 @@
                                 </td>
                                 <td class="small text-muted py-3">{{ $user->email }}</td>
                                 <td class="py-3">
-                                    <span class="badge text-bg-secondary">{{ ucfirst($user->role) }}</span>
+                                    @php
+                                        $userRole = strtolower((string) $user->role);
+                                        $userRoleClass = match ($userRole) {
+                                            'admin' => 'crm-table-status crm-table-status-primary',
+                                            'manager' => 'crm-table-status crm-table-status-info',
+                                            'sales' => 'crm-table-status crm-table-status-success',
+                                            default => 'crm-table-status crm-table-status-muted',
+                                        };
+                                    @endphp
+                                    <span class="{{ $userRoleClass }}">{{ ucfirst($userRole) }}</span>
                                 </td>
                                 <td class="small text-muted py-3">{{ $user->created_at?->format('M d, Y') }}</td>
                                 <td class="py-3">
@@ -73,10 +82,10 @@
                     </tbody>
                 </table>
             </div>
-        </div>
 
-        <div class="card-footer bg-white border-top py-3 mt-3">
-            {{ $users->links('pagination::bootstrap-5') }}
+            <div class="card-footer bg-white border-top py-3">
+                {{ $users->links('pagination::bootstrap-5') }}
+            </div>
         </div>
     </div>
 

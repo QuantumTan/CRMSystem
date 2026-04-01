@@ -36,7 +36,7 @@
 
                 @if ($currentUser && ($currentUser->hasRole('admin') || $currentUser->hasRole('sales')))
                     <a href="{{ route('leads.create') }}" 
-                       class="btn btn-primary d-flex align-items-center gap-2">
+                       class="btn btn-primary crm-module-add-btn d-flex align-items-center gap-2">
                         <i class="bi bi-plus"></i>
                         Add Lead
                     </a>
@@ -45,7 +45,7 @@
         </div>
 
         {{-- FILTER TOOLKIT (Now powered entirely by traditional GET request) --}}
-        <div class="card border-0 shadow-sm mb-4">
+        <div class="card border-0 shadow-sm mb-4 crm-toolkit">
             <div class="card-body p-3">
                 <form action="{{ route('leads.kanban') }}" method="GET"
                       class="d-flex flex-column flex-lg-row align-items-lg-center gap-3">
@@ -157,7 +157,9 @@
                                         </span>
 
                                         @if ($lead->source)
-                                            <span class="badge bg-light text-dark px-2 py-1">{{ $lead->source }}</span>
+                                            <span class="badge px-2 py-1" style="background-color: rgba(37, 99, 235, 0.12); color: #1d4ed8;">
+                                                {{ $lead->source }}
+                                            </span>
                                         @endif
                                     </div>
 
@@ -181,19 +183,19 @@
                                     @endif
 
                                     {{-- Actions (Now using standard Forms) --}}
-                                    <div class="d-flex gap-1 pt-2 border-top">
-                                        <a href="{{ route('leads.show', $lead) }}" class="btn btn-sm btn-outline-secondary flex-fill" title="View">
-                                            <i class="bi bi-eye"></i>
+                                    <div class="d-flex flex-wrap gap-1 pt-2 border-top">
+                                        <a href="{{ route('leads.show', $lead) }}" class="btn btn-sm btn-outline-primary crm-action-btn" title="View">
+                                            View
                                         </a>
                                         @if ($currentUser && ($currentUser->hasRole('admin') || $currentUser->hasRole('sales')))
-                                            <a href="{{ route('leads.edit', $lead) }}" class="btn btn-sm btn-outline-secondary flex-fill" title="Edit">
-                                                <i class="bi bi-pencil"></i>
+                                            <a href="{{ route('leads.edit', $lead) }}" class="btn btn-sm btn-outline-warning crm-action-btn" title="Edit">
+                                                Edit
                                             </a>
-                                            <form action="{{ route('leads.destroy', $lead) }}" method="POST" class="flex-fill d-flex" onsubmit="return confirm('Are you sure you want to delete this lead?');">
+                                            <form action="{{ route('leads.destroy', $lead) }}" method="POST" class="d-inline-flex" onsubmit="return confirm('Are you sure you want to delete this lead?');">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-outline-danger w-100" title="Delete">
-                                                    <i class="bi bi-trash"></i>
+                                                <button type="submit" class="btn btn-sm btn-outline-danger crm-action-btn" title="Delete">
+                                                    Delete
                                                 </button>
                                             </form>
                                         @endif
@@ -225,11 +227,23 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
     <script>
+        const canDragLeads = @json($currentUser && ($currentUser->hasRole('admin') || $currentUser->hasRole('sales')));
         const leadsBaseUrl = "{{ url('/leads') }}";
         const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
+        if (!canDragLeads) {
+            document.querySelectorAll('.draggable-card').forEach((card) => {
+                card.setAttribute('draggable', 'false');
+                card.style.cursor = 'default';
+            });
+        }
+
         // ── Sortable (drag & drop) with Traditional Form Submit ──────────
         document.querySelectorAll('.droppable-zone').forEach(zone => {
+            if (!canDragLeads) {
+                return;
+            }
+
             Sortable.create(zone, {
                 group: 'leads',
                 animation: 150,

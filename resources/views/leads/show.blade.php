@@ -21,25 +21,14 @@
     $priorityColors = [
         'high' => 'danger',
         'medium' => 'warning',
-        'low' => 'secondary',
+        'low' => 'success',
     ];
 @endphp
 
 @push('styles')
-    {{-- Google Fonts --}}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap"
-        rel="stylesheet">
-
     <style>
-        /* Keep only the font families, let Bootstrap handle the rest */
         body {
-            font-family: 'DM Sans', sans-serif;
             background-color: #f8f9fa;
-        }
-
-        .font-serif {
-            font-family: 'DM Serif Display', serif;
         }
     </style>
 @endpush
@@ -50,14 +39,7 @@
         {{-- header --}}
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-4">
             <div>
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-1 text-uppercase text-muted" style="font-size: 0.75rem; letter-spacing: 0.05em;">
-                        <li class="breadcrumb-item"><a href="{{ route('leads.index') }}"
-                                class="text-decoration-none text-muted">Leads</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">{{ $lead->name }}</li>
-                    </ol>
-                </nav>
-                <h1 class="font-serif display-6 mb-0 text-dark">{{ $lead->name }}</h1>
+                <h1 class="display-6 mb-0 text-dark">{{ $lead->name }}</h1>
             </div>
 
             @if ($user && ($user->hasRole('admin') || $user->hasRole('sales')))
@@ -71,10 +53,7 @@
                                 class="btn btn-success d-inline-flex align-items-center gap-2 px-3 fw-medium"
                                 style="font-size: 0.875rem;"
                                 onclick="return confirm('Are you sure you want to convert this lead into a customer?');">
-                                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor"
-                                    stroke-width="1.6">
-                                    <path d="M10.5 4.5l3 3m0 0l-3 3m3-3H2" stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
+                                <i class="bi bi-arrow-right-circle"></i>
                                 Convert to Customer
                             </button>
                         </form>
@@ -82,11 +61,7 @@
                         <a href="{{ route('customers.show', $lead->customer_id) }}"
                             class="btn btn-info text-white d-inline-flex align-items-center gap-2 px-3 fw-medium"
                             style="font-size: 0.875rem;">
-                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor"
-                                stroke-width="1.6">
-                                <circle cx="8" cy="5.5" r="3" />
-                                <path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6" />
-                            </svg>
+                            <i class="bi bi-person-badge"></i>
                             View Customer
                         </a>
                     @endif
@@ -94,19 +69,13 @@
                     <a href="{{ route('leads.edit', $lead) }}"
                         class="btn btn-light border shadow-sm d-inline-flex align-items-center gap-2 px-3 fw-medium"
                         style="font-size: 0.875rem;">
-                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor"
-                            stroke-width="1.6">
-                            <path d="M11 2l3 3-9 9H2v-3L11 2z" />
-                        </svg>
+                        <i class="bi bi-pencil"></i>
                         Edit
                     </a>
                     <button type="button"
                         class="btn btn-danger text-danger bg-danger bg-opacity-10 border-danger border-opacity-25 d-inline-flex align-items-center gap-2 px-3 fw-medium"
                         id="deleteLeadBtn" style="font-size: 0.875rem;">
-                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor"
-                            stroke-width="1.6">
-                            <path d="M2 4h12M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" />
-                        </svg>
+                        <i class="bi bi-trash"></i>
                         Delete
                     </button>
                 </div>
@@ -129,7 +98,7 @@
                                 {{ strtoupper(substr($lead->name, 0, 2)) }}
                             </div>
                             <div>
-                                <h5 class="font-serif mb-1 text-dark">{{ $lead->name }}</h5>
+                                <h5 class="mb-1 text-dark">{{ $lead->name }}</h5>
                                 <div class="d-flex flex-wrap gap-2">
                                     @php
                                         $statusSlug = strtolower(str_replace(' ', '-', $lead->status));

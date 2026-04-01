@@ -48,7 +48,7 @@ class Lead extends Model
         static::addGlobalScope('sales_visibility', function (Builder $query): void {
             $user = Auth::user();
 
-            if ($user && $user->hasRole('sales')) {
+            if ($user instanceof User && $user->hasRole('sales')) {
                 $query->where('assigned_user_id', $user->id);
             }
         });
@@ -66,7 +66,7 @@ class Lead extends Model
     // lead converted to customer
     public function convertedToCustomer(): BelongsTo
     {
-        return $this->belongsTo(Customer::class, 'converted_to_customer_id');
+        return $this->belongsTo(Customer::class, 'converted_to_customer_id')->withTrashed();
     }
 
     // staff member assigned to the lead
@@ -110,6 +110,7 @@ class Lead extends Model
             'low',
             'medium',
             'high',
+            'critical',
         ];
     }
 
@@ -192,17 +193,24 @@ class Lead extends Model
         DB::beginTransaction();
 
         try {
-            // Create customer from lead data
-            $customer = Customer::create([
+            $customerPayload = [
                 'first_name' => $this->extractFirstName($this->name),
                 'last_name' => $this->extractLastName($this->name),
                 'email' => $this->email,
                 'phone' => $this->phone,
                 'status' => 'active',
                 'assigned_user_id' => $this->assigned_user_id,
-                'source' => $this->source,
-                'converted_from_lead_id' => $this->id,
-            ]);
+            ];
+
+            // Ensure the assigned sales owner can access converted customers immediately.
+            if ($this->assigned_user_id !== null) {
+                $customerPayload['assignment_status'] = 'approved';
+                $customerPayload['assignment_reviewed_by'] = Auth::id();
+                $customerPayload['assignment_reviewed_at'] = now();
+            }
+
+            // Create customer from lead data
+            $customer = Customer::create($customerPayload);
 
             // Update lead with conversion info
             $this->update([
@@ -257,36 +265,6 @@ class Lead extends Model
             'lost_category' => null,
             'lost_at' => null,
         ]);
-    }
-
-    /**
-     * Get priority badge class for HTML
-     */
-    public function getPriorityBadgeClass(): string
-    {
-        return match ($this->priority) {
-            'high' => 'danger',
-            'medium' => 'warning',
-            'low' => 'info',
-            default => 'secondary',
-        };
-    }
-
-    /**
-     * Get status badge class for HTML
-     */
-    public function getStatusBadgeClass(): string
-    {
-        return match ($this->status) {
-            'new' => 'primary',
-            'contacted' => 'info',
-            'qualified' => 'success',
-            'proposal_sent' => 'warning',
-            'negotiation' => 'dark',
-            'won' => 'success',
-            'lost' => 'danger',
-            default => 'secondary',
-        };
     }
 
     // SCOPES FOR QUERYING
