@@ -161,7 +161,13 @@ class LeadController extends Controller
 
         $lead->load(['assignedUser', 'convertedToCustomer']);
 
-        return view('leads.show', compact('lead'));
+        // load the activities
+        $activities = $lead->activities()
+            ->with('user')
+            ->latest('activity_date')
+            ->get();
+
+        return view('leads.show', compact('lead', 'activities'));
     }
 
     /**

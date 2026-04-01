@@ -62,23 +62,28 @@
 
             @if ($user && ($user->hasRole('admin') || $user->hasRole('sales')))
                 <div class="d-flex flex-wrap gap-2">
-                    
+
                     {{-- ── CONVERT TO CUSTOMER BUTTON ───────────────────────── --}}
-                    @if(strtolower($lead->status) === 'won' && empty($lead->customer_id))
+                    @if (strtolower($lead->status) === 'won' && empty($lead->customer_id))
                         <form action="{{ route('leads.convert', $lead) }}" method="POST" class="d-inline-block">
                             @csrf
-                            <button type="submit" class="btn btn-success d-inline-flex align-items-center gap-2 px-3 fw-medium" 
-                                    style="font-size: 0.875rem;" 
-                                    onclick="return confirm('Are you sure you want to convert this lead into a customer?');">
-                                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
-                                    <path d="M10.5 4.5l3 3m0 0l-3 3m3-3H2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <button type="submit"
+                                class="btn btn-success d-inline-flex align-items-center gap-2 px-3 fw-medium"
+                                style="font-size: 0.875rem;"
+                                onclick="return confirm('Are you sure you want to convert this lead into a customer?');">
+                                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                                    stroke-width="1.6">
+                                    <path d="M10.5 4.5l3 3m0 0l-3 3m3-3H2" stroke-linecap="round" stroke-linejoin="round" />
                                 </svg>
                                 Convert to Customer
                             </button>
                         </form>
                     @elseif(!empty($lead->customer_id))
-                        <a href="{{ route('customers.show', $lead->customer_id) }}" class="btn btn-info text-white d-inline-flex align-items-center gap-2 px-3 fw-medium" style="font-size: 0.875rem;">
-                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+                        <a href="{{ route('customers.show', $lead->customer_id) }}"
+                            class="btn btn-info text-white d-inline-flex align-items-center gap-2 px-3 fw-medium"
+                            style="font-size: 0.875rem;">
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                                stroke-width="1.6">
                                 <circle cx="8" cy="5.5" r="3" />
                                 <path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6" />
                             </svg>
@@ -398,95 +403,9 @@
                 </div>
 
                 {{-- Activity card --}}
-                <div class="card border-0 shadow-sm rounded-4">
-                    <div class="card-header bg-transparent py-3 d-flex align-items-center gap-2 text-uppercase text-muted fw-bold"
-                        style="font-size: 0.75rem; letter-spacing: 0.05em;">
-                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor"
-                            stroke-width="1.5">
-                            <circle cx="8" cy="8" r="6.5" />
-                            <path d="M8 5v3l2 2" />
-                        </svg>
-                        Activity
-                    </div>
-                    <div class="card-body p-4">
-
-                        @if (isset($activities) && $activities->count())
-                            <div class="d-flex flex-column gap-3 mb-4">
-                                {{-- BUG FIX: Changed $loop to $activity --}}
-                                @foreach ($activities as $activity)
-                                    <div class="d-flex gap-3 {{ !$loop->last ? 'pb-3 border-bottom' : '' }}">
-                                        @php
-                                            $aType = $activity->type ?? '';
-                                            $iconBg = 'bg-light';
-                                            $iconColor = 'text-secondary';
-
-                                            if ($aType === 'email') {
-                                                $iconBg = 'bg-primary bg-opacity-10';
-                                                $iconColor = 'text-primary';
-                                            } elseif ($aType === 'call') {
-                                                $iconBg = 'bg-warning bg-opacity-10';
-                                                $iconColor = 'text-warning';
-                                            } elseif ($aType === 'status') {
-                                                $iconBg = 'bg-success bg-opacity-10';
-                                                $iconColor = 'text-success';
-                                            }
-                                        @endphp
-
-                                        <div class="rounded p-2 d-flex align-items-center justify-content-center flex-shrink-0 {{ $iconBg }} {{ $iconColor }}"
-                                            style="width: 36px; height: 36px;">
-                                            @if ($aType === 'email')
-                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
-                                                    stroke="currentColor" stroke-width="1.5">
-                                                    <rect x="1" y="3" width="14" height="10" rx="1.5" />
-                                                    <path d="M1 5l7 5 7-5" />
-                                                </svg>
-                                            @elseif($aType === 'call')
-                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
-                                                    stroke="currentColor" stroke-width="1.5">
-                                                    <path
-                                                        d="M2 2h3l1.5 4-2 1.5a11 11 0 004 4L10 9.5l4 1.5v3a1 1 0 01-1 1A14 14 0 012 3a1 1 0 011-1z" />
-                                                </svg>
-                                            @elseif($aType === 'status')
-                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
-                                                    stroke="currentColor" stroke-width="1.5">
-                                                    <path d="M13 5L6 12l-3-3" />
-                                                </svg>
-                                            @else
-                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
-                                                    stroke="currentColor" stroke-width="1.5">
-                                                    <circle cx="8" cy="8" r="6.5" />
-                                                    <path d="M8 5v3l2 2" />
-                                                </svg>
-                                            @endif
-                                        </div>
-                                        <div>
-                                            <div class="text-dark" style="font-size: 0.875rem; line-height: 1.5;">
-                                                {{ $activity->description }}</div>
-                                            <div class="text-muted mt-1" style="font-size: 0.75rem;">
-                                                {{ $activity->created_at->format('M d, Y · g:i A') }}
-                                                @if ($activity->user)
-                                                    · {{ $activity->user->name }}
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @else
-                            <p class="text-muted small mb-4">No activity recorded yet.</p>
-                        @endif
-
-                        {{-- Log note form --}}
-                        @if ($user && ($user->hasRole('admin') || $user->hasRole('sales')))
-                            <div class="d-flex align-items-start gap-2 pt-3 border-top">
-                                <textarea class="form-control bg-light border-0 shadow-none" rows="2"
-                                    placeholder="Log a call, note, or update…" id="activityNote" style="resize: none; font-size: 0.875rem;"></textarea>
-                                <button class="btn btn-dark px-3 fw-medium" type="button"
-                                    style="font-size: 0.875rem;">Add</button>
-                            </div>
-                        @endif
-
-                    </div>
+                <div class="mt-4">
+                    @include('activities._form', ['lead' => $lead, 'customer' => null])
+                    @include('activities._timeline', ['activities' => $activities])
                 </div>
 
             </div>

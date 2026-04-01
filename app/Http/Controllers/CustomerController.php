@@ -23,18 +23,15 @@ class CustomerController extends Controller
             'delete' => ['nullable', 'integer', 'exists:customers,id'],
         ]);
 
-        $customersQuery = $this->applyVisibilityScope(
-            Customer::query()->with(['assignedUser', 'assignmentReviewer']),
-            $request
-        )
+        $customersQuery = $this->applyVisibilityScope(Customer::query()->with(['assignedUser', 'assignmentReviewer']), $request)
             ->with(['assignedUser', 'assignmentReviewer'])
             ->latest();
 
-        if (! empty($filters['assignment_status'])) {
+        if (!empty($filters['assignment_status'])) {
             $customersQuery->where('assignment_status', (string) $filters['assignment_status']);
         }
 
-        if (! empty($filters['search'])) {
+        if (!empty($filters['search'])) {
             $search = $this->escapeLike((string) $filters['search']);
 
             $customersQuery->where(function ($query) use ($search): void {
@@ -47,27 +44,24 @@ class CustomerController extends Controller
             });
         }
 
-        if (! empty($filters['status'])) {
+        if (!empty($filters['status'])) {
             $customersQuery->where('status', (string) $filters['status']);
         }
 
-        if (! empty($filters['assigned_user_id'])) {
+        if (!empty($filters['assigned_user_id'])) {
             $customersQuery->where('assigned_user_id', (int) $filters['assigned_user_id']);
         }
 
         $baseStatsQuery = $this->applyVisibilityScope(Customer::query(), $request);
 
-        $customerThisMonth = (clone $baseStatsQuery)->whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)
-            ->count();
+        $customerThisMonth = (clone $baseStatsQuery)->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
 
-        $customerLastMonth = (clone $baseStatsQuery)->whereMonth('created_at', now()->subMonth()->month)
+        $customerLastMonth = (clone $baseStatsQuery)
+            ->whereMonth('created_at', now()->subMonth()->month)
             ->whereYear('created_at', now()->subMonth()->year)
             ->count();
 
-        $customerSpecificMonth = (clone $baseStatsQuery)->whereMonth('created_at', 1)
-            ->whereYear('created_at', 2025)
-            ->count();
+        $customerSpecificMonth = (clone $baseStatsQuery)->whereMonth('created_at', 1)->whereYear('created_at', 2025)->count();
 
         $customerThisYear = (clone $baseStatsQuery)->whereYear('created_at', now()->year)->count();
 
@@ -110,7 +104,7 @@ class CustomerController extends Controller
             $payload['assigned_user_id'] = $user->id;
         }
 
-        if (! empty($payload['assigned_user_id'])) {
+        if (!empty($payload['assigned_user_id'])) {
             $payload['assignment_status'] = 'pending';
             $payload['assignment_reviewed_by'] = null;
             $payload['assignment_reviewed_at'] = null;
@@ -127,9 +121,12 @@ class CustomerController extends Controller
 
         $customer->load(['assignedUser', 'assignmentReviewer']);
 
+        $activities = $customer->activities()->with('user')->latest('activity_date')->get();
+
         return view('customers.show', [
             'customer' => $customer,
             'assignableUsers' => $this->assignableUsers(),
+            'activities' => $activities,
         ]);
     }
 
@@ -180,12 +177,9 @@ class CustomerController extends Controller
             'assigned_user_id' => ['required', 'exists:users,id'],
         ]);
 
-        $salesUser = User::query()
-            ->where('id', (int) $data['assigned_user_id'])
-            ->where('role', 'sales')
-            ->exists();
+        $salesUser = User::query()->where('id', (int) $data['assigned_user_id'])->where('role', 'sales')->exists();
 
-        if (! $salesUser) {
+        if (!$salesUser) {
             return redirect()->back()->with('error', 'Assigned user must be a Sales Staff account.');
         }
 
@@ -223,10 +217,7 @@ class CustomerController extends Controller
 
     private function assignableUsers()
     {
-        return User::query()
-            ->where('role', 'sales')
-            ->orderBy('name')
-            ->get();
+        return User::query()->where('role', 'sales')->orderBy('name')->get();
     }
 
     private function applyVisibilityScope(Builder $query, Request $request): Builder
@@ -234,9 +225,7 @@ class CustomerController extends Controller
         $user = $request->user();
 
         if ($user?->hasRole('sales')) {
-            $query
-                ->where('assigned_user_id', $user->id)
-                ->where('assignment_status', 'approved');
+            $query->where('assigned_user_id', $user->id)->where('assignment_status', 'approved');
         }
 
         return $query;
