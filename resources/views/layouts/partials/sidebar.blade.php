@@ -107,7 +107,7 @@
                         </a>
                     @endif
 
-                    @if ($isAdmin || $isSales)
+                    @if ($isAdmin || $isManager || $isSales)
                         <a href="{{ route('activities.index') }}" data-nav-link data-nav-label="Activities"
                             title="Activities"
                             class="crm-nav-link {{ request()->routeIs('activities.*') ? 'active' : '' }}">

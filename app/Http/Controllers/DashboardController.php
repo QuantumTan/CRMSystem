@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Activity;
+use App\Models\Customer;
+use App\Models\FollowUp;
+use App\Models\Lead;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use App\Models\Customer;
-use App\Models\Lead;
-use App\Models\Activity;
-use App\Models\FollowUp;
 
 class DashboardController extends Controller
 {
@@ -31,7 +31,7 @@ class DashboardController extends Controller
 
     public function manager(Request $request): View
     {
-        return view('dashboard.manager', $this->buildDashboardData($request->user()->id));
+        return view('dashboard.manager', $this->buildDashboardData());
     }
 
     public function sales(Request $request): View
