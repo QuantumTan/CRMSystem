@@ -14,7 +14,7 @@
             </div>
 
             @php
-                $user = auth()->user();
+                $currentUser = auth()->user();
             @endphp
 
             <div class="d-flex align-items-center gap-2">
@@ -27,7 +27,7 @@
                     Table View
                 </a>
 
-                @if ($user && ($user->hasRole('admin') || $user->hasRole('sales')))
+                @if ($currentUser && ($currentUser->hasRole('admin') || $currentUser->hasRole('sales')))
                     <a href="{{ route('leads.create') }}" class="btn btn-primary d-flex align-items-center gap-2">
                         <i class="bi bi-plus"></i>
                         Add Lead
@@ -73,9 +73,9 @@
                     <select id="assigned_user" name="assigned_user" class="form-select form-select-sm w-auto"
                         style="min-width: 140px;">
                         <option value="">All Users</option>
-                        @foreach ($users as $user)
-                            <option value="{{ $user->id }}" @selected(request('assigned_user') == $user->id)>
-                                {{ $user->name }}
+                        @foreach ($users as $assignee)
+                            <option value="{{ $assignee->id }}" @selected(request('assigned_user') == $assignee->id)>
+                                {{ $assignee->name }}
                             </option>
                         @endforeach
                     </select>
@@ -203,7 +203,7 @@
                                             title="View">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        @if ($user && ($user->hasRole('admin') || $user->hasRole('sales')))
+                                        @if ($currentUser && ($currentUser->hasRole('admin') || $currentUser->hasRole('sales')))
                                             <a href="{{ route('leads.edit', $lead) }}"
                                                 class="btn btn-sm btn-outline-warning" title="Edit">
                                                 <i class="bi bi-pencil"></i>
@@ -221,7 +221,7 @@
                                 <td colspan="9" class="text-center py-5 text-muted">
                                     <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.3;"></i>
                                     <p class="mt-2 mb-0">No leads found</p>
-                                    @if ($user && ($user->hasRole('admin') || $user->hasRole('sales')))
+                                    @if ($currentUser && ($currentUser->hasRole('admin') || $currentUser->hasRole('sales')))
                                         <a href="{{ route('leads.create') }}" class="btn btn-primary btn-sm mt-3">
                                             <i class="bi bi-plus-lg"></i> Add your first lead
                                         </a>

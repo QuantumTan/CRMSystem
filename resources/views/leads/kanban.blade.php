@@ -3,6 +3,10 @@
 @section('title', 'Leads')
 
 @section('content')
+    @php
+        $currentUser = auth()->user();
+    @endphp
+
     <div class="container-fluid px-3 px-md-4 py-4">
 
         {{-- HEADER --}}
@@ -30,11 +34,13 @@
                     Table View
                 </a>
 
-                <a href="{{ route('leads.create') }}" 
-                   class="btn btn-primary d-flex align-items-center gap-2">
-                    <i class="bi bi-plus"></i>
-                    Add Lead
-                </a>
+                @if ($currentUser && ($currentUser->hasRole('admin') || $currentUser->hasRole('sales')))
+                    <a href="{{ route('leads.create') }}" 
+                       class="btn btn-primary d-flex align-items-center gap-2">
+                        <i class="bi bi-plus"></i>
+                        Add Lead
+                    </a>
+                @endif
             </div>
         </div>
 
@@ -73,9 +79,9 @@
                     {{-- All Users --}}
                     <select id="assigned_user" name="assigned_user" class="form-select form-select-sm w-auto" style="min-width: 140px;">
                         <option value="">All Users</option>
-                        @foreach ($users as $user)
-                            <option value="{{ $user->id }}" @selected(request('assigned_user') == $user->id)>
-                                {{ $user->name }}
+                        @foreach ($users as $assignee)
+                            <option value="{{ $assignee->id }}" @selected(request('assigned_user') == $assignee->id)>
+                                {{ $assignee->name }}
                             </option>
                         @endforeach
                     </select>
@@ -179,16 +185,18 @@
                                         <a href="{{ route('leads.show', $lead) }}" class="btn btn-sm btn-outline-secondary flex-fill" title="View">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        <a href="{{ route('leads.edit', $lead) }}" class="btn btn-sm btn-outline-secondary flex-fill" title="Edit">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
-                                        <form action="{{ route('leads.destroy', $lead) }}" method="POST" class="flex-fill d-flex" onsubmit="return confirm('Are you sure you want to delete this lead?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger w-100" title="Delete">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
+                                        @if ($currentUser && ($currentUser->hasRole('admin') || $currentUser->hasRole('sales')))
+                                            <a href="{{ route('leads.edit', $lead) }}" class="btn btn-sm btn-outline-secondary flex-fill" title="Edit">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <form action="{{ route('leads.destroy', $lead) }}" method="POST" class="flex-fill d-flex" onsubmit="return confirm('Are you sure you want to delete this lead?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-outline-danger w-100" title="Delete">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        @endif
                                     </div>
                                 </div>
 

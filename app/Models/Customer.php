@@ -24,7 +24,7 @@ class Customer extends Model
         'assignment_status',
         'assignment_reviewed_by',
         'assignment_reviewed_at',
-  ];
+    ];
 
     protected $casts = [
         'assignment_reviewed_at' => 'datetime',
@@ -38,5 +38,9 @@ class Customer extends Model
     public function assignmentReviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assignment_reviewed_by');
+    }
+    public function activities()
+    {
+        return $this->hasMany(\App\Models\Activity::class);
     }
 }

@@ -20,9 +20,7 @@ class LeadFactory extends Factory
         $statuses = ['new', 'contacted', 'qualified', 'proposal_sent', 'negotiation', 'won', 'lost'];
         $priorities = ['low', 'medium', 'high', 'critical'];
         $userId = \App\Models\User::inRandomOrder()->value('id') ?? \App\Models\User::factory()->create()->id;
-        $customerId = \App\Models\Customer::inRandomOrder()->value('id') ?? \App\Models\Customer::factory()->create()->id;
         return [
-            'customer_id' => $customerId,
             'name' => $this->faker->name(),
             'email' => $this->faker->unique()->safeEmail(),
             'phone' => $this->faker->phoneNumber(),

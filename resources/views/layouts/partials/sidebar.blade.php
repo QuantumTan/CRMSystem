@@ -11,9 +11,19 @@
     $followUpCount = 0;
 
     try {
-        $leadCount     = \App\Models\Lead::count();
-        $activityCount = \App\Models\Activity::count();
-        $followUpCount = \App\Models\FollowUp::count();
+        $leadCountQuery = \App\Models\Lead::query();
+        $activityCountQuery = \App\Models\Activity::query();
+        $followUpCountQuery = \App\Models\FollowUp::query();
+
+        if ($isSales && $user) {
+            $leadCountQuery->where('assigned_user_id', $user->id);
+            $activityCountQuery->where('user_id', $user->id);
+            $followUpCountQuery->where('user_id', $user->id);
+        }
+
+        $leadCount     = $leadCountQuery->count();
+        $activityCount = $activityCountQuery->count();
+        $followUpCount = $followUpCountQuery->count();
     } catch (\Throwable $e) {}
 
     $nameParts = preg_split('/\s+/', trim((string) ($user?->name ?? 'User')));
@@ -97,7 +107,7 @@
                         </a>
                     @endif
 
-                    @if ($isAdmin || $isSales)
+                    @if ($isAdmin || $isManager || $isSales)
                         <a href="{{ route('activities.index') }}" data-nav-link data-nav-label="Activities"
                             title="Activities"
                             class="crm-nav-link {{ request()->routeIs('activities.*') ? 'active' : '' }}">

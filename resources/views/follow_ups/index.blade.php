@@ -28,9 +28,11 @@
                 </div>
                 <p class="text-muted mb-0 small">Manage upcoming follow-up tasks</p>
             </div>
-            <a href="{{ route('follow-ups.create') }}" class="btn btn-primary">
-                <i class="bi bi-plus-lg"></i> Add Follow-up
-            </a>
+            @can('create', \App\Models\FollowUp::class)
+                <a href="{{ route('follow-ups.create') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg"></i> Add Follow-up
+                </a>
+            @endcan
         </div>
 
         <div class="card border-0 shadow-sm mb-4">
@@ -102,16 +104,28 @@
                                 <td class="small text-muted py-3">{{ $followUp->user?->name ?? 'N/A' }}</td>
                                 <td class="py-3">
                                     <div class="d-flex justify-content-end gap-2">
-                                        @if ($followUp->status !== 'completed')
-                                            <a href="{{ route('follow-ups.edit', $followUp) }}" class="btn btn-sm btn-light border text-dark">Edit</a>
-                                            <form action="{{ route('follow-ups.complete', $followUp) }}" method="POST">
-                                                @csrf
-                                                @method('PATCH')
-                                                <button type="submit" class="btn btn-sm btn-light border text-success">Complete</button>
-                                            </form>
+                                        @can('update', $followUp)
+                                            @if ($followUp->status !== 'completed')
+                                                <a href="{{ route('follow-ups.edit', $followUp) }}" class="btn btn-sm btn-light border text-dark">Edit</a>
+                                                <form action="{{ route('follow-ups.complete', $followUp) }}" method="POST">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit" class="btn btn-sm btn-light border text-success">Complete</button>
+                                                </form>
+                                            @else
+                                                @if ($isAdmin)
+                                                    <form action="{{ route('follow-ups.reopen', $followUp) }}" method="POST">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <button type="submit" class="btn btn-sm btn-light border text-warning">Reopen</button>
+                                                    </form>
+                                                @else
+                                                    <span class="text-muted small">Locked</span>
+                                                @endif
+                                            @endif
                                         @else
-                                            <span class="text-muted small">Locked</span>
-                                        @endif
+                                            <span class="text-muted small">View only</span>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>
