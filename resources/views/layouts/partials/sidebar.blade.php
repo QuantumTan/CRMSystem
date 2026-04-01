@@ -158,15 +158,40 @@
 
     {{-- Profile Footer --}}
     <div class="crm-profile-footer px-2 pb-2 mt-auto border-top pt-2">
-        <a href="{{ route('profile') }}"
-            class="crm-profile-card text-decoration-none {{ request()->routeIs('profile') ? 'active' : '' }}">
-            <span class="crm-avatar">{{ $initials }}</span>
-            <span class="crm-profile-meta crm-label">
-                <strong class="crm-profile-name">{{ $user?->name }}</strong>
-                <small class="crm-profile-role">{{ ucfirst($role ?? 'User') }}</small>
-            </span>
-            <i class="bi bi-chevron-right crm-profile-arrow crm-label"></i>
-        </a>
+        <div class="dropup crm-profile-menu-wrap">
+            <button
+                class="crm-profile-trigger w-100 {{ request()->routeIs('profile') ? 'active' : '' }}"
+                type="button"
+                id="crmProfileMenu"
+                data-bs-toggle="dropdown"
+                data-bs-offset="0,10"
+                aria-expanded="false"
+            >
+                <span class="crm-avatar">{{ $initials }}</span>
+                <span class="crm-profile-meta crm-label">
+                    <strong class="crm-profile-name">{{ $user?->name }}</strong>
+                    <small class="crm-profile-role">{{ ucfirst($role ?? 'User') }}</small>
+                </span>
+                <i class="bi bi-chevron-up crm-profile-arrow crm-label"></i>
+            </button>
+
+            <ul class="dropdown-menu dropdown-menu-end crm-profile-dropdown" aria-labelledby="crmProfileMenu">
+                <li>
+                    <a class="dropdown-item" href="{{ route('profile') }}">
+                        <i class="bi bi-person-circle me-2"></i>View Profile
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form action="{{ route('logout') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="dropdown-item text-danger">
+                            <i class="bi bi-box-arrow-right me-2"></i>Logout
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
     </div>
 
 </aside>
