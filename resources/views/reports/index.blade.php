@@ -9,6 +9,14 @@
                 <h2 class="mb-1 fs-3 fw-semibold">Reports</h2>
                 <p class="text-muted mb-0 small">Team and pipeline reporting for admin and managers.</p>
             </div>
+            <div class="d-flex gap-2">
+                <a href="{{ route('reports.export.csv') }}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-filetype-csv me-1"></i>Export CSV
+                </a>
+                <a href="{{ route('reports.export.pdf') }}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-filetype-pdf me-1"></i>Export PDF
+                </a>
+            </div>
         </div>
 
         <div class="row g-3 mb-4">
