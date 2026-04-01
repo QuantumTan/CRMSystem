@@ -19,7 +19,7 @@ class ReportController extends Controller
         $this->ensureAuthorized($request);
         $filters = $this->validatedDateRange($request);
 
-        $data = $this->buildReportData($filters['from'], $filters['to']);
+        $data = $this->buildReportData($filters['from'], $filters['to'], $request->user());
 
         return view('reports.index', compact('data', 'filters'));
     }
@@ -29,7 +29,7 @@ class ReportController extends Controller
         $this->ensureAuthorized($request);
         $filters = $this->validatedDateRange($request);
 
-        $data = $this->buildReportData($filters['from'], $filters['to']);
+        $data = $this->buildReportData($filters['from'], $filters['to'], $request->user());
         $csv = $this->buildCsvContent($data);
         $fileName = 'reports-'.now()->format('Ymd-His').'.csv';
 
@@ -44,7 +44,7 @@ class ReportController extends Controller
         $this->ensureAuthorized($request);
         $filters = $this->validatedDateRange($request);
 
-        $data = $this->buildReportData($filters['from'], $filters['to']);
+        $data = $this->buildReportData($filters['from'], $filters['to'], $request->user());
         $pdf = $this->buildSimplePdf($data);
         $fileName = 'reports-'.now()->format('Ymd-His').'.pdf';
 
@@ -76,12 +76,25 @@ class ReportController extends Controller
         ];
     }
 
-    private function buildReportData(?string $fromDate = null, ?string $toDate = null): array
+    private function buildReportData(?string $fromDate = null, ?string $toDate = null, ?User $user = null): array
     {
+        $isManager = $user?->hasRole('manager') ?? false;
+        $salesUserIds = $isManager
+            ? User::query()->where('role', 'sales')->pluck('id')->all()
+            : [];
+
         $leadStatuses = Lead::getStatuses();
         $leadStatusCountsQuery = Lead::query()
             ->selectRaw('status, count(*) as total')
             ->groupBy('status');
+
+        if ($isManager) {
+            $leadStatusCountsQuery->where(function (Builder $query) use ($salesUserIds): void {
+                $query->whereIn('assigned_user_id', $salesUserIds)
+                    ->orWhereNull('assigned_user_id');
+            });
+        }
+
         $this->applyDateRange($leadStatusCountsQuery, 'created_at', $fromDate, $toDate);
         $leadStatusCounts = $leadStatusCountsQuery->pluck('total', 'status');
 
@@ -94,6 +107,11 @@ class ReportController extends Controller
         $activityTotalsByUser = Activity::query()
             ->selectRaw('user_id, count(*) as total_activities')
             ->groupBy('user_id');
+
+        if ($isManager) {
+            $activityTotalsByUser->whereIn('user_id', $salesUserIds);
+        }
+
         $this->applyDateRange($activityTotalsByUser, 'activity_date', $fromDate, $toDate);
 
         $userActivity = User::query()
@@ -101,10 +119,19 @@ class ReportController extends Controller
                 $join->on('users.id', '=', 'activity_totals.user_id');
             })
             ->selectRaw('users.name, users.role, COALESCE(activity_totals.total_activities, 0) as total_activities')
+            ->when($isManager, fn (Builder $query) => $query->where('users.role', 'sales'))
             ->orderByDesc('total_activities')
             ->get();
 
         $leadBaseQuery = Lead::query();
+
+        if ($isManager) {
+            $leadBaseQuery->where(function (Builder $query) use ($salesUserIds): void {
+                $query->whereIn('assigned_user_id', $salesUserIds)
+                    ->orWhereNull('assigned_user_id');
+            });
+        }
+
         $this->applyDateRange($leadBaseQuery, 'created_at', $fromDate, $toDate);
 
         $totalLeads = (clone $leadBaseQuery)->count();
@@ -113,29 +140,73 @@ class ReportController extends Controller
         $activePipelineLeads = max($totalLeads - $wonLeads - $lostLeads, 0);
 
         $customerCountQuery = Customer::query();
+
+        if ($isManager) {
+            $customerCountQuery->where(function (Builder $query) use ($salesUserIds): void {
+                $query->whereIn('assigned_user_id', $salesUserIds)
+                    ->orWhereNull('assigned_user_id');
+            });
+        }
+
         $this->applyDateRange($customerCountQuery, 'created_at', $fromDate, $toDate);
 
         $totalExpectedValueQuery = Lead::query();
+
+        if ($isManager) {
+            $totalExpectedValueQuery->where(function (Builder $query) use ($salesUserIds): void {
+                $query->whereIn('assigned_user_id', $salesUserIds)
+                    ->orWhereNull('assigned_user_id');
+            });
+        }
+
         $this->applyDateRange($totalExpectedValueQuery, 'created_at', $fromDate, $toDate);
 
         $activeExpectedValueQuery = Lead::query()->whereNotIn('status', ['won', 'lost']);
+
+        if ($isManager) {
+            $activeExpectedValueQuery->where(function (Builder $query) use ($salesUserIds): void {
+                $query->whereIn('assigned_user_id', $salesUserIds)
+                    ->orWhereNull('assigned_user_id');
+            });
+        }
+
         $this->applyDateRange($activeExpectedValueQuery, 'created_at', $fromDate, $toDate);
 
         $completedFollowUpsQuery = FollowUp::query()->where('status', 'completed');
+
+        if ($isManager) {
+            $completedFollowUpsQuery->whereIn('user_id', $salesUserIds);
+        }
+
         $this->applyDateRange($completedFollowUpsQuery, 'due_date', $fromDate, $toDate);
 
         $pendingFollowUpsQuery = FollowUp::query()->where('status', 'pending');
+
+        if ($isManager) {
+            $pendingFollowUpsQuery->whereIn('user_id', $salesUserIds);
+        }
+
         $this->applyDateRange($pendingFollowUpsQuery, 'due_date', $fromDate, $toDate);
 
         $overdueFollowUpsQuery = FollowUp::query()
             ->where('status', 'pending')
             ->whereDate('due_date', '<', now()->toDateString());
+
+        if ($isManager) {
+            $overdueFollowUpsQuery->whereIn('user_id', $salesUserIds);
+        }
+
         $this->applyDateRange($overdueFollowUpsQuery, 'due_date', $fromDate, $toDate);
 
         $activitiesByTypeQuery = Activity::query()
             ->selectRaw('activity_type, count(*) as total')
             ->groupBy('activity_type')
             ->orderByDesc('total');
+
+        if ($isManager) {
+            $activitiesByTypeQuery->whereIn('user_id', $salesUserIds);
+        }
+
         $this->applyDateRange($activitiesByTypeQuery, 'activity_date', $fromDate, $toDate);
 
         $data = [

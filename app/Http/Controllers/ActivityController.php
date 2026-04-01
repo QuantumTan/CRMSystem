@@ -93,6 +93,13 @@ class ActivityController extends Controller
             'lead_id' => 'nullable|required_without:customer_id|exists:leads,id',
         ]);
 
+        if (! empty($validated['customer_id']) && ! empty($validated['lead_id'])) {
+            throw ValidationException::withMessages([
+                'customer_id' => 'Select either a customer or a lead, not both.',
+                'lead_id' => 'Select either a lead or a customer, not both.',
+            ]);
+        }
+
         $user = Auth::user();
 
         if ($user->role === 'sales') {

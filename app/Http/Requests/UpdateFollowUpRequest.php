@@ -25,4 +25,14 @@ class UpdateFollowUpRequest extends FormRequest
             'status' => 'required|in:pending,completed',
         ];
     }
+
+    public function after(): array
+    {
+        return [function ($validator): void {
+            if ($this->filled('customer_id') && $this->filled('lead_id')) {
+                $validator->errors()->add('customer_id', 'Select either a customer or a lead, not both.');
+                $validator->errors()->add('lead_id', 'Select either a lead or a customer, not both.');
+            }
+        }];
+    }
 }

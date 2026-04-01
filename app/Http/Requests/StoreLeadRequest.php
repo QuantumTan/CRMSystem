@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreLeadRequest extends FormRequest
 {
@@ -22,7 +23,17 @@ class StoreLeadRequest extends FormRequest
             'priority' => 'required|in:low,medium,high,critical',
             'expected_value' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
-            'assigned_user_id' => 'nullable|exists:users,id',
+            'assigned_user_id' => [
+                'nullable',
+                Rule::exists('users', 'id')->where(fn ($query) => $query->where('role', 'sales')),
+            ],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'assigned_user_id.exists' => 'Assigned user must be a Sales Staff account.',
         ];
     }
 }

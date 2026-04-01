@@ -66,7 +66,7 @@ class Lead extends Model
     // lead converted to customer
     public function convertedToCustomer(): BelongsTo
     {
-        return $this->belongsTo(Customer::class, 'converted_to_customer_id');
+        return $this->belongsTo(Customer::class, 'converted_to_customer_id')->withTrashed();
     }
 
     // staff member assigned to the lead
