@@ -53,7 +53,9 @@
 
                     <div class="col-md-6">
                         <label class="form-label">New Password <span class="text-muted">(optional)</span></label>
-                        <input type="password" name="password" class="form-control" autocomplete="new-password">
+                        <input type="password" name="password" class="form-control" autocomplete="new-password"
+                            minlength="8">
+                        <small class="text-muted">Leave blank to keep current password. Minimum 8 characters if set.</small>
                     </div>
 
                     <div class="col-md-6">

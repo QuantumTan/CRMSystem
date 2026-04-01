@@ -54,7 +54,8 @@
                     <div class="col-md-6">
                         <label class="form-label">Password <span class="text-danger">*</span></label>
                         <input type="password" name="password" class="form-control" autocomplete="new-password"
-                            required>
+                            minlength="8" required>
+                        <small class="text-muted">Minimum 8 characters.</small>
                     </div>
 
                     <div class="col-md-6">
