@@ -103,7 +103,9 @@ Route::middleware(['auth'])->group(function () {
         ->group(function () {
             //  Kanban routes (specific)
             Route::get('/kanban', [LeadController::class, 'kanban'])->name('kanban');
-            Route::patch('/kanban/{lead}/status', [LeadController::class, 'updateStatus'])->name('kanban.update-status');
+            Route::patch('/kanban/{lead}/status', [LeadController::class, 'updateStatus'])
+                ->middleware('role:admin,sales')
+                ->name('kanban.update-status');
 
             //  Other specific routes (BEFORE generic {lead})
             Route::get('/create', [LeadController::class, 'create'])->name('create');
@@ -113,7 +115,9 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{lead}/lost-form', [LeadController::class, 'showLostForm'])->name('lost-form');
             Route::post('/{lead}/reopen', [LeadController::class, 'reopen'])->name('reopen');
             Route::post('/{lead}/convert', [LeadController::class, 'convert'])->name('convert');
-            Route::patch('/{lead}/status', [LeadController::class, 'updateStatus'])->name('update-status');
+            Route::patch('/{lead}/status', [LeadController::class, 'updateStatus'])
+                ->middleware('role:admin,sales')
+                ->name('update-status');
             Route::patch('/{lead}/assign', [LeadController::class, 'assign'])->name('assign');
             Route::patch('/{lead}/priority', [LeadController::class, 'setPriority'])->name('set-priority');
 

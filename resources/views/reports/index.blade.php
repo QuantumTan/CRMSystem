@@ -35,7 +35,7 @@
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm mb-4">
+        <div class="card border-0 shadow-sm mb-4 crm-toolkit">
             <div class="card-body">
                 <form action="{{ route('reports.index') }}" method="GET" class="row g-3 align-items-end">
                     <div class="col-12 col-md-4">
@@ -133,7 +133,7 @@
                             <canvas id="leadStatusChart" aria-label="Lead status chart" role="img"></canvas>
                         </div>
                         <div class="table-responsive">
-                            <table class="table table-sm align-middle mb-0">
+                            <table class="table table-sm align-middle mb-0 crm-data-table-compact">
                                 <thead>
                                     <tr>
                                         <th>Status</th>
@@ -209,7 +209,7 @@
                             <canvas id="userActivityChart" aria-label="User activity chart" role="img"></canvas>
                         </div>
                         <div class="table-responsive">
-                            <table class="table align-middle mb-0">
+                            <table class="table align-middle mb-0 crm-data-table-compact">
                                 <thead>
                                     <tr>
                                         <th>User</th>

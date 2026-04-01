@@ -12,7 +12,6 @@
             class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
             <div>
                 <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-journal-text fs-2 text-primary"></i>
                     <div>
                         <h4 class="mb-0 fw-semibold">Activity Log</h4>
                         <p class="text-muted mb-0 small">{{ $activities->total() }} total activities recorded</p>
@@ -20,61 +19,47 @@
                 </div>
             </div>
             @can('create', \App\Models\Activity::class)
-                <a href="{{ route('activities.create') }}" class="btn btn-primary btn-sm px-3 shadow-sm">
+                <a href="{{ route('activities.create') }}" class="btn btn-primary crm-module-add-btn">
                     <i class="bi bi-plus-lg me-1"></i> Log Activity
                 </a>
             @endcan
         </div>
 
         {{-- Filter Card --}}
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body p-3">
-                <form action="{{ route('activities.index') }}" method="GET" class="row g-3 align-items-end">
+        <div class="card border-0 shadow-sm mb-4 crm-toolkit">
+            <div class="card-header bg-white border-bottom p-3">
+                <form action="{{ route('activities.index') }}" method="GET"
+                    class="d-flex flex-column flex-lg-row align-items-lg-center gap-3">
                     {{-- Search --}}
-                    <div class="col-12 col-md-3">
-                        <label class="form-label small fw-semibold text-muted mb-1">Search</label>
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text bg-transparent"><i class="bi bi-search"></i></span>
-                            <input type="text" name="search" class="form-control" value="{{ request('search') }}"
-                                placeholder="Description...">
-                        </div>
+                    <div class="position-relative" style="max-width: 320px; flex: 1;">
+                        <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+                        <input type="text" name="search" class="form-control form-control-sm ps-5"
+                            value="{{ request('search') }}" placeholder="Description...">
                     </div>
 
                     {{-- Type --}}
-                    <div class="col-12 col-md-2">
-                        <label class="form-label small fw-semibold text-muted mb-1">Type</label>
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text bg-transparent"><i class="bi bi-tag"></i></span>
-                            <select name="type" class="form-select">
-                                <option value="">All Types</option>
-                                <option value="call" @selected(request('type') == 'call')>Call</option>
-                                <option value="email" @selected(request('type') == 'email')>Email</option>
-                                <option value="meeting" @selected(request('type') == 'meeting')>Meeting</option>
-                                <option value="note" @selected(request('type') == 'note')>Note</option>
-                            </select>
-                        </div>
-                    </div>
+                    <select name="type" class="form-select form-select-sm w-auto" style="min-width: 140px;">
+                        <option value="">All Types</option>
+                        <option value="call" @selected(request('type') == 'call')>Call</option>
+                        <option value="email" @selected(request('type') == 'email')>Email</option>
+                        <option value="meeting" @selected(request('type') == 'meeting')>Meeting</option>
+                        <option value="note" @selected(request('type') == 'note')>Note</option>
+                    </select>
 
                     {{-- User --}}
                     @if (auth()->user()->role !== 'sales')
-                        <div class="col-12 col-md-3">
-                            <label class="form-label small fw-semibold text-muted mb-1">User</label>
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text bg-transparent"><i class="bi bi-person"></i></span>
-                                <select name="user_id" class="form-select">
-                                    <option value="">All Users</option>
-                                    @foreach ($users as $user)
-                                        <option value="{{ $user->id }}" @selected(request('user_id') == $user->id)>
-                                            {{ $user->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
+                        <select name="user_id" class="form-select form-select-sm w-auto" style="min-width: 170px;">
+                            <option value="">All Users</option>
+                            @foreach ($users as $user)
+                                <option value="{{ $user->id }}" @selected(request('user_id') == $user->id)>
+                                    {{ $user->name }}
+                                </option>
+                            @endforeach
+                        </select>
                     @endif
 
                     {{-- Buttons --}}
-                    <div class="col-12 col-md-4 d-flex gap-2">
+                    <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-dark btn-sm px-3">
                             <i class="bi bi-funnel me-1"></i> Filter
                         </button>

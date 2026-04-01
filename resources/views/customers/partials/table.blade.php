@@ -1,6 +1,6 @@
 @include('customers.partials._modal-delete', ['deleting' => $deleting ?? null])
 
-<div class="card border-0 shadow-sm">
+<div class="card border-0 shadow-sm crm-toolkit">
     @php
         $isAdmin = auth()->user()?->role === 'admin';
         $isSales = auth()->user()?->role === 'sales';
@@ -35,8 +35,8 @@
                     <select name="assignment_status" class="form-select form-select-sm w-auto">
                         <option value="">All Assignment Status</option>
                         @foreach ($assignmentStatuses as $assignmentStatus)
-                            <option value="{{$assignmentStatus}}" @@selected((string) request('assignment_status') === $assignmentStatus)>
-                                {{ucfirst($assignmentStatus)}}
+                            <option value="{{ $assignmentStatus }}" @selected((string) request('assignment_status') === $assignmentStatus)>
+                                {{ ucfirst($assignmentStatus) }}
                             </option>
                         @endforeach
                     </select>
@@ -50,7 +50,7 @@
     </div>
 
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0 crm-data-table">
             <thead class="table-light">
                 <tr>
                     <th class="small text-muted py-3">Customer ID</th>
@@ -78,20 +78,27 @@
                         <td class="small text-muted py-3">{{ $customer->company ?: 'N/A' }}</td>
                         <td class="small text-muted py-3">{{ $customer->address ?: 'N/A' }}</td>
                         <td class="py-3">
-                            <x-status-badge :status="$customer->status" />
+                            @php
+                                $customerStatus = strtolower((string) $customer->status);
+                                $customerStatusClass = match ($customerStatus) {
+                                    'active' => 'crm-table-status crm-table-status-success',
+                                    'inactive' => 'crm-table-status crm-table-status-muted',
+                                    default => 'crm-table-status crm-table-status-primary',
+                                };
+                            @endphp
+                            <span class="{{ $customerStatusClass }}">{{ ucfirst($customerStatus ?: 'unknown') }}</span>
                         </td>
                         <td class="py-3">
                             @php
                                 $assignmentStatus = $customer->assignment_status ?? 'pending';
-                                $badgeClass = match ($assignmentStatus) {
-                                    'approved' => 'badge bg-success-subtle text-success border border-success-subtle',
-                                    'rejected' => 'badge bg-danger-subtle text-danger border border-danger-subtle',
-                                    'pending' => 'badge bg-warning-subtle text-warning border border-warning-subtle',
-                                    default
-                                        => 'badge bg-secondary-subtle text-secondary border border-secondary-subtle',
+                                $assignmentStatusClass = match ($assignmentStatus) {
+                                    'approved' => 'crm-table-status crm-table-status-success',
+                                    'rejected' => 'crm-table-status crm-table-status-danger',
+                                    'pending' => 'crm-table-status crm-table-status-warning',
+                                    default => 'crm-table-status crm-table-status-muted',
                                 };
                             @endphp
-                            <span class="{{ $badgeClass }}">{{ ucfirst($assignmentStatus) }}</span>
+                            <span class="{{ $assignmentStatusClass }}">{{ ucfirst($assignmentStatus) }}</span>
                         </td>
                         <td class="small text-muted py-3">{{ $customer->assignedUser?->name ?: 'Unassigned' }}</td>
                         <td class="small text-muted py-3">{{ $customer->created_at->format('M d, Y') }}</td>

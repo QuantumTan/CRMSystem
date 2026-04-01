@@ -130,7 +130,7 @@
             </div>
             <div class="card-body pt-3">
                 <div class="table-responsive">
-                    <table class="table table-sm align-middle mb-0">
+                    <table class="table table-sm align-middle mb-0 crm-data-table-compact">
                         <thead>
                             <tr>
                                 <th>Status</th>
@@ -207,7 +207,7 @@
                     <p class="text-muted mb-0">No recent activities.</p>
                 @else
                     <div class="table-responsive">
-                        <table class="table align-middle mb-0">
+                        <table class="table align-middle mb-0 crm-data-table-compact">
                             <thead>
                                 <tr>
                                     <th>Date</th>

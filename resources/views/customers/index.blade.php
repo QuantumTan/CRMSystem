@@ -31,7 +31,7 @@
                 <p class="text-muted mb-0 small">Viewing all customer records</p>
             </div>
             @if ($isAdmin || $isSales)
-                <a href="{{ route('customers.create') }}" class="btn btn-primary">
+                <a href="{{ route('customers.create') }}" class="btn btn-primary crm-module-add-btn">
                     <i class="bi bi-plus-lg"></i> Add Customer
                 </a>
             @endif

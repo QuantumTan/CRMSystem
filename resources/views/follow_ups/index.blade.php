@@ -29,13 +29,13 @@
                 <p class="text-muted mb-0 small">Manage upcoming follow-up tasks</p>
             </div>
             @can('create', \App\Models\FollowUp::class)
-                <a href="{{ route('follow-ups.create') }}" class="btn btn-primary">
+                <a href="{{ route('follow-ups.create') }}" class="btn btn-primary crm-module-add-btn">
                     <i class="bi bi-plus-lg"></i> Add Follow-up
                 </a>
             @endcan
         </div>
 
-        <div class="card border-0 shadow-sm mb-4">
+        <div class="card border-0 shadow-sm mb-4 crm-toolkit">
             <div class="card-header bg-white border-bottom p-3">
                 <form action="{{ route('follow-ups.index') }}" method="GET"
                     class="d-flex flex-column flex-lg-row align-items-lg-center gap-3">
@@ -68,7 +68,7 @@
 
         <div class="card border-0 shadow-sm">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-hover align-middle mb-0 crm-data-table">
                     <thead class="table-light">
                         <tr>
                             <th class="small text-muted py-3">Title</th>
@@ -89,9 +89,13 @@
                                 </td>
                                 <td class="small text-muted py-3">{{ $followUp->due_date?->format('M d, Y') }}</td>
                                 <td class="py-3">
-                                    <span class="badge text-bg-{{ $followUp->status === 'completed' ? 'success' : 'warning' }}">
-                                        {{ ucfirst($followUp->status) }}
-                                    </span>
+                                    @php
+                                        $followUpStatus = strtolower((string) $followUp->status);
+                                        $followUpStatusClass = $followUpStatus === 'completed'
+                                            ? 'crm-table-status crm-table-status-success'
+                                            : 'crm-table-status crm-table-status-warning';
+                                    @endphp
+                                    <span class="{{ $followUpStatusClass }}">{{ ucfirst($followUpStatus) }}</span>
                                 </td>
                                 <td class="small text-muted py-3">
                                     @if ($followUp->customer)
@@ -137,10 +141,10 @@
                     </tbody>
                 </table>
             </div>
-        </div>
 
-        <div class="card-footer bg-white border-top py-3 mt-3">
-            {{ $followUps->links('pagination::bootstrap-5') }}
+            <div class="card-footer bg-white border-top py-3">
+                {{ $followUps->links('pagination::bootstrap-5') }}
+            </div>
         </div>
     </div>
 
