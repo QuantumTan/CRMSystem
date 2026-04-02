@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\LeadVisibilityScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -351,5 +352,10 @@ class Lead extends Model
         }
 
         return ''; // Return empty string if no last name exists
+    }
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope(new LeadVisibilityScope);
     }
 }
