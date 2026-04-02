@@ -6,13 +6,15 @@ use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Builder;
+use App\Services\CustomerService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class CustomerController extends Controller
 {
+    public function __construct(private CustomerService $service) {}
+
     public function index(Request $request): View
     {
         $filters = $request->validate([
@@ -23,92 +25,27 @@ class CustomerController extends Controller
             'delete' => ['nullable', 'integer', 'exists:customers,id'],
         ]);
 
-        $customersQuery = $this->applyVisibilityScope(Customer::query()->with(['assignedUser', 'assignmentReviewer']), $request)
-            ->latest();
-
-        if (! empty($filters['assignment_status'])) {
-            $customersQuery->where('assignment_status', (string) $filters['assignment_status']);
-        }
-
-        if (! empty($filters['search'])) {
-            $search = $this->escapeLike((string) $filters['search']);
-
-            $customersQuery->where(function ($query) use ($search): void {
-                $query
-                    ->where('first_name', 'like', "%{$search}%")
-                    ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%")
-                    ->orWhere('company', 'like', "%{$search}%");
-            });
-        }
-
-        if (! empty($filters['status'])) {
-            $customersQuery->where('status', (string) $filters['status']);
-        }
-
-        if (! empty($filters['assigned_user_id'])) {
-            $customersQuery->where('assigned_user_id', (int) $filters['assigned_user_id']);
-        }
-
-        $baseStatsQuery = $this->applyVisibilityScope(Customer::query(), $request);
-
-        $customerThisMonth = (clone $baseStatsQuery)->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
-
-        $customerLastMonth = (clone $baseStatsQuery)
-            ->whereMonth('created_at', now()->subMonth()->month)
-            ->whereYear('created_at', now()->subMonth()->year)
-            ->count();
-
-        $customerSpecificMonth = (clone $baseStatsQuery)->whereMonth('created_at', 1)->whereYear('created_at', 2025)->count();
-
-        $customerThisYear = (clone $baseStatsQuery)->whereYear('created_at', now()->year)->count();
-
-        $customerIsActive = (clone $baseStatsQuery)->where('status', 'active')->count();
-        $customerIsInactive = (clone $baseStatsQuery)->where('status', 'inactive')->count();
-
-        $totalCustomers = (clone $baseStatsQuery)->count();
-
-        $customers = $customersQuery->paginate(10)->withQueryString();
+        $customers = $this->service->getFilteredQuery($filters)->paginate(10)->withQueryString();
         $deleting = isset($filters['delete']) ? Customer::find($filters['delete']) : null;
-        $assignmentStatuses = ['pending', 'approved', 'rejected'];
 
-        return view('customers.index', [
+        return view('customers.index', array_merge($this->service->getStats(), [
             'customers' => $customers,
-            'customerThisMonth' => $customerThisMonth,
-            'customerLastMonth' => $customerLastMonth,
-            'customerThisYear' => $customerThisYear,
-            'customerSpecificMonth' => $customerSpecificMonth,
-            'customerIsActive' => $customerIsActive,
-            'customerIsInactive' => $customerIsInactive,
-            'totalCustomers' => $totalCustomers,
-            'assignableUsers' => $this->assignableUsers(),
+            'assignableUsers' => $this->service->assignableUsers(),
             'deleting' => $deleting,
-            'assignmentStatuses' => $assignmentStatuses,
-        ]);
+            'assignmentStatuses' => ['pending', 'approved', 'rejected'],
+        ]));
     }
 
     public function create(): View
     {
         return view('customers.create', [
-            'assignableUsers' => $this->assignableUsers(),
+            'assignableUsers' => $this->service->assignableUsers(),
         ]);
     }
 
     public function store(StoreCustomerRequest $request): RedirectResponse
     {
-        $payload = $request->validated();
-        $user = $request->user();
-
-        if ($user?->hasRole('sales')) {
-            $payload['assigned_user_id'] = $user->id;
-        }
-
-        if (! empty($payload['assigned_user_id'])) {
-            $payload['assignment_status'] = 'pending';
-            $payload['assignment_reviewed_by'] = null;
-            $payload['assignment_reviewed_at'] = null;
-        }
+        $payload = $this->service->prepareAssignmentPayload($request->validated(), $request->user());
 
         Customer::create($payload);
 
@@ -117,32 +54,30 @@ class CustomerController extends Controller
 
     public function show(Customer $customer): View
     {
-        $this->ensureCustomerAccessible(request(), $customer);
+        $this->authorize('view', $customer);
 
         $customer->load(['assignedUser', 'assignmentReviewer']);
 
-        $activities = $customer->activities()->with('user')->latest('activity_date')->get();
-
         return view('customers.show', [
             'customer' => $customer,
-            'assignableUsers' => $this->assignableUsers(),
-            'activities' => $activities,
+            'assignableUsers' => $this->service->assignableUsers(),
+            'activities' => $customer->activities()->with('user')->latest('activity_date')->get(),
         ]);
     }
 
     public function edit(Customer $customer): View
     {
-        $this->ensureCustomerAccessible(request(), $customer);
+        $this->authorize('view', $customer);
 
         return view('customers.edit', [
             'customer' => $customer,
-            'assignableUsers' => $this->assignableUsers(),
+            'assignableUsers' => $this->service->assignableUsers(),
         ]);
     }
 
     public function update(UpdateCustomerRequest $request, Customer $customer): RedirectResponse
     {
-        $this->ensureCustomerAccessible($request, $customer);
+        $this->authorize('update', $customer);
 
         $payload = $request->validated();
         $user = $request->user();
@@ -151,10 +86,12 @@ class CustomerController extends Controller
             $payload['assigned_user_id'] = $user->id;
         }
 
-        if (array_key_exists('assigned_user_id', $payload) && (int) ($payload['assigned_user_id'] ?? 0) !== (int) ($customer->assigned_user_id ?? 0)) {
-            $payload['assignment_status'] = 'pending';
-            $payload['assignment_reviewed_by'] = null;
-            $payload['assignment_reviewed_at'] = null;
+        if ($this->service->hasAssignmentChanged($payload, $customer)) {
+            $payload = array_merge($payload, [
+                'assignment_status' => 'pending',
+                'assignment_reviewed_by' => null,
+                'assignment_reviewed_at' => null,
+            ]);
         }
 
         $customer->update($payload);
@@ -164,7 +101,7 @@ class CustomerController extends Controller
 
     public function destroy(Customer $customer): RedirectResponse
     {
-        $this->ensureCustomerAccessible(request(), $customer);
+        $this->authorize('delete', $customer);
 
         $customer->delete();
 
@@ -177,76 +114,28 @@ class CustomerController extends Controller
             'assigned_user_id' => ['required', 'exists:users,id'],
         ]);
 
-        $salesUser = User::query()->where('id', (int) $data['assigned_user_id'])->where('role', 'sales')->exists();
+        $isSales = User::where('id', (int) $data['assigned_user_id'])->where('role', 'sales')->exists();
 
-        if (! $salesUser) {
+        if (! $isSales) {
             return redirect()->back()->with('error', 'Assigned user must be a Sales Staff account.');
         }
 
-        $customer->update([
-            'assigned_user_id' => (int) $data['assigned_user_id'],
-            'assignment_status' => 'pending',
-            'assignment_reviewed_by' => null,
-            'assignment_reviewed_at' => null,
-        ]);
+        $customer->reassignTo((int) $data['assigned_user_id']);
 
         return redirect()->route('customers.show', $customer)->with('success', 'Customer reassigned successfully.');
     }
 
     public function approveAssignment(Request $request, Customer $customer): RedirectResponse
     {
-        $customer->update([
-            'assignment_status' => 'approved',
-            'assignment_reviewed_by' => $request->user()?->id,
-            'assignment_reviewed_at' => now(),
-        ]);
+        $customer->approve($request->user());
 
         return redirect()->back()->with('success', 'Customer assignment approved.');
     }
 
     public function rejectAssignment(Request $request, Customer $customer): RedirectResponse
     {
-        $customer->update([
-            'assignment_status' => 'rejected',
-            'assignment_reviewed_by' => $request->user()?->id,
-            'assignment_reviewed_at' => now(),
-        ]);
+        $customer->reject($request->user());
 
         return redirect()->back()->with('success', 'Customer assignment rejected.');
-    }
-
-    private function assignableUsers()
-    {
-        return User::query()->where('role', 'sales')->orderBy('name')->get();
-    }
-
-    private function applyVisibilityScope(Builder $query, Request $request): Builder
-    {
-        $user = $request->user();
-
-        if ($user?->hasRole('sales')) {
-            $query->where('assigned_user_id', $user->id)->where('assignment_status', 'approved');
-        }
-
-        return $query;
-    }
-
-    private function ensureCustomerAccessible(Request $request, Customer $customer): void
-    {
-        $user = $request->user();
-
-        if ($user?->hasRole('sales')) {
-            $isAssignedToSalesUser = (int) $customer->assigned_user_id === (int) $user->id;
-            $isAssignmentApproved = $customer->assignment_status === 'approved';
-
-            if (! $isAssignedToSalesUser || ! $isAssignmentApproved) {
-                abort(403, 'Unauthorized. You can only access customers assigned to you with approved assignment.');
-            }
-        }
-    }
-
-    private function escapeLike(string $value): string
-    {
-        return addcslashes($value, '\\%_');
     }
 }
