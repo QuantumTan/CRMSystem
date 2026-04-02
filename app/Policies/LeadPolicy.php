@@ -37,19 +37,19 @@ class LeadPolicy
 
     public function updateStatus(User $user, Lead $lead): bool
     {
-        if ($user->hasAnyRole('admin', 'manager')) {
+        if ($user->hasRole('admin')) {
             return true;
         }
 
         return $user->hasRole('sales') && (int) $lead->assigned_user_id === $user->id;
     }
 
-    public function assign(User $user): bool
+    public function assign(User $user,  Lead $lead): bool
     {
         return $user->hasRole('admin');
     }
 
-    public function delete(User $user): bool
+    public function delete(User $user,  Lead $lead): bool
     {
         return $user->hasRole('admin');
     }

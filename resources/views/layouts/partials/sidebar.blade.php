@@ -122,7 +122,7 @@
                             title="Tasks & Reminders"
                             class="crm-nav-link {{ request()->routeIs('follow-ups.*') ? 'active' : '' }}">
                             <i class="bi bi-check2-all"></i>
-                            <span class="crm-label">Tasks & Reminders</span>
+                            <span class="crm-label">Follow Ups</span>
                             @if ($followUpCount > 0)
                                 <span class="crm-badge crm-badge-red ms-auto">{{ $followUpCount }}</span>
                             @endif

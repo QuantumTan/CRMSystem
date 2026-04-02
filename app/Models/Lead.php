@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -45,14 +44,6 @@ class Lead extends Model
     {
         parent::boot();
 
-        static::addGlobalScope('sales_visibility', function (Builder $query): void {
-            $user = Auth::user();
-
-            if ($user instanceof User && $user->hasRole('sales')) {
-                $query->where('assigned_user_id', $user->id);
-            }
-        });
-
         static::creating(function ($lead) {
             if (! $lead->lead_id) {
                 $latest = self::latest('id')->first();
@@ -61,6 +52,7 @@ class Lead extends Model
             }
         });
     }
+
 
     // relationships
     // lead converted to customer
