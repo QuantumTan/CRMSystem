@@ -4,95 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreLeadRequest;
 use App\Http\Requests\UpdateLeadRequest;
-use App\Models\Customer;
 use App\Models\Lead;
-use App\Models\User;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
+use App\Services\LeadService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
-/**
- * Controller for managing Leads within the CRM.
- * Handles the complete lifecycle of a lead from creation to customer conversion.
- */
 class LeadController extends Controller
 {
-    /**
-     * Standard status workflow for a lead.
-     */
-    private const STATUS_OPTIONS = ['new', 'contacted', 'qualified', 'proposal_sent', 'negotiation', 'won', 'lost'];
+    public function __construct(private LeadService $service) {}
 
-    private const PRIORITY_OPTIONS = ['low', 'medium', 'high', 'critical'];
-
-    /**
-     * Lost categories for reporting.
-     */
-    private const LOST_CATEGORIES = [
-        'budget' => 'Budget too high',
-        'competitor' => 'Chose competitor',
-        'timing' => 'Wrong timing',
-        'not_interested' => 'Not interested',
-        'no_decision' => 'No decision maker',
-        'other' => 'Other',
-    ];
-
-    /**
-     * General access check for lead-related actions.
-     *
-     * @param  Lead|null  $lead  The lead being accessed (required for write actions)
-     * @param  bool  $write  Whether the action modifies data
-     *
-     * @throws HttpException
-     */
-    private function authorizeLeadAccess(Request $request, ?Lead $lead = null, bool $write = false): void
-    {
-        $user = $request->user();
-
-        if (! $user) {
-            abort(403, 'Unauthorized.');
-        }
-
-        // Admin has full access
-        if ($user->hasRole('admin')) {
-            return;
-        }
-
-        // Manager can only view (read) leads.
-        if ($user->hasRole('manager')) {
-            if ($write) {
-                abort(403, 'Managers cannot modify leads.');
-            }
-
-            return;
-        }
-
-        // Sales can create leads (no lead exists yet) and modify only leads assigned to them
-        if ($user->hasRole('sales')) {
-            if ($lead && $lead->assigned_user_id !== $user->id) {
-                if ($write) {
-                    abort(403, 'You can only modify leads assigned to you.');
-                }
-
-                abort(403, 'You can only view leads assigned to you.');
-            }
-
-            return;
-        }
-
-        abort(403, 'Unauthorized.');
-    }
-
-    /**
-     * Display the drag-and-drop Kanban board view for leads.
-     */
     public function kanban(Request $request): View
     {
-        $this->authorizeLeadAccess($request, null, false); // view only
-        $this->authorizeAccess($request, allowManager: true);
+        $this->authorize('viewAny', Lead::class);
 
         $filters = $request->validate([
             'search' => ['nullable', 'string', 'max:100'],
@@ -101,108 +25,52 @@ class LeadController extends Controller
             'priority' => ['nullable', 'string'],
         ]);
 
-        $leadQuery = Lead::query()->with(['assignedUser', 'convertedToCustomer']);
-        $this->applyLeadVisibilityScope($leadQuery, $request);
-
-        if (! empty($filters['search'])) {
-            $search = $this->escapeLike((string) $filters['search']);
-            $leadQuery->where(function (Builder $query) use ($search): void {
-                $query
-                    ->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%");
-            });
-        }
-
-        if (! empty($filters['assigned_user']) && ! $request->user()?->hasRole('sales')) {
-            $leadQuery->where('assigned_user_id', $filters['assigned_user']);
-        }
-
-        if (! empty($filters['status'])) {
-            $leadQuery->where('status', $filters['status']);
-        }
-
-        if (! empty($filters['priority'])) {
-            $leadQuery->where('priority', $filters['priority']);
-        }
-
-        $allLeads = $leadQuery->get();
-
-        $leadsByStatus = [];
-        foreach (self::STATUS_OPTIONS as $status) {
-            $leadsByStatus[$status] = $allLeads->where('status', $status)->values();
-        }
+        $isSales = $request->user()?->hasRole('sales');
+        $allLeads = $this->service->getFilteredQuery($filters, $isSales)->get();
 
         return view('leads.kanban', [
-            'statuses' => self::STATUS_OPTIONS,
-            'leadsByStatus' => $leadsByStatus,
-            'users' => $this->assignableUsers($request),
+            'statuses' => LeadService::STATUS_OPTIONS,
+            'leadsByStatus' => $this->service->groupByStatus($allLeads),
+            'users' => $this->service->assignableUsers($request->user()),
         ]);
     }
 
-    /**
-     * Display a paginated list of leads with advanced filtering options.
-     */
     public function index(Request $request): View
     {
-        $this->authorizeLeadAccess($request, null, false); // view only
-        $this->authorizeAccess($request, allowManager: true);
+        $this->authorize('viewAny', Lead::class);
 
-        $leadQuery = Lead::with('assignedUser', 'convertedToCustomer');
-        $this->applyLeadVisibilityScope($leadQuery, $request);
+        $filters = $request->only(['search', 'status', 'priority', 'assigned_user']);
+        $isSales = $request->user()?->hasRole('sales');
 
-        $leads = $leadQuery
-            ->when($request->search, function ($q) use ($request) {
-                $q->where(function ($q) use ($request) {
-                    $q->where('name', 'like', "%{$request->search}%")
-                        ->orWhere('email', 'like', "%{$request->search}%")
-                        ->orWhere('phone', 'like', "%{$request->search}%");
-                });
-            })
-            ->when($request->status, fn ($q) => $q->where('status', $request->status))
-            ->when($request->priority, fn ($q) => $q->where('priority', $request->priority))
-            ->when($request->assigned_user && ! $request->user()?->hasRole('sales'), fn ($q) => $q->where('assigned_user_id', $request->assigned_user))
-            ->latest()
-            ->paginate(15);
+        $leads = $this->service->getFilteredQuery($filters, $isSales)->paginate(15);
 
         return view('leads.index', [
             'leads' => $leads,
-            'statusOptions' => self::STATUS_OPTIONS,
-            'priorityOptions' => self::PRIORITY_OPTIONS,
-            'assignableUsers' => $this->assignableUsers($request),
-            'users' => $this->assignableUsers($request),
+            'statusOptions' => LeadService::STATUS_OPTIONS,
+            'priorityOptions' => LeadService::PRIORITY_OPTIONS,
+            'assignableUsers' => $this->service->assignableUsers($request->user()),
         ]);
     }
 
-    /**
-     * Show the form for creating a new lead.
-     */
     public function create(Request $request): View
     {
-        // write action, but no lead – sales allowed
-        $this->authorizeLeadAccess($request, null, true);
-        $this->authorizeAccess($request);
+        $this->authorize('create', Lead::class);
 
         return view('leads.create', [
-            'statusOptions' => self::STATUS_OPTIONS,
-            'priorityOptions' => self::PRIORITY_OPTIONS,
-            'assignableUsers' => $this->assignableUsers($request),
+            'statusOptions' => LeadService::STATUS_OPTIONS,
+            'priorityOptions' => LeadService::PRIORITY_OPTIONS,
+            'assignableUsers' => $this->service->assignableUsers($request->user()),
         ]);
     }
 
-    /**
-     * Store a newly created lead in the database.
-     */
     public function store(StoreLeadRequest $request): RedirectResponse
     {
-        // write action, no lead – sales allowed
-        $this->authorizeLeadAccess($request, null, true);
-        $this->authorizeAccess($request);
+        $this->authorize('create', Lead::class);
 
         $payload = $request->validated();
 
         if ($request->user()?->hasRole('sales')) {
-            $payload['assigned_user_id'] = $request->user()?->id;
+            $payload['assigned_user_id'] = $request->user()->id;
         }
 
         Lead::create($payload);
@@ -210,55 +78,37 @@ class LeadController extends Controller
         return redirect()->route('leads.index')->with('success', 'Lead created successfully.');
     }
 
-    /**
-     * Display the detailed profile view of a specific lead.
-     */
-    public function show(Request $request, Lead $lead): View
+    public function show(Lead $lead): View
     {
-        $this->authorizeLeadAccess($request, $lead, false); // view only
-        $this->authorizeAccess($request, allowManager: true);
+        $this->authorize('view', $lead);
 
         $lead->load(['assignedUser', 'convertedToCustomer']);
 
-        // load the activities
-        $activities = $lead->activities()
-            ->with('user')
-            ->latest('activity_date')
-            ->get();
+        $activities = $lead->activities()->with('user')->latest('activity_date')->get();
 
         return view('leads.show', compact('lead', 'activities'));
     }
 
-    /**
-     * Show the form for editing the specified lead.
-     */
     public function edit(Request $request, Lead $lead): View
     {
-        // write – sales must own the lead
-        $this->authorizeLeadAccess($request, $lead, true);
-        $this->authorizeAccess($request);
+        $this->authorize('update', $lead);
 
         return view('leads.edit', [
             'lead' => $lead,
-            'statusOptions' => self::STATUS_OPTIONS,
-            'priorityOptions' => self::PRIORITY_OPTIONS,
-            'assignableUsers' => $this->assignableUsers($request),
+            'statusOptions' => LeadService::STATUS_OPTIONS,
+            'priorityOptions' => LeadService::PRIORITY_OPTIONS,
+            'assignableUsers' => $this->service->assignableUsers($request->user()),
         ]);
     }
 
-    /**
-     * Update the specified lead in the database.
-     */
     public function update(UpdateLeadRequest $request, Lead $lead): RedirectResponse
     {
-        // write – sales must own the lead
-        $this->authorizeLeadAccess($request, $lead, true);
-        $this->authorizeAccess($request);
+        $this->authorize('update', $lead);
 
         $payload = $request->validated();
 
         if ($request->user()?->hasRole('sales')) {
-            $payload['assigned_user_id'] = $request->user()?->id;
+            $payload['assigned_user_id'] = $request->user()->id;
         }
 
         $lead->update($payload);
@@ -266,61 +116,40 @@ class LeadController extends Controller
         return redirect()->route('leads.index')->with('success', 'Lead updated successfully.');
     }
 
-    /**
-     * Update only the status of a specific lead.
-     * Triggered by the drag-and-drop form.
-     */
     public function updateStatus(Request $request, Lead $lead): RedirectResponse
     {
-        // write – sales must own, managers allowed
-        $this->authorizeLeadAccess($request, $lead, true);
-        $this->authorizeAccess($request, allowManager: true);
+        $this->authorize('updateStatus', $lead);
 
-        $data = $request->validate([
-            'status' => ['required', 'in:'.implode(',', self::STATUS_OPTIONS)],
-        ]);
-
+        $data = $request->validate(['status' => ['required', 'in:'.implode(',', LeadService::STATUS_OPTIONS)]]);
         $oldStatus = $lead->status;
         $newStatus = $data['status'];
 
-        if ($newStatus === 'won' && $oldStatus !== 'won') {
-            $lead->update(['status' => 'won']);
+        $lead->update(['status' => $newStatus]);
 
+        if ($newStatus === 'won' && $oldStatus !== 'won') {
             return redirect()->route('leads.show', $lead)->with('success', 'Lead marked as won! Click "Convert to Customer" when ready.');
         }
 
-        $lead->update(['status' => $newStatus]);
-
-        return redirect()
-            ->back()
-            ->with('success', "Lead moved from {$oldStatus} to {$newStatus}.");
+        return redirect()->back()->with('success', "Lead moved from {$oldStatus} to {$newStatus}.");
     }
 
-    /**
-     * Show form to record why lead was lost.
-     */
-    public function showLostForm(Request $request, Lead $lead): View
+    public function showLostForm(Lead $lead): View
     {
-        // This is a view action, but we'll check write because it leads to marking lost
-        $this->authorizeLeadAccess($request, $lead, true);
+        $this->authorize('update', $lead);
 
         return view('leads.lost-form', [
             'lead' => $lead,
-            'lostCategories' => self::LOST_CATEGORIES,
+            'lostCategories' => LeadService::LOST_CATEGORIES,
         ]);
     }
 
-    /**
-     * Mark lead as lost with reason.
-     */
     public function markAsLost(Request $request, Lead $lead): RedirectResponse
     {
-        $this->authorizeLeadAccess($request, $lead, true); // write
-        $this->authorizeAccess($request);
+        $this->authorize('update', $lead);
 
         $data = $request->validate([
             'lost_reason' => ['required', 'string', 'min:3', 'max:500'],
-            'lost_category' => ['required', 'in:'.implode(',', array_keys(self::LOST_CATEGORIES))],
+            'lost_category' => ['required', 'in:'.implode(',', array_keys(LeadService::LOST_CATEGORIES))],
         ]);
 
         $lead->markAsLost($data['lost_reason'], $data['lost_category']);
@@ -328,13 +157,9 @@ class LeadController extends Controller
         return redirect()->route('leads.index')->with('success', 'Lead marked as lost.');
     }
 
-    /**
-     * Reopen a lost lead.
-     */
-    public function reopen(Request $request, Lead $lead): RedirectResponse
+    public function reopen(Lead $lead): RedirectResponse
     {
-        $this->authorizeLeadAccess($request, $lead, true); // write
-        $this->authorizeAccess($request);
+        $this->authorize('update', $lead);
 
         if (! $lead->isLost()) {
             return redirect()->route('leads.show', $lead)->with('error', 'Only lost leads can be reopened.');
@@ -345,42 +170,25 @@ class LeadController extends Controller
         return redirect()->route('leads.show', $lead)->with('success', 'Lead has been reopened and is now active.');
     }
 
-    /**
-     * Update the user assigned to the specified lead.
-     */
     public function assign(Request $request, Lead $lead): RedirectResponse
     {
-        // Only admin can reassign leads (sales cannot reassign)
-        $user = $request->user();
-        if (! $user->hasRole('admin')) {
-            abort(403, 'Only administrators can reassign leads.');
-        }
-
-        $this->authorizeAccess($request);
+        $this->authorize('assign', $lead);
 
         $data = $request->validate([
             'assigned_user_id' => ['nullable', 'exists:users,id'],
         ]);
 
-        $lead->update([
-            'assigned_user_id' => $data['assigned_user_id'] ?? null,
-        ]);
+        $lead->update(['assigned_user_id' => $data['assigned_user_id'] ?? null]);
 
         return redirect()->back()->with('success', 'Lead assignee updated.');
     }
 
-    /**
-     * Update the priority level of the specified lead.
-     */
     public function setPriority(Request $request, Lead $lead): RedirectResponse
     {
-
-        // write – sales must own the lead
-        $this->authorizeLeadAccess($request, $lead, true);
-        $this->authorizeAccess($request);
+        $this->authorize('update', $lead);
 
         $data = $request->validate([
-            'priority' => ['required', 'in:'.implode(',', self::PRIORITY_OPTIONS)],
+            'priority' => ['required', 'in:'.implode(',', LeadService::PRIORITY_OPTIONS)],
         ]);
 
         $lead->update(['priority' => $data['priority']]);
@@ -388,13 +196,9 @@ class LeadController extends Controller
         return redirect()->back()->with('success', 'Lead priority updated.');
     }
 
-    /**
-     * Convert a successfully negotiated Lead into an active Customer record.
-     */
-    public function convert(Request $request, Lead $lead): RedirectResponse
+    public function convert(Lead $lead): RedirectResponse
     {
-        $this->authorizeLeadAccess($request, $lead, true); // write – sales must own the lead
-        $this->authorizeAccess($request);
+        $this->authorize('update', $lead);
 
         if ($lead->isConverted()) {
             return redirect()->route('leads.show', $lead)->with('error', 'This lead has already been converted to a customer.');
@@ -408,26 +212,15 @@ class LeadController extends Controller
             $customer = $lead->convertToCustomer();
             $customerName = trim($customer->first_name.' '.$customer->last_name);
 
-            return redirect()
-                ->route('customers.show', $customer)
-                ->with('success', "Lead successfully converted to customer: {$customerName}");
+            return redirect()->route('customers.show', $customer)->with('success', "Lead successfully converted to customer: {$customerName}");
         } catch (\Exception $e) {
-            return redirect()
-                ->route('leads.show', $lead)
-                ->with('error', 'Conversion failed: '.$e->getMessage());
+            return redirect()->route('leads.show', $lead)->with('error', 'Conversion failed: '.$e->getMessage());
         }
     }
 
-    /**
-     * Remove the specified lead from the database.
-     */
-    public function destroy(Request $request, Lead $lead): RedirectResponse
+    public function destroy(Lead $lead): RedirectResponse
     {
-        $user = $request->user();
-        if (! $user->hasRole('admin')) {
-            abort(403, 'Only administrators can delete leads.');
-        }
-        $this->authorizeAccess($request);
+        $this->authorize('delete', $lead);
 
         if ($lead->isConverted()) {
             return redirect()->back()->with('error', 'Cannot delete leads that have been converted to customers.');
@@ -436,70 +229,5 @@ class LeadController extends Controller
         $lead->delete();
 
         return redirect()->back()->with('success', 'Lead deleted successfully.');
-    }
-
-    /**
-     * Centralized authorization check for lead actions.
-     */
-    private function authorizeAccess(Request $request, bool $allowManager = false): void
-    {
-        $user = $request->user();
-
-        if (! $user) {
-            abort(403, 'Unauthorized.');
-        }
-
-        if ($allowManager && $user->hasRole('manager')) {
-            return;
-        }
-
-        if (! $user->hasAnyRole('admin', 'sales')) {
-            abort(403, 'Unauthorized.');
-        }
-    }
-
-    /**
-     * Retrieve users eligible to be assigned to leads.
-     */
-    private function assignableUsers(?Request $request = null): Collection
-    {
-        $user = $request?->user() ?? Auth::user();
-
-        if ($user?->hasRole('sales')) {
-            return User::query()
-                ->whereKey($user->id)
-                ->orderBy('name')
-                ->get();
-        }
-
-        return User::query()
-            ->whereIn('role', ['admin', 'manager', 'sales'])
-            ->orderBy('name')
-            ->get();
-    }
-
-    /**
-     * Escape special characters for SQL LIKE queries.
-     */
-    private function escapeLike(string $value): string
-    {
-        return addcslashes($value, '\\%_');
-    }
-
-    /**
-     * Restrict lead visibility based on role.
-     * Sales users can only see leads assigned to them.
-     */
-    private function applyLeadVisibilityScope(Builder $query, Request $request): void
-    {
-        $user = $request->user();
-
-        if (! $user) {
-            abort(403, 'Unauthorized.');
-        }
-
-        if ($user->hasRole('sales')) {
-            $query->where('assigned_user_id', $user->id);
-        }
     }
 }

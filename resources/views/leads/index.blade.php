@@ -73,7 +73,7 @@
                     <select id="assigned_user" name="assigned_user" class="form-select form-select-sm w-auto"
                         style="min-width: 140px;">
                         <option value="">All Users</option>
-                        @foreach ($users as $assignee)
+                        @foreach ($assignableUsers as $assignee)
                             <option value="{{ $assignee->id }}" @selected(request('assigned_user') == $assignee->id)>
                                 {{ $assignee->name }}
                             </option>
