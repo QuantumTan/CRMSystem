@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Filters\ActivityFilter;
+use App\Models\Scopes\ActivityVisibilityScope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +13,14 @@ class Activity extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['customer_id', 'lead_id', 'user_id', 'activity_type', 'description', 'activity_date'];
+    protected $fillable = [
+        'customer_id',
+        'lead_id',
+        'user_id',
+        'activity_type',
+        'description',
+        'activity_date',
+    ];
 
     protected function casts(): array
     {
@@ -34,6 +44,16 @@ class Activity extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function scopeFilter(Builder $query, ActivityFilter $filter): Builder
+    {
+        return $filter->apply($query);
+    }
+
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        return ActivityVisibilityScope::apply($query, $user);
+    }
+
     // ── Accessors ─────────────────────────────────────────────────────────────
 
     public function getTypeLabelAttribute(): string
@@ -50,11 +70,11 @@ class Activity extends Model
     public function getTypeColorAttribute(): string
     {
         return match ($this->activity_type) {
-            'call' => '#198754', // green
-            'email' => '#0d6efd', // blue
-            'meeting' => '#ffc107', // yellow
-            'note' => '#8b5cf6', // purple
-            default => '#6c757d', // gray
+            'call' => '#198754',
+            'email' => '#0d6efd',
+            'meeting' => '#ffc107',
+            'note' => '#8b5cf6',
+            default => '#6c757d',
         };
     }
 
