@@ -33,12 +33,12 @@ class Customer extends Model
 
     public function assignedUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'assigned_user_id');
+        return $this->belongsTo(User::class, 'assigned_user_id')->withTrashed();
     }
 
     public function assignmentReviewer(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'assignment_reviewed_by');
+        return $this->belongsTo(User::class, 'assignment_reviewed_by')->withTrashed();
     }
 
     public function activities()

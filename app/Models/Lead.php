@@ -2,15 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\LeadVisibilityScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class Lead extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'lead_id',
@@ -48,11 +50,10 @@ class Lead extends Model
             if (! $lead->lead_id) {
                 $latest = self::latest('id')->first();
                 $nextId = $latest ? $latest->id + 1 : 1;
-                $lead->lead_id = 'LEAD-' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
+                $lead->lead_id = 'LEAD-'.str_pad($nextId, 4, '0', STR_PAD_LEFT);
             }
         });
     }
-
 
     // relationships
     // lead converted to customer
@@ -64,7 +65,7 @@ class Lead extends Model
     // staff member assigned to the lead
     public function assignedUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'assigned_user_id');
+        return $this->belongsTo(User::class, 'assigned_user_id')->withTrashed();
     }
 
     // activities related to the leads
@@ -345,9 +346,8 @@ class Lead extends Model
         return ''; // Return empty string if no last name exists
     }
 
-
     protected static function booted(): void
     {
-        static::addGlobalScope(new \App\Models\Scopes\LeadVisibilityScope());
+        static::addGlobalScope(new LeadVisibilityScope);
     }
 }
