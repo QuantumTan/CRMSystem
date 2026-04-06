@@ -84,6 +84,13 @@
                             <span class="fw-bold fs-6" style="color:var(--nx-navy);">NexLink</span>
                         </div>
 
+                        @if (session('status'))
+                            <div class="alert alert-success d-flex align-items-center gap-2 py-2 px-3 rounded-3 mb-4" role="alert">
+                                <i class="bi bi-check-circle-fill shrink-0"></i>
+                                <span class="small">{{ session('status') }}</span>
+                            </div>
+                        @endif
+
                         {{-- Error alert --}}
                         @if ($errors->any())
                             <div class="alert alert-danger d-flex align-items-center gap-2 py-2 px-3 rounded-3 mb-4" role="alert">
@@ -156,12 +163,6 @@
                         </form>
 
                         <hr class="my-4 opacity-25">
-
-                        <p class="text-center text-secondary mb-0" style="font-size:.75rem;">
-                            By signing in you agree to our
-                            <a href="#" class="text-secondary">Terms</a> &amp;
-                            <a href="#" class="text-secondary">Privacy Policy</a>.
-                        </p>
 
                     </div>
                 </div>
