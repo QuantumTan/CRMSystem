@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\FollowUpCsvExport;
 use App\Http\Requests\StoreFollowUpRequest;
 use App\Http\Requests\UpdateFollowUpRequest;
 use App\Models\Customer;
@@ -13,11 +14,13 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Maatwebsite\Excel\Excel as ExcelFormat;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class FollowUpController extends Controller
 {
-    public function index(Request $request): Response|StreamedResponse
+    public function index(Request $request): Response|BinaryFileResponse
     {
         $this->authorize('viewAny', FollowUp::class);
 
@@ -39,25 +42,12 @@ class FollowUpController extends Controller
         if ($request->input('export') === 'csv') {
             $fileName = 'follow-ups-'.now()->format('Ymd-His').'.csv';
 
-            return response()->streamDownload(function () use ($query) {
-                $handle = fopen('php://output', 'w');
-
-                fputcsv($handle, ['Title', 'Description', 'Due Date', 'Status', 'Customer', 'Lead', 'Assigned To']);
-
-                (clone $query)->each(function (FollowUp $followUp) use ($handle) {
-                    fputcsv($handle, [
-                        $followUp->title,
-                        $followUp->description,
-                        optional($followUp->due_date)->format('Y-m-d'),
-                        $followUp->status,
-                        $followUp->customer ? ($followUp->customer->first_name.' '.$followUp->customer->last_name) : '',
-                        $followUp->lead?->name,
-                        $followUp->user?->name,
-                    ]);
-                });
-
-                fclose($handle);
-            }, $fileName, ['Content-Type' => 'text/csv']);
+            return Excel::download(
+                new FollowUpCsvExport((clone $query)->get()),
+                $fileName,
+                ExcelFormat::CSV,
+                ['Content-Type' => 'text/csv; charset=UTF-8']
+            );
         }
 
         $followUps = $query->paginate(10)->withQueryString();

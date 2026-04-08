@@ -4,7 +4,7 @@ namespace App\Services\Reports;
 
 class ReportCsvExporter
 {
-    public function build(array $data): string
+    public function build(array $data): array
     {
         $dateRangeLabel = $this->resolveDateRangeLabel($data);
 
@@ -18,7 +18,7 @@ class ReportCsvExporter
             ['Lost Leads', (string) $data['salesPipelineSummary']['lost_leads']],
             ['Total Expected Value', number_format((float) $data['salesPipelineSummary']['total_expected_value'], 2, '.', '')],
             ['Active Pipeline Value', number_format((float) $data['salesPipelineSummary']['active_expected_value'], 2, '.', '')],
-            ['Follow-up Completion Rate', number_format((float) $data['followUpCompletion']['completion_rate'], 2, '.', '') . '%'],
+            ['Follow-up Completion Rate', number_format((float) $data['followUpCompletion']['completion_rate'], 2, '.', '').'%'],
             [],
             ['Lead Status', 'Count'],
         ];
@@ -54,17 +54,7 @@ class ReportCsvExporter
             ];
         }
 
-        $stream = fopen('php://temp', 'r+');
-
-        foreach ($rows as $row) {
-            fputcsv($stream, $row);
-        }
-
-        rewind($stream);
-        $content = stream_get_contents($stream);
-        fclose($stream);
-
-        return (string) $content;
+        return $rows;
     }
 
     private function resolveDateRangeLabel(array $data): string
@@ -76,6 +66,6 @@ class ReportCsvExporter
             return 'All Dates';
         }
 
-        return ($from ?? 'Start') . ' to ' . ($to ?? 'Now');
+        return ($from ?? 'Start').' to '.($to ?? 'Now');
     }
 }
