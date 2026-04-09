@@ -61,6 +61,9 @@
                         <button type="submit" name="export" value="csv" class="btn btn-outline-secondary btn-sm">
                             <i class="bi bi-download"></i> CSV
                         </button>
+                        <button type="submit" name="export" value="pdf" class="btn btn-primary btn-sm">
+                            <i class="bi bi-file-earmark-pdf"></i> PDF
+                        </button>
                     </div>
                 </form>
             </div>
