@@ -2,53 +2,81 @@
 
 namespace App\Services\Reports;
 
+use Dompdf\Dompdf;
+use Dompdf\Options;
+
 class ReportPdfExporter
 {
     public function build(array $data): string
     {
         $dateRangeLabel = $this->resolveDateRangeLabel($data);
 
-        $lines = [
-            'CRM Reports Summary',
-            'Generated At: ' . now()->toDateTimeString(),
-            'Date Range: ' . $dateRangeLabel,
-            '',
-            'Total Customers: ' . $data['totalCustomers'],
-            'Pipeline Leads: ' . $data['salesPipelineSummary']['active_pipeline_leads'],
-            'Won Leads: ' . $data['salesPipelineSummary']['won_leads'],
-            'Lost Leads: ' . $data['salesPipelineSummary']['lost_leads'],
-            'Total Expected Value: ' . number_format((float) $data['salesPipelineSummary']['total_expected_value'], 2),
-            'Active Pipeline Value: ' . number_format((float) $data['salesPipelineSummary']['active_expected_value'], 2),
-            'Follow-up Completion Rate: ' . number_format((float) $data['followUpCompletion']['completion_rate'], 2) . '%',
-            '',
-            'Lead Status Breakdown',
+        $summaryRows = [
+            ['Metric', 'Value'],
+            ['Total Customers', (string) ($data['totalCustomers'] ?? 0)],
+            ['Pipeline Leads', (string) ($data['salesPipelineSummary']['active_pipeline_leads'] ?? 0)],
+            ['Won Leads', (string) ($data['salesPipelineSummary']['won_leads'] ?? 0)],
+            ['Lost Leads', (string) ($data['salesPipelineSummary']['lost_leads'] ?? 0)],
+            ['Total Expected Value', number_format((float) ($data['salesPipelineSummary']['total_expected_value'] ?? 0), 2, '.', '')],
+            ['Active Pipeline Value', number_format((float) ($data['salesPipelineSummary']['active_expected_value'] ?? 0), 2, '.', '')],
+            ['Follow-up Completion Rate', number_format((float) ($data['followUpCompletion']['completion_rate'] ?? 0), 2, '.', '').'%'],
         ];
 
-        foreach ($data['leadsByStatus'] as $row) {
-            $lines[] = ' - ' . str($row['status'])->replace('_', ' ')->title() . ': ' . $row['total'];
+        $leadStatusRows = [['Status', 'Count']];
+        foreach ($data['leadsByStatus'] ?? [] as $row) {
+            $leadStatusRows[] = [
+                (string) str((string) ($row['status'] ?? 'unknown'))->replace('_', ' ')->title(),
+                (string) ($row['total'] ?? 0),
+            ];
         }
 
-        $lines[] = '';
-        $lines[] = 'User Activity';
-
-        foreach ($data['userActivity'] as $row) {
-            $lines[] = ' - ' . $row->name . ' (' . $row->role . '): ' . $row->total_activities;
+        $userActivityRows = [['User', 'Role', 'Activities']];
+        foreach ($data['userActivity'] ?? [] as $row) {
+            $userActivityRows[] = [
+                (string) ($row->name ?? 'N/A'),
+                (string) ($row->role ?? 'N/A'),
+                (string) ($row->total_activities ?? 0),
+            ];
         }
 
-        $lines[] = '';
-        $lines[] = 'Follow-up Status';
-        $lines[] = ' - Completed: ' . $data['followUpCompletion']['completed'];
-        $lines[] = ' - Pending: ' . $data['followUpCompletion']['pending'];
-        $lines[] = ' - Overdue: ' . $data['followUpCompletion']['overdue'];
+        $followUpRows = [
+            ['Status', 'Count'],
+            ['Completed', (string) ($data['followUpCompletion']['completed'] ?? 0)],
+            ['Pending', (string) ($data['followUpCompletion']['pending'] ?? 0)],
+            ['Overdue', (string) ($data['followUpCompletion']['overdue'] ?? 0)],
+        ];
 
-        $lines[] = '';
-        $lines[] = 'Activities By Type';
-
-        foreach ($data['activitiesByType'] as $row) {
-            $lines[] = ' - ' . str($row->activity_type)->replace('_', ' ')->title() . ': ' . $row->total;
+        $activitiesRows = [['Activity Type', 'Count']];
+        foreach ($data['activitiesByType'] ?? [] as $row) {
+            $activitiesRows[] = [
+                (string) str((string) ($row->activity_type ?? 'unknown'))->replace('_', ' ')->title(),
+                (string) ($row->total ?? 0),
+            ];
         }
 
-        return $this->generateSimplePdf($lines);
+        $html = $this->renderDocument([
+            'generatedAt' => now()->format('Y-m-d H:i:s'),
+            'dateRange' => $dateRangeLabel,
+            'tables' => [
+                ['title' => 'Summary', 'rows' => $summaryRows],
+                ['title' => 'Lead Status Breakdown', 'rows' => $leadStatusRows],
+                ['title' => 'User Activity', 'rows' => $userActivityRows],
+                ['title' => 'Follow-up Status', 'rows' => $followUpRows],
+                ['title' => 'Activities By Type', 'rows' => $activitiesRows],
+            ],
+        ]);
+
+        $options = new Options;
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', false);
+        $options->set('defaultFont', 'DejaVu Sans');
+
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        return $dompdf->output();
     }
 
     private function resolveDateRangeLabel(array $data): string
@@ -60,52 +88,68 @@ class ReportPdfExporter
             return 'All Dates';
         }
 
-        return ($from ?? 'Start') . ' to ' . ($to ?? 'Now');
+        return ($from ?? 'Start').' to '.($to ?? 'Now');
     }
 
-    private function generateSimplePdf(array $lines): string
+    private function renderDocument(array $context): string
     {
-        $contentLines = [];
+        $sectionsHtml = '';
 
-        foreach (array_slice($lines, 0, 55) as $index => $line) {
-            $escaped = str_replace(
-                ['\\', '(', ')'],
-                ['\\\\', '\\(', '\\)'],
-                (string) $line
-            );
-
-            $y = 780 - ($index * 13);
-            $contentLines[] = "1 0 0 1 40 {$y} Tm ({$escaped}) Tj";
+        foreach ($context['tables'] as $table) {
+            $sectionsHtml .= '<section class="section">'
+                .'<h2>'.$this->escape((string) $table['title']).'</h2>'
+                .$this->renderTable($table['rows'])
+                .'</section>';
         }
 
-        $contentStream = "BT\n/F1 10 Tf\n" . implode("\n", $contentLines) . "\nET";
-        $length = strlen($contentStream);
+        return '<!doctype html>'
+            .'<html><head><meta charset="UTF-8"><style>'
+            .'body{font-family:DejaVu Sans,sans-serif;color:#111827;font-size:12px;}'
+            .'h1{margin:0 0 4px 0;font-size:20px;}'
+            .'h2{margin:18px 0 8px 0;font-size:14px;color:#1f2937;}'
+            .'.meta{margin:0 0 12px 0;color:#4b5563;font-size:11px;}'
+            .'.section{margin-bottom:8px;page-break-inside:avoid;}'
+            .'table{width:100%;border-collapse:collapse;}'
+            .'th,td{border:1px solid #d1d5db;padding:6px;text-align:left;vertical-align:top;}'
+            .'th{background:#f3f4f6;font-weight:700;}'
+            .'</style></head><body>'
+            .'<h1>CRM Reports Summary</h1>'
+            .'<p class="meta">Generated At: '.$this->escape((string) $context['generatedAt']).'<br>Date Range: '.$this->escape((string) $context['dateRange']).'</p>'
+            .$sectionsHtml
+            .'</body></html>';
+    }
 
-        $objects = [];
-        $objects[] = "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n";
-        $objects[] = "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
-        $objects[] = "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>\nendobj\n";
-        $objects[] = "4 0 obj\n<< /Length {$length} >>\nstream\n{$contentStream}\nendstream\nendobj\n";
-        $objects[] = "5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n";
-
-        $pdf = "%PDF-1.4\n";
-        $offsets = [0];
-
-        foreach ($objects as $object) {
-            $offsets[] = strlen($pdf);
-            $pdf .= $object;
+    private function renderTable(array $rows): string
+    {
+        if ($rows === [] || ! isset($rows[0]) || ! is_array($rows[0])) {
+            return '<p>No data available.</p>';
         }
 
-        $xrefOffset = strlen($pdf);
-        $pdf .= "xref\n0 6\n";
-        $pdf .= "0000000000 65535 f \n";
-
-        for ($i = 1; $i <= 5; $i++) {
-            $pdf .= sprintf("%010d 00000 n \n", $offsets[$i]);
+        $header = $rows[0];
+        $body = array_slice($rows, 1);
+        $headerHtml = '';
+        foreach ($header as $cell) {
+            $headerHtml .= '<th>'.$this->escape((string) $cell).'</th>';
         }
 
-        $pdf .= "trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n{$xrefOffset}\n%%EOF";
+        $bodyHtml = '';
+        foreach ($body as $row) {
+            $bodyHtml .= '<tr>';
+            foreach ($row as $cell) {
+                $bodyHtml .= '<td>'.$this->escape((string) $cell).'</td>';
+            }
+            $bodyHtml .= '</tr>';
+        }
 
-        return $pdf;
+        if ($bodyHtml === '') {
+            $bodyHtml = '<tr><td colspan="'.count($header).'">No data available.</td></tr>';
+        }
+
+        return '<table><thead><tr>'.$headerHtml.'</tr></thead><tbody>'.$bodyHtml.'</tbody></table>';
+    }
+
+    private function escape(string $value): string
+    {
+        return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
     }
 }

@@ -9,6 +9,8 @@ use App\Models\Customer;
 use App\Models\FollowUp;
 use App\Models\Lead;
 use App\Models\User;
+use App\Services\FollowUps\FollowUpCsvExporter;
+use App\Services\FollowUps\FollowUpPdfExporter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -20,6 +22,11 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class FollowUpController extends Controller
 {
+    public function __construct(
+        private FollowUpCsvExporter $csvExporter,
+        private FollowUpPdfExporter $pdfExporter,
+    ) {}
+
     public function index(Request $request): Response|BinaryFileResponse
     {
         $this->authorize('viewAny', FollowUp::class);
@@ -40,14 +47,25 @@ class FollowUpController extends Controller
         }
 
         if ($request->input('export') === 'csv') {
+            $rows = $this->csvExporter->build((clone $query)->get());
             $fileName = 'follow-ups-'.now()->format('Ymd-His').'.csv';
 
             return Excel::download(
-                new FollowUpCsvExport((clone $query)->get()),
+                new FollowUpCsvExport($rows),
                 $fileName,
                 ExcelFormat::CSV,
                 ['Content-Type' => 'text/csv; charset=UTF-8']
             );
+        }
+
+        if ($request->input('export') === 'pdf') {
+            $pdf = $this->pdfExporter->build((clone $query)->get());
+            $fileName = 'follow-ups-'.now()->format('Ymd-His').'.pdf';
+
+            return response($pdf, 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            ]);
         }
 
         $followUps = $query->paginate(10)->withQueryString();
