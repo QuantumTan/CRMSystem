@@ -1,59 +1,174 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# CRM System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+CRM System is a modern, full-stack customer relationship management platform built to streamline lead handling, customer management, assignment workflows, follow-ups, and reporting. It helps teams track the complete sales journey from first contact to customer conversion while keeping activity history and role-based access controls in one clean interface.
 
-## About Laravel
+## Table of contents
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Sales features
+- Manager features
+- Admin features
+- Core workflows
+- Tech stack
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Sales Features
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Dashboard
 
-## Learning Laravel
+- View personal pipeline metrics and workload snapshot
+- See personal customer, lead, and follow-up counts
+- Review recent activities and upcoming follow-ups
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### Leads
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- Create new leads with source, priority, and expected value
+- View assigned leads in list and Kanban board views
+- Move lead status across pipeline stages
+- Mark leads as lost with required category and reason
+- Reopen lost leads back into active pipeline
+- Convert won leads into customers
+- Update lead details and priority for assigned records
 
-## Laravel Sponsors
+### Customers
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- Create customer records
+- View assigned customers
+- Update assigned customer details
+- Work within assignment approval rules
 
-### Premium Partners
+### Activities
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+- Log calls, emails, meetings, and notes
+- Attach activities to either a lead or a customer
+- View and update activities linked to assigned entities
 
-## Contributing
+### Follow-ups
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- Create follow-ups for assigned leads and customers
+- Set due dates and statuses
+- Mark follow-ups as completed
+- Edit pending follow-ups assigned to you
 
-## Code of Conduct
+## Manager Features
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Dashboard
 
-## Security Vulnerabilities
+- View team-level CRM metrics and status overview
+- Monitor lead flow and follow-up health
+- Track recent activities and upcoming follow-ups
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Customer Oversight
 
-## License
+- View customer records across the system
+- Review assignment decisions
+- Approve customer assignments
+- Reject customer assignments
+- Reassign customers to sales staff
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Monitoring Views
+
+- View leads across pipeline stages
+- View activities and follow-up lists for monitoring
+- Access consolidated operational visibility
+
+### Reports
+
+- View reports with date filters
+- Export reports to CSV
+- Export reports to PDF
+
+## Admin Features
+
+### Dashboard
+
+- Full system overview with key CRM metrics
+- Access all modules and admin controls
+
+### User Management
+
+- Create user accounts
+- Update user profile and role assignments
+- Delete users (soft delete)
+- Manage roles: admin, manager, sales
+
+### Customers
+
+- Full create, read, update, and delete access
+- Manage assignment workflow and approvals
+- Reassign ownership across sales users
+
+### Leads
+
+- Full create, read, update, and delete access
+- Assign leads to sales staff
+- Manage statuses, priorities, loss handling, and conversions
+
+### Activities and Follow-ups
+
+- Full activity management
+- Full follow-up management
+- Reopen completed follow-ups when needed
+
+### Reports
+
+- Full report access with date filtering
+- CSV and PDF export support
+
+## Core Workflows
+
+### Lead pipeline
+
+- new
+- contacted
+- qualified
+- proposal_sent
+- negotiation
+- won
+- lost
+
+### Lead to customer conversion
+
+- Only won leads can be converted
+- Conversion creates a customer from lead data
+- Related activities and follow-ups are moved to the customer
+
+### Customer assignment workflow
+
+- pending
+- approved
+- rejected
+
+### Access model
+
+- Authentication handled by Laravel Fortify
+- Route-level role middleware
+- Policy and scope-based data visibility
+- Sales access restricted to assigned records in key modules
+
+## Tech stack
+
+### Frontend
+
+- Blade templates
+- Vite
+- Sass
+- Bootstrap 5
+- Bootstrap Icons
+
+### Backend
+
+- Laravel 12
+- PHP 8.2+
+- Eloquent ORM
+- MySQL-compatible relational database
+- Laravel Fortify
+
+### Exports and Reporting
+
+- Maatwebsite Excel for CSV exports
+- Dompdf for PDF exports
+
+### Testing and Quality
+
+- Pest
+- Laravel Pint
+
