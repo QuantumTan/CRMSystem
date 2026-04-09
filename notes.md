@@ -1,19 +1,32 @@
-when the lead is won, it is converted to a customer
+# CRM Notes (Current System Behavior)
 
-real life scenario for better undertanding:
+## Lead Lifecycle
 
-someone calls you -  LEAD
-you call back - CONTACTED
-money is ready -QUALIFIED
-you sent the details - POP. SENT
-negotiation - NEGOTIATION
-bought it -> WON -> becomes a customer
-did not buy -> LOST 
+- New lead starts with status: `new`
+- First contact made: `contacted`
+- Prospect is ready/qualified: `qualified`
+- Proposal sent: `proposal_sent`
+- Ongoing deal discussion: `negotiation`
+- Deal closed: `won`
+- Lead can then be converted into a customer
+- If the deal does not proceed: `lost`
+- Lost leads can be reopened and moved back to `contacted`
 
+## Conversion Rule
 
-ROADMAP
+- Only leads with status `won` can be converted to a customer
+- Conversion moves lead activities and follow-ups to the new customer
+
+## Module Flow
+
 Leads Module
-    |
-Activity/Interaction Log Module -> follow ups
-    |
- Dashboard Module -> Reports
+-> Activity/Interaction Log Module
+-> Follow-ups Module
+-> Dashboard Module
+-> Reports (CSV/PDF export)
+
+## Roles Snapshot
+
+- `admin`: full access, user management, reopen completed follow-ups
+- `manager`: monitor dashboards, assignment review, reports
+- `sales`: manage assigned leads/customers, activities, and follow-ups
