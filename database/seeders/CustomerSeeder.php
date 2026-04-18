@@ -13,18 +13,25 @@ class CustomerSeeder extends Seeder
      */
     public function run(): void
     {
+        if (Customer::query()->exists()) {
+            return;
+        }
+
         $salesUsers = User::query()
             ->where('role', 'sales')
             ->orderBy('id')
             ->get();
 
         if ($salesUsers->isEmpty()) {
-            return;
+            $salesUsers = User::factory()
+                ->count(3)
+                ->sales()
+                ->create();
         }
 
         foreach ($salesUsers as $salesUser) {
             // Pending customers assigned to each sales user.
-            Customer::factory(8)
+            Customer::factory(5)
                 ->pending()
                 ->state([
                     'assigned_user_id' => $salesUser->id,
@@ -32,14 +39,14 @@ class CustomerSeeder extends Seeder
                 ->create();
 
             // Reviewed assignment samples per sales user.
-            Customer::factory(3)
+            Customer::factory(2)
                 ->approved()
                 ->state([
                     'assigned_user_id' => $salesUser->id,
                 ])
                 ->create();
 
-            Customer::factory(2)
+            Customer::factory(1)
                 ->rejected()
                 ->state([
                     'assigned_user_id' => $salesUser->id,
