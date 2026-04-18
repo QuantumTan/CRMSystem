@@ -4,8 +4,6 @@
 
 @section('content')
     <div class="container-fluid px-3 px-md-4 py-4">
-
-        {{-- HEADER  --}}
         <div
             class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
             <div>
@@ -15,6 +13,7 @@
 
             @php
                 $currentUser = auth()->user();
+                $currencyCode = $systemConfiguration?->currency_code ?? 'PHP';
             @endphp
 
             <div class="d-flex align-items-center gap-2">
@@ -28,7 +27,8 @@
                 </a>
 
                 @if ($currentUser && ($currentUser->hasRole('admin') || $currentUser->hasRole('sales')))
-                    <a href="{{ route('leads.create') }}" class="btn btn-primary crm-module-add-btn d-flex align-items-center gap-2">
+                    <a href="{{ route('leads.create') }}"
+                        class="btn btn-primary crm-module-add-btn d-flex align-items-center gap-2">
                         <i class="bi bi-plus"></i>
                         Add Lead
                     </a>
@@ -36,31 +36,26 @@
             </div>
         </div>
 
-        {{-- FILTER TOOLKIT  --}}
         <div class="card border-0 shadow-sm mb-4 crm-toolkit">
             <div class="card-body p-3">
                 <form action="{{ route('leads.index') }}" method="GET"
                     class="d-flex flex-column flex-lg-row align-items-lg-center gap-3">
-
-                    {{-- Search --}}
                     <div class="position-relative" style="max-width: 300px; flex: 1;">
                         <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted small"></i>
                         <input type="text" id="search" name="search" class="form-control form-control-sm ps-5"
                             value="{{ request('search') }}" placeholder="Search name, email, phone...">
                     </div>
 
-                    {{-- All Statuses --}}
                     <select id="status" name="status" class="form-select form-select-sm w-auto"
                         style="min-width: 140px;">
                         <option value="">All Statuses</option>
-                        @foreach ($statusOptions as $s)
-                            <option value="{{ $s }}" @selected(request('status') == $s)>
-                                {{ ucfirst(str_replace('_', ' ', $s)) }}
+                        @foreach ($statusOptions as $statusOption)
+                            <option value="{{ $statusOption }}" @selected(request('status') == $statusOption)>
+                                {{ ucfirst(str_replace('_', ' ', $statusOption)) }}
                             </option>
                         @endforeach
                     </select>
 
-                    {{-- All Priorities --}}
                     <select id="priority" name="priority" class="form-select form-select-sm w-auto"
                         style="min-width: 130px;">
                         <option value="">All Priorities</option>
@@ -69,7 +64,6 @@
                         <option value="high" @selected(request('priority') == 'high')>High</option>
                     </select>
 
-                    {{-- All Users --}}
                     <select id="assigned_user" name="assigned_user" class="form-select form-select-sm w-auto"
                         style="min-width: 140px;">
                         <option value="">All Users</option>
@@ -80,31 +74,30 @@
                         @endforeach
                     </select>
 
-                    {{-- Buttons --}}
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-dark btn-sm px-3">Filter</button>
                         <a href="{{ route('leads.index') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
                     </div>
-
                 </form>
             </div>
         </div>
 
-        {{-- TABLE --}}
         <div class="card border-0 shadow-sm">
             <div class="table-responsive">
                 <table class="table crm-table table-hover align-middle mb-0 crm-data-table">
                     <thead class="table-light">
                         <tr>
-                            <th class="ps-4 py-3 fw-semibold small text-uppercase text-muted">Lead</th>
-                            <th class="py-3 fw-semibold small text-uppercase text-muted">Contact</th>
-                            <th class="py-3 fw-semibold small text-uppercase text-muted">Status</th>
-                            <th class="py-3 fw-semibold small text-uppercase text-muted">Priority</th>
-                            <th class="py-3 fw-semibold small text-uppercase text-muted">Value</th>
-                            <th class="py-3 fw-semibold small text-uppercase text-muted">Assigned To</th>
-                            <th class="py-3 fw-semibold small text-uppercase text-muted">Source</th>
-                            <th class="py-3 fw-semibold small text-uppercase text-muted">Created</th>
-                            <th class="pe-4 py-3 fw-semibold small text-uppercase text-muted text-end">Actions</th>
+                            <th class="small text-muted py-3">Lead ID</th>
+                            <th class="small text-muted py-3">Name</th>
+                            <th class="small text-muted py-3">Email</th>
+                            <th class="small text-muted py-3">Phone Number</th>
+                            <th class="small text-muted py-3">Status</th>
+                            <th class="small text-muted py-3">Priority</th>
+                            <th class="small text-muted py-3">Value</th>
+                            <th class="small text-muted py-3">Assigned User</th>
+                            <th class="small text-muted py-3">Source</th>
+                            <th class="small text-muted py-3">Created At</th>
+                            <th class="small text-muted py-3 text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -112,38 +105,13 @@
                             <tr data-lead-id="{{ $lead->id }}" data-status="{{ $lead->status }}"
                                 data-priority="{{ strtolower($lead->priority) }}"
                                 data-assigned="{{ $lead->assigned_user_id ?? '' }}">
-
-                                {{-- Lead Name --}}
-                                <td class="ps-4">
-                                    <a href="{{ route('leads.show', $lead) }}"
-                                        class="fw-semibold text-decoration-none text-dark">
-                                        {{ $lead->name }}
-                                    </a>
-                                </td>
-
-                                {{-- Contact --}}
-                                <td>
-                                    <div class="d-flex flex-column gap-1">
-                                        @if ($lead->email)
-                                            <a href="mailto:{{ $lead->email }}"
-                                                class="text-muted text-decoration-none small">
-                                                <i class="bi bi-envelope me-1"></i>{{ Str::limit($lead->email, 22) }}
-                                            </a>
-                                        @endif
-                                        @if ($lead->phone)
-                                            <a href="tel:{{ $lead->phone }}"
-                                                class="text-muted text-decoration-none small">
-                                                <i class="bi bi-telephone me-1"></i>{{ $lead->phone }}
-                                            </a>
-                                        @endif
-                                    </div>
-                                </td>
-
-                                {{-- Status --}}
-                                <td>
+                                <td class="small text-muted py-3">{{ $lead->lead_id ?: 'N/A' }}</td>
+                                <td class="small text-muted py-3">{{ $lead->name }}</td>
+                                <td class="small text-muted py-3">{{ $lead->email ?: 'N/A' }}</td>
+                                <td class="small text-muted py-3">{{ $lead->phone ?: 'N/A' }}</td>
+                                <td class="py-3">
                                     @php
                                         $leadStatus = strtolower((string) $lead->status);
-                                        $kanbanStatusAnchor = 'status-'.\Illuminate\Support\Str::slug($leadStatus, '-');
                                         $leadStatusClass = match ($leadStatus) {
                                             'new' => 'crm-table-status crm-table-status-primary',
                                             'contacted' => 'crm-table-status crm-table-status-info',
@@ -153,14 +121,9 @@
                                             default => 'crm-table-status crm-table-status-primary',
                                         };
                                     @endphp
-                                    <a href="{{ route('leads.kanban', ['status' => $lead->status]) }}#{{ $kanbanStatusAnchor }}"
-                                        class="{{ $leadStatusClass }} text-decoration-none">
-                                        {{ ucfirst(str_replace('_', ' ', $lead->status)) }}
-                                    </a>
+                                    <span class="{{ $leadStatusClass }}">{{ ucfirst(str_replace('_', ' ', $lead->status)) }}</span>
                                 </td>
-
-                                {{-- Priority --}}
-                                <td>
+                                <td class="py-3">
                                     @php
                                         $leadPriority = strtolower((string) $lead->priority);
                                         $leadPriorityClass = match ($leadPriority) {
@@ -172,62 +135,26 @@
                                     @endphp
                                     <span class="{{ $leadPriorityClass }}">{{ ucfirst($lead->priority) }}</span>
                                 </td>
-
-                                {{-- Expected Value --}}
-                                <td>
-                                    @if ($lead->expected_value)
-                                        <span class="text-success fw-semibold small">
-                                            PHP {{ number_format($lead->expected_value, 2) }}
-                                        </span>
-                                    @else
-                                        <span class="text-muted small">—</span>
-                                    @endif
+                                <td class="small text-muted py-3">
+                                    {{ $lead->expected_value ? $currencyCode . ' ' . number_format($lead->expected_value, 2) : 'N/A' }}
                                 </td>
-
-                                {{-- Assigned To --}}
-                                <td>
-                                    @if ($lead->assignedUser)
-                                        <div class="d-flex align-items-center gap-2">
-                                            <div class="avatar-circle">
-                                                {{ strtoupper(substr($lead->assignedUser->name, 0, 1)) }}
-                                            </div>
-                                            <span class="small text-muted">{{ $lead->assignedUser->name }}</span>
-                                        </div>
-                                    @else
-                                        <span class="text-muted small">Unassigned</span>
-                                    @endif
-                                </td>
-
-                                {{-- Source --}}
-                                <td>
-                                    @if ($lead->source)
-                                        <span class="crm-table-meta">{{ $lead->source }}</span>
-                                    @else
-                                        <span class="text-muted small">—</span>
-                                    @endif
-                                </td>
-
-                                {{-- Created --}}
-                                <td>
-                                    <span class="text-muted small" title="{{ $lead->created_at->format('M d, Y h:i A') }}">
-                                        {{ $lead->created_at->diffForHumans() }}
-                                    </span>
-                                </td>
-
-                                {{-- Actions --}}
-                                <td class="pe-4 text-end">
-                                    <div class="d-flex justify-content-end gap-1 flex-wrap">
+                                <td class="small text-muted py-3">{{ $lead->assignedUser?->name ?: 'Unassigned' }}</td>
+                                <td class="small text-muted py-3">{{ $lead->source ?: 'N/A' }}</td>
+                                <td class="small text-muted py-3">{{ $lead->created_at->format('M d, Y') }}</td>
+                                <td class="py-3">
+                                    <div class="d-flex justify-content-end gap-2">
                                         <a href="{{ route('leads.show', $lead) }}"
-                                            class="btn btn-sm btn-outline-primary crm-action-btn" title="View">
+                                            class="btn btn-sm btn-light border text-primary">
                                             View
                                         </a>
                                         @if ($currentUser && ($currentUser->hasRole('admin') || $currentUser->hasRole('sales')))
                                             <a href="{{ route('leads.edit', $lead) }}"
-                                                class="btn btn-sm btn-outline-warning crm-action-btn" title="Edit">
+                                                class="btn btn-sm btn-light border text-dark">
                                                 Edit
                                             </a>
-                                            <button type="button" class="btn btn-sm btn-outline-danger delete-lead crm-action-btn"
-                                                data-lead-id="{{ $lead->id }}" title="Delete">
+                                            <button type="button"
+                                                class="btn btn-sm btn-light border text-danger delete-lead"
+                                                data-lead-id="{{ $lead->id }}">
                                                 Delete
                                             </button>
                                         @endif
@@ -236,26 +163,17 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="text-center py-5 text-muted">
-                                    <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.3;"></i>
-                                    <p class="mt-2 mb-0">No leads found</p>
-                                    @if ($currentUser && ($currentUser->hasRole('admin') || $currentUser->hasRole('sales')))
-                                        <a href="{{ route('leads.create') }}" class="btn btn-primary btn-sm mt-3">
-                                            <i class="bi bi-plus-lg"></i> Add your first lead
-                                        </a>
-                                    @endif
-                                </td>
+                                <td colspan="11" class="text-center text-muted py-5">No leads found.</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
 
-            {{-- Pagination --}}
             @if ($leads->hasPages())
                 <div class="card-footer bg-white border-top d-flex justify-content-between align-items-center px-4 py-3">
                     <small class="text-muted">
-                        Showing {{ $leads->firstItem() }}–{{ $leads->lastItem() }} of {{ $leads->total() }} leads
+                        Showing {{ $leads->firstItem() }}-{{ $leads->lastItem() }} of {{ $leads->total() }} leads
                     </small>
                     {{ $leads->withQueryString()->links() }}
                 </div>
@@ -263,30 +181,35 @@
         </div>
     </div>
 
-    {{-- client-side live filtering + enhanced delete --}}
     <script>
         const leadsBaseUrl = "{{ url('/leads') }}";
         const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-        //  Delete lead
-        document.querySelectorAll('.delete-lead').forEach(btn => {
+        document.querySelectorAll('.delete-lead').forEach((btn) => {
             btn.addEventListener('click', function() {
                 const leadId = this.dataset.leadId;
-                if (!confirm('Are you sure you want to delete this lead? This cannot be undone.')) return;
+
+                if (!confirm('Are you sure you want to delete this lead? This cannot be undone.')) {
+                    return;
+                }
 
                 fetch(`${leadsBaseUrl}/${leadId}`, {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken
+                            'X-CSRF-TOKEN': csrfToken,
                         },
                     })
-                    .then(res => res.json())
-                    .then(data => {
+                    .then((res) => res.json())
+                    .then((data) => {
                         if (data.success) {
                             const row = document.querySelector(`tr[data-lead-id="${leadId}"]`);
-                            if (row) row.remove();
+
+                            if (row) {
+                                row.remove();
+                            }
+
                             showNotification('Lead deleted successfully!', 'success');
                         } else {
                             showNotification(data.message ?? 'Error deleting lead.', 'danger');
@@ -296,7 +219,6 @@
             });
         });
 
-        //  Client-side live filter 
         const searchInput = document.getElementById('search');
         const statusSelect = document.getElementById('status');
         const prioritySelect = document.getElementById('priority');
@@ -313,7 +235,7 @@
             const priorityFilter = prioritySelect?.value || '';
             const assignedFilter = assignedSelect?.value || '';
 
-            document.querySelectorAll('tbody tr[data-lead-id]').forEach(row => {
+            document.querySelectorAll('tbody tr[data-lead-id]').forEach((row) => {
                 const text = row.textContent.toLowerCase();
                 const rowStatus = row.dataset.status ?? '';
                 const rowPriority = row.dataset.priority ?? '';
@@ -324,11 +246,10 @@
                 const matchPriority = !priorityFilter || rowPriority === priorityFilter;
                 const matchAssigned = !assignedFilter || rowAssigned === assignedFilter;
 
-                row.style.display = (matchSearch && matchStatus && matchPriority && matchAssigned) ? '' : 'none';
+                row.style.display = matchSearch && matchStatus && matchPriority && matchAssigned ? '' : 'none';
             });
         }
 
-        //  Toast notification  
         function showNotification(message, type = 'info') {
             const el = document.createElement('div');
             el.className = `alert alert-${type} alert-dismissible fade show position-fixed shadow`;
@@ -338,27 +259,10 @@
             setTimeout(() => el.remove(), 4000);
         }
 
-        // Initial load - ensure any pre-filled filters are applied instantly (optional but nice)
         window.addEventListener('load', () => {
             if (searchInput?.value || statusSelect?.value || prioritySelect?.value || assignedSelect?.value) {
                 filterLeads();
             }
         });
     </script>
-
-    <style>
-        .avatar-circle {
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            background-color: #007bff;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            font-weight: bold;
-            flex-shrink: 0;
-        }
-    </style>
 @endsection

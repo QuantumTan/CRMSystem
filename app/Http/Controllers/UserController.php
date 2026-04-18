@@ -9,13 +9,30 @@ use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $this->authorize('viewAny', User::class);
 
-        $users = User::latest()->paginate(10);
+        $users = User::query()
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $search = trim((string) $request->string('search'));
 
-        return view('users.index', compact('users'));
+                $query->where(function ($innerQuery) use ($search) {
+                    $innerQuery
+                        ->where('name', 'like', '%'.$search.'%')
+                        ->orWhere('email', 'like', '%'.$search.'%');
+                });
+            })
+            ->when($request->filled('role'), function ($query) use ($request) {
+                $query->where('role', $request->string('role'));
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        $roleOptions = ['admin', 'manager', 'sales'];
+
+        return view('users.index', compact('users', 'roleOptions'));
     }
 
     public function create()
