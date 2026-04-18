@@ -3,6 +3,10 @@
 @section('title', 'Edit Lead')
 
 @section('content')
+    @php
+        $currencyCode = $systemConfiguration?->currency_code ?? 'PHP';
+    @endphp
+
     <div class="container-fluid px-3 px-md-4 py-4">
 
         {{-- HEADER --}}
@@ -83,7 +87,7 @@
                     <div class="col-md-4">
                         <label class="form-label fw-medium">Expected Value</label>
                         <div class="input-group">
-                            <span class="input-group-text">PHP</span>
+                            <span class="input-group-text">{{ $currencyCode }}</span>
                             <input type="number" name="expected_value" class="form-control" min="0" step="0.01"
                                 value="{{ old('expected_value', $lead->expected_value) }}">
                         </div>

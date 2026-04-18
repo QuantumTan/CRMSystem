@@ -30,7 +30,8 @@
 
                 <h2 class="fw-bold mb-2" style="letter-spacing:-.03em;color:var(--nx-navy);">Reset your password</h2>
                 <p class="text-secondary mb-4 small">
-                    Enter your account email address and we will send a reset link.
+                    Enter your account email address and we will send a reset link. Reset links expire in
+                    {{ config('auth.passwords.users.expire') }} minutes.
                 </p>
 
                 @if (session('status'))

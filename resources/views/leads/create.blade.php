@@ -3,6 +3,12 @@
 @section('title', 'Add Lead')
 
 @section('content')
+    @php
+        $defaultLeadStatus = old('status', $systemConfiguration?->default_lead_status ?? 'new');
+        $defaultLeadPriority = old('priority', $systemConfiguration?->default_lead_priority ?? 'medium');
+        $currencyCode = $systemConfiguration?->currency_code ?? 'PHP';
+    @endphp
+
     <div class="container-fluid px-3 px-md-4 py-4">
         
         {{-- HEADER --}}
@@ -62,7 +68,7 @@
                         <label class="form-label fw-medium">Status <span class="text-danger">*</span></label>
                         <select name="status" class="form-select @error('status') is-invalid @enderror" required>
                             @foreach ($statusOptions as $statusOption)
-                                <option value="{{ $statusOption }}" @selected(old('status', 'new') === $statusOption)>
+                                <option value="{{ $statusOption }}" @selected($defaultLeadStatus === $statusOption)>
                                     {{ ucfirst(str_replace('_', ' ', $statusOption)) }}
                                 </option>
                             @endforeach
@@ -74,7 +80,7 @@
                         <label class="form-label fw-medium">Priority <span class="text-danger">*</span></label>
                         <select name="priority" class="form-select @error('priority') is-invalid @enderror" required>
                             @foreach ($priorityOptions as $priorityOption)
-                                <option value="{{ $priorityOption }}" @selected(old('priority', 'medium') === $priorityOption)>
+                                <option value="{{ $priorityOption }}" @selected($defaultLeadPriority === $priorityOption)>
                                     {{ ucfirst($priorityOption) }}
                                 </option>
                             @endforeach
@@ -85,7 +91,7 @@
                     <div class="col-md-4">
                         <label class="form-label fw-medium">Expected Value</label>
                         <div class="input-group has-validation">
-                            <span class="input-group-text">PHP</span>
+                            <span class="input-group-text">{{ $currencyCode }}</span>
                             <input type="number" name="expected_value" class="form-control @error('expected_value') is-invalid @enderror" min="0" step="0.01" value="{{ old('expected_value') }}" placeholder="0.00">
                             @error('expected_value') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>

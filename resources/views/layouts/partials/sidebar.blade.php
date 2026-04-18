@@ -42,7 +42,7 @@
             class="crm-brand-link text-decoration-none d-flex align-items-center gap-2 text-white">
             <img src="{{ asset('assets/images/crm_logo.png') }}" alt="NexLink"
                 style="width:36px;height:36px;object-fit:contain;">
-            <span class="crm-label fw-semibold">NexLink CRM</span>
+            <span class="crm-label fw-semibold">{{ config('app.name', 'NexLink CRM') }}</span>
         </a>
         <button class="crm-sidebar-toggle btn btn-sm d-none d-lg-inline-flex"
             type="button" id="sidebarToggle" aria-label="Toggle sidebar">
@@ -144,10 +144,10 @@
                             <span class="crm-label">Users</span>
                         </a>
                         <a href="{{ route('settings.index') }}" data-nav-link data-nav-label="Settings"
-                            title="Settings"
+                            title="System Configuration"
                             class="crm-nav-link {{ request()->routeIs('settings.*') ? 'active' : '' }}">
                             <i class="bi bi-sliders2"></i>
-                            <span class="crm-label">Settings</span>
+                            <span class="crm-label">System Config</span>
                         </a>
                     </div>
                 </section>
