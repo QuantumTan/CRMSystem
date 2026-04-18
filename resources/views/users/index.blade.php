@@ -20,6 +20,33 @@
             </a>
         </div>
 
+        <div class="card border-0 shadow-sm mb-4 crm-toolkit">
+            <div class="card-body p-3">
+                <form action="{{ route('users.index') }}" method="GET"
+                    class="d-flex flex-column flex-lg-row align-items-lg-center gap-3">
+                    <div class="position-relative" style="max-width: 320px; flex: 1;">
+                        <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+                        <input type="text" name="search" class="form-control form-control-sm ps-5"
+                            placeholder="Search name or email..." value="{{ request('search') }}">
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2">
+                        <select name="role" class="form-select form-select-sm w-auto" style="min-width: 140px;">
+                            <option value="">All Roles</option>
+                            @foreach ($roleOptions as $roleOption)
+                                <option value="{{ $roleOption }}" @selected(request('role') === $roleOption)>
+                                    {{ ucfirst($roleOption) }}
+                                </option>
+                            @endforeach
+                        </select>
+
+                        <button type="submit" class="btn btn-primary btn-sm px-3">Filter</button>
+                        <a href="{{ route('users.index') }}" class="btn btn-outline-primary btn-sm">Reset</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <div class="card border-0 shadow-sm">
             <div class="table-responsive">
                 <table class="table crm-table table-hover align-middle mb-0 crm-data-table">
