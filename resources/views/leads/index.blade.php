@@ -93,7 +93,7 @@
         {{-- TABLE --}}
         <div class="card border-0 shadow-sm">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 crm-data-table">
+                <table class="table crm-table table-hover align-middle mb-0 crm-data-table">
                     <thead class="table-light">
                         <tr>
                             <th class="ps-4 py-3 fw-semibold small text-uppercase text-muted">Lead</th>

@@ -20,7 +20,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 
-<body class="bg-light">
+<body class="bg-light crm-body">
     @php
         $pageTitle = trim($__env->yieldContent('title', 'Dashboard'));
         $segments = request()->segments();
@@ -61,17 +61,15 @@
         @include('layouts.partials.sidebar')
 
         <div class="crm-main">
-            <header class="crm-topbar bg-white border-bottom px-3 px-lg-4 py-3">
-                <div class="d-flex align-items-center justify-content-between gap-3">
-                    <div class="d-flex align-items-center gap-2">
+            <header class="crm-topbar px-3 px-lg-4 py-3">
+                <div class="crm-topbar-inner d-flex align-items-center justify-content-between gap-3">
+                    <div class="d-flex align-items-center gap-3 min-w-0">
                         <button class="btn btn-outline-secondary btn-sm d-lg-none" type="button" id="sidebarMobileToggle"
                             aria-label="Open sidebar">
                             <i class="bi bi-list"></i>
                         </button>
-                        {{-- Page header --}}
-
-                        <div>
-                            <div class="small text-muted mb-1">{{ auth()->user()->name }} ({{ ucfirst(auth()->user()->role) }})</div>
+                        <div class="crm-topbar-heading min-w-0">
+                            <div class="crm-eyebrow mb-1">Workspace · {{ ucfirst(auth()->user()->role) }}</div>
                             <h1 class="crm-page-title mb-1">{{ $pageTitle }}</h1>
                             <div>
                                 @hasSection('breadcrumbs')
@@ -94,16 +92,26 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="crm-topbar-user d-none d-md-flex align-items-center gap-3">
+                        <div class="crm-topbar-user-meta text-end">
+                            <div class="crm-topbar-user-name">{{ auth()->user()->name }}</div>
+                            <div class="crm-topbar-user-role">{{ ucfirst(auth()->user()->role) }}</div>
+                        </div>
+                        <div class="crm-topbar-user-avatar">
+                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                        </div>
+                    </div>
                 </div>
             </header>
 
-            <main class="p-3 p-lg-4">
+            <main class="crm-content p-3 p-lg-4">
                 @if (session('success'))
-                    <div class="alert alert-success">{{ session('success') }}</div>
+                    <div class="alert alert-success crm-alert" role="alert">{{ session('success') }}</div>
                 @endif
 
                 @if (session('error'))
-                    <div class="alert alert-danger">{{ session('error') }}</div>
+                    <div class="alert alert-danger crm-alert" role="alert">{{ session('error') }}</div>
                 @endif
 
                 @yield('content')

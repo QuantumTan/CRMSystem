@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateFollowUpRequest extends FormRequest
 {
@@ -15,9 +16,16 @@ class UpdateFollowUpRequest extends FormRequest
 
     public function rules(): array
     {
+        $followUp = $this->route('followUp');
+        $isCustomerOnlyFollowUp = $followUp && ! $followUp->lead_id && $followUp->customer_id;
+
         return [
-            'customer_id' => 'nullable|required_without:lead_id|exists:customers,id',
-            'lead_id' => 'nullable|required_without:customer_id|exists:leads,id',
+            'customer_id' => 'nullable|exists:customers,id',
+            'lead_id' => [
+                'nullable',
+                'exists:leads,id',
+                Rule::requiredIf(! $isCustomerOnlyFollowUp),
+            ],
             'user_id' => 'nullable|exists:users,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -30,8 +38,8 @@ class UpdateFollowUpRequest extends FormRequest
     {
         return [function ($validator): void {
             if ($this->filled('customer_id') && $this->filled('lead_id')) {
-                $validator->errors()->add('customer_id', 'Select either a customer or a lead, not both.');
-                $validator->errors()->add('lead_id', 'Select either a lead or a customer, not both.');
+                $validator->errors()->add('customer_id', 'Keep the follow-up linked to one record only.');
+                $validator->errors()->add('lead_id', 'Keep the follow-up linked to one record only.');
             }
         }];
     }

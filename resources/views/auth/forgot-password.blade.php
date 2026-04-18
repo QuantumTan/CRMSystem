@@ -18,17 +18,16 @@
     @endif
 </head>
 
-<body class="bg-white">
-    <div class="container-fluid p-0 min-vh-100 d-flex align-items-center justify-content-center">
-        <div class="card border shadow-sm rounded-4 w-100 mx-3" style="max-width: 480px;">
+<body class="crm-auth-body">
+    <div class="container-fluid p-0 min-vh-100 d-flex align-items-center justify-content-center crm-auth-shell">
+        <div class="card border shadow-sm rounded-4 w-100 mx-3 crm-auth-card crm-auth-card-compact">
             <div class="card-body p-4 p-lg-5">
                 <div class="d-flex align-items-center gap-2 mb-4">
-                    <img src="{{ asset('assets/images/crm_logo.png') }}" alt="NexLink"
-                        style="width:36px;height:36px;object-fit:contain;">
-                    <span class="fw-bold fs-6" style="color:var(--nx-navy);">NexLink</span>
+                    <img src="{{ asset('assets/images/crm_logo.png') }}" alt="NexLink" class="crm-auth-logo-sm">
+                    <span class="fw-bold fs-6" style="color:var(--nx-navy);">{{ config('app.name', 'NexLink CRM') }}</span>
                 </div>
 
-                <h2 class="fw-bold mb-2" style="letter-spacing:-.03em;color:var(--nx-navy);">Reset your password</h2>
+                <h2 class="fw-bold mb-2 crm-auth-title">Reset your password</h2>
                 <p class="text-secondary mb-4 small">
                     Enter your account email address and we will send a reset link. Reset links expire in
                     {{ config('auth.passwords.users.expire') }} minutes.

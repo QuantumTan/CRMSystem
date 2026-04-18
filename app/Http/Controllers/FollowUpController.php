@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Exports\FollowUpCsvExport;
 use App\Http\Requests\StoreFollowUpRequest;
 use App\Http\Requests\UpdateFollowUpRequest;
-use App\Models\Customer;
 use App\Models\FollowUp;
 use App\Models\Lead;
 use App\Models\User;
@@ -79,14 +78,6 @@ class FollowUpController extends Controller
         $this->authorize('create', FollowUp::class);
 
         $user = Auth::user();
-        $customers = Customer::query()
-            ->when($user->role === 'sales', function ($query) use ($user) {
-                $query->where('assigned_user_id', $user->id);
-            })
-            ->orderBy('first_name')
-            ->orderBy('last_name')
-            ->get();
-
         $leads = Lead::query()
             ->when($user->role === 'sales', function ($query) use ($user) {
                 $query->where('assigned_user_id', $user->id);
@@ -98,7 +89,7 @@ class FollowUpController extends Controller
             ? User::whereKey($user->id)->get()
             : User::whereIn('role', ['admin', 'manager', 'sales'])->orderBy('name')->get();
 
-        return response()->view('follow_ups.create', compact('customers', 'leads', 'assignableUsers'));
+        return response()->view('follow_ups.create', compact('leads', 'assignableUsers'));
     }
 
     public function store(StoreFollowUpRequest $request): Response|RedirectResponse
@@ -107,21 +98,10 @@ class FollowUpController extends Controller
 
         $data = $request->validated();
         $data['user_id'] = $data['user_id'] ?? Auth::id();
+        $data['status'] = $data['status'] ?? 'pending';
 
         if (Auth::user()->role === 'sales') {
             $data['user_id'] = Auth::id();
-
-            if (! empty($data['customer_id'])) {
-                $isAssignedCustomer = Customer::whereKey($data['customer_id'])
-                    ->where('assigned_user_id', Auth::id())
-                    ->exists();
-
-                if (! $isAssignedCustomer) {
-                    throw ValidationException::withMessages([
-                        'customer_id' => 'You can only create follow-ups for customers assigned to you.',
-                    ]);
-                }
-            }
 
             if (! empty($data['lead_id'])) {
                 $isAssignedLead = Lead::whereKey($data['lead_id'])
@@ -149,15 +129,9 @@ class FollowUpController extends Controller
             return redirect()->route('follow-ups.index')->with('error', 'Completed follow-ups are locked for editing.');
         }
 
-        $user = Auth::user();
-        $customers = Customer::query()
-            ->when($user->role === 'sales', function ($query) use ($user) {
-                $query->where('assigned_user_id', $user->id);
-            })
-            ->orderBy('first_name')
-            ->orderBy('last_name')
-            ->get();
+        $followUp->load(['customer', 'lead', 'user']);
 
+        $user = Auth::user();
         $leads = Lead::query()
             ->when($user->role === 'sales', function ($query) use ($user) {
                 $query->where('assigned_user_id', $user->id);
@@ -169,7 +143,7 @@ class FollowUpController extends Controller
             ? User::whereKey($user->id)->get()
             : User::whereIn('role', ['admin', 'manager', 'sales'])->orderBy('name')->get();
 
-        return response()->view('follow_ups.edit', compact('followUp', 'customers', 'leads', 'assignableUsers'));
+        return response()->view('follow_ups.edit', compact('followUp', 'leads', 'assignableUsers'));
     }
 
     public function update(UpdateFollowUpRequest $request, FollowUp $followUp): Response|RedirectResponse
@@ -184,18 +158,6 @@ class FollowUpController extends Controller
 
         if (Auth::user()->role === 'sales') {
             $validated['user_id'] = Auth::id();
-
-            if (! empty($validated['customer_id'])) {
-                $isAssignedCustomer = Customer::whereKey($validated['customer_id'])
-                    ->where('assigned_user_id', Auth::id())
-                    ->exists();
-
-                if (! $isAssignedCustomer) {
-                    throw ValidationException::withMessages([
-                        'customer_id' => 'You can only update follow-ups for customers assigned to you.',
-                    ]);
-                }
-            }
 
             if (! empty($validated['lead_id'])) {
                 $isAssignedLead = Lead::whereKey($validated['lead_id'])

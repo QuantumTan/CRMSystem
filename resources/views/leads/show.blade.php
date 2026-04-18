@@ -2,409 +2,195 @@
 
 @section('title', $lead->name)
 
-@php
-    $statuses = ['New', 'Contacted', 'Qualified', 'Proposal Sent', 'Negotiation', 'Won', 'Lost'];
-    $currentStatusIndex = array_search($lead->status, $statuses);
-    $user = auth()->user();
-
-    // Helper arrays to map your custom badge colors to Bootstrap contextual classes
-    $statusColors = [
-        'new' => 'primary',
-        'contacted' => 'info',
-        'qualified' => 'success',
-        'proposal sent' => 'warning',
-        'negotiation' => 'danger',
-        'won' => 'success',
-        'lost' => 'danger',
-    ];
-
-    $priorityColors = [
-        'high' => 'danger',
-        'medium' => 'warning',
-        'low' => 'success',
-    ];
-@endphp
-
-@push('styles')
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-    </style>
-@endpush
-
 @section('content')
-    <div class="container-fluid py-4 py-lg-5">
+    @php
+        $user = auth()->user();
+        $statusClass = match (strtolower((string) $lead->status)) {
+            'new' => 'crm-table-status crm-table-status-primary',
+            'contacted' => 'crm-table-status crm-table-status-info',
+            'qualified', 'won' => 'crm-table-status crm-table-status-success',
+            'proposal_sent', 'proposal sent', 'negotiation' => 'crm-table-status crm-table-status-warning',
+            'lost' => 'crm-table-status crm-table-status-danger',
+            default => 'crm-table-status crm-table-status-muted',
+        };
+        $priorityClass = match (strtolower((string) $lead->priority)) {
+            'high', 'critical' => 'crm-table-status crm-table-status-danger',
+            'medium' => 'crm-table-status crm-table-status-warning',
+            'low' => 'crm-table-status crm-table-status-success',
+            default => 'crm-table-status crm-table-status-muted',
+        };
+        $currencyCode = $systemConfiguration?->currency_code ?? 'PHP';
+    @endphp
 
-        {{-- header --}}
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-4">
+    <div class="container-fluid px-3 px-md-4 py-4">
+        <div class="crm-page-header d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
             <div>
-                <h1 class="display-6 mb-0 text-dark">{{ $lead->name }}</h1>
+                <div class="crm-eyebrow mb-2">Lead View</div>
+                <h1 class="h3 mb-1 fw-semibold">{{ $lead->name }}</h1>
+                <p class="text-muted mb-0 small">Review pipeline status, contact details, value, ownership, and recent activity.</p>
             </div>
-
-            @if ($user && ($user->hasRole('admin') || $user->hasRole('sales')))
-                <div class="d-flex flex-wrap gap-2">
-
-                    {{-- ── CONVERT TO CUSTOMER BUTTON ───────────────────────── --}}
-                    @if (strtolower($lead->status) === 'won' && empty($lead->customer_id))
-                        <form action="{{ route('leads.convert', $lead) }}" method="POST" class="d-inline-block">
-                            @csrf
-                            <button type="submit"
-                                class="btn btn-success d-inline-flex align-items-center gap-2 px-3 fw-medium"
-                                style="font-size: 0.875rem;"
-                                onclick="return confirm('Are you sure you want to convert this lead into a customer?');">
-                                <i class="bi bi-arrow-right-circle"></i>
-                                Convert to Customer
-                            </button>
-                        </form>
-                    @elseif(!empty($lead->customer_id))
-                        <a href="{{ route('customers.show', $lead->customer_id) }}"
-                            class="btn btn-info text-white d-inline-flex align-items-center gap-2 px-3 fw-medium"
-                            style="font-size: 0.875rem;">
-                            <i class="bi bi-person-badge"></i>
-                            View Customer
-                        </a>
-                    @endif
-
-                    <a href="{{ route('leads.edit', $lead) }}"
-                        class="btn btn-light border shadow-sm d-inline-flex align-items-center gap-2 px-3 fw-medium"
-                        style="font-size: 0.875rem;">
-                        <i class="bi bi-pencil"></i>
-                        Edit
-                    </a>
-                    <button type="button"
-                        class="btn btn-danger text-danger bg-danger bg-opacity-10 border-danger border-opacity-25 d-inline-flex align-items-center gap-2 px-3 fw-medium"
-                        id="deleteLeadBtn" style="font-size: 0.875rem;">
-                        <i class="bi bi-trash"></i>
-                        Delete
-                    </button>
-                </div>
-            @endif
+            <a href="{{ route('leads.index') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
         </div>
 
-        {{-- ── Two-column  --}}
-        <div class="row g-4">
-
-            {{-- LEFT: Profile + Notes  --}}
-            <div class="col-12 col-lg-4">
-
-                {{-- Profile card --}}
-                <div class="card border-0 shadow-sm rounded-4 mb-4">
-                    <div class="card-body p-4">
-
-                        <div class="d-flex align-items-center gap-3 pb-3 mb-3 border-bottom">
-                            <div class="bg-dark text-white rounded-3 d-flex align-items-center justify-content-center fw-bold fs-5 flex-shrink-0"
-                                style="width: 48px; height: 48px;">
-                                {{ strtoupper(substr($lead->name, 0, 2)) }}
-                            </div>
-                            <div>
-                                <h5 class="mb-1 text-dark">{{ $lead->name }}</h5>
-                                <div class="d-flex flex-wrap gap-2">
-                                    @php
-                                        $statusSlug = strtolower(str_replace(' ', '-', $lead->status));
-                                        $prioritySlug = strtolower($lead->priority);
-
-                                        $sColor = $statusColors[strtolower($lead->status)] ?? 'secondary';
-                                        $pColor = $priorityColors[$prioritySlug] ?? 'secondary';
-                                    @endphp
-                                    <span
-                                        class="badge rounded-pill bg-{{ $sColor }} bg-opacity-10 text-{{ $sColor }} fw-medium px-2 py-1">
-                                        {{ ucfirst($lead->status) }}
-                                    </span>
-                                    <span
-                                        class="badge rounded-pill bg-{{ $pColor }} bg-opacity-10 text-{{ $pColor }} fw-medium px-2 py-1">
-                                        {{ ucfirst($lead->priority) }} Priority
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="d-flex flex-column gap-3">
-                            @if ($lead->email)
-                                <div class="d-flex align-items-start gap-3">
-                                    <div
-                                        class="bg-light rounded p-2 text-primary d-flex align-items-center justify-content-center shrink-0">
-                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
-                                            stroke="currentColor" stroke-width="1.5">
-                                            <rect x="1" y="3" width="14" height="10" rx="1.5" />
-                                            <path d="M1 5l7 5 7-5" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <div class="text-uppercase text-muted fw-semibold"
-                                            style="font-size: 0.7rem; letter-spacing: 0.05em;">Email</div>
-                                        <div class="text-dark" style="font-size: 0.875rem;">
-                                            <a href="mailto:{{ $lead->email }}"
-                                                class="text-decoration-none">{{ $lead->email }}</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-
-                            @if ($lead->phone)
-                                <div class="d-flex align-items-start gap-3">
-                                    <div
-                                        class="bg-light rounded p-2 text-success d-flex align-items-center justify-content-center shrink-0">
-                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
-                                            stroke="currentColor" stroke-width="1.5">
-                                            <path
-                                                d="M2 2h3l1.5 4-2 1.5a11 11 0 004 4L10 9.5l4 1.5v3a1 1 0 01-1 1A14 14 0 012 3a1 1 0 011-1z" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <div class="text-uppercase text-muted fw-semibold"
-                                            style="font-size: 0.7rem; letter-spacing: 0.05em;">Phone</div>
-                                        <div class="text-dark" style="font-size: 0.875rem;">
-                                            <a href="tel:{{ $lead->phone }}"
-                                                class="text-decoration-none text-dark">{{ $lead->phone }}</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-
-                            @if ($lead->expected_value)
-                                <div class="d-flex align-items-start gap-3">
-                                    <div
-                                        class="bg-light rounded p-2 text-warning d-flex align-items-center justify-content-center shrink-0">
-                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
-                                            stroke="currentColor" stroke-width="1.5">
-                                            <circle cx="8" cy="8" r="6.5" />
-                                            <path
-                                                d="M8 4.5v7M5.5 6.5c0-1.1.9-2 2.5-2s2.5.9 2.5 2c0 2.5-5 2.5-5 5 0 1.1.9 2 2.5 2s2.5-.9 2.5-2" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <div class="text-uppercase text-muted fw-semibold"
-                                            style="font-size: 0.7rem; letter-spacing: 0.05em;">Expected Value</div>
-                                        <div class="text-success fw-bold" style="font-size: 0.95rem;">
-                                            PHP {{ number_format($lead->expected_value, 2) }}
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-
-                            @if ($lead->source)
-                                <div class="d-flex align-items-start gap-3">
-                                    <div
-                                        class="bg-light rounded p-2 text-secondary d-flex align-items-center justify-content-center flex-shrink-0">
-                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
-                                            stroke="currentColor" stroke-width="1.5">
-                                            <circle cx="13" cy="3" r="1.5" />
-                                            <circle cx="13" cy="13" r="1.5" />
-                                            <circle cx="3" cy="8" r="1.5" />
-                                            <path d="M4.5 8h6.5M11.5 4l-6.5 3M11.5 12L5 9" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <div class="text-uppercase text-muted fw-semibold"
-                                            style="font-size: 0.7rem; letter-spacing: 0.05em;">Source</div>
-                                        <div class="text-dark" style="font-size: 0.875rem;">{{ $lead->source }}</div>
-                                    </div>
-                                </div>
-                            @endif
-
-                            @if ($lead->assignedUser)
-                                <div class="d-flex align-items-start gap-3">
-                                    <div
-                                        class="bg-light rounded p-2 text-secondary d-flex align-items-center justify-content-center flex-shrink-0">
-                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
-                                            stroke="currentColor" stroke-width="1.5">
-                                            <circle cx="8" cy="5.5" r="3" />
-                                            <path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <div class="text-uppercase text-muted fw-semibold"
-                                            style="font-size: 0.7rem; letter-spacing: 0.05em;">Assigned To</div>
-                                        <div class="text-dark" style="font-size: 0.875rem;">
-                                            {{ $lead->assignedUser->name }}</div>
-                                    </div>
-                                </div>
-                            @endif
-
-                            <div class="d-flex align-items-start gap-3">
-                                <div
-                                    class="bg-light rounded p-2 text-secondary d-flex align-items-center justify-content-center flex-shrink-0">
-                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
-                                        stroke="currentColor" stroke-width="1.5">
-                                        <rect x="1.5" y="2.5" width="13" height="12" rx="1.5" />
-                                        <path d="M5 1.5v2M11 1.5v2M1.5 6.5h13" />
-                                    </svg>
+        <div class="row g-4 crm-record-layout">
+            <div class="col-12 col-xl-8">
+                <div class="card border-0 shadow-sm crm-hero-card mb-4">
+                    <div class="card-body p-4 p-lg-5 crm-hero-body">
+                        <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="crm-hero-avatar">
+                                    {{ strtoupper(substr($lead->name, 0, 2)) }}
                                 </div>
                                 <div>
-                                    <div class="text-uppercase text-muted fw-semibold"
-                                        style="font-size: 0.7rem; letter-spacing: 0.05em;">Created</div>
-                                    <div class="text-dark" style="font-size: 0.875rem;">
-                                        {{ $lead->created_at->format('M d, Y') }}
-                                        <span
-                                            class="text-muted small ms-1">({{ $lead->created_at->diffForHumans() }})</span>
+                                    <div class="text-muted small mb-1">{{ $lead->lead_id }}</div>
+                                    <h2 class="h4 mb-1">{{ $lead->name }}</h2>
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        <span class="{{ $statusClass }}">{{ ucfirst(str_replace('_', ' ', $lead->status)) }}</span>
+                                        <span class="{{ $priorityClass }}">{{ ucfirst($lead->priority) }} Priority</span>
                                     </div>
                                 </div>
                             </div>
 
+                            @if ($user && ($user->hasRole('admin') || $user->hasRole('sales')))
+                                <div class="crm-action-cluster">
+                                    @if ($lead->isWon() && ! $lead->isConverted())
+                                        <form action="{{ route('leads.convert', $lead) }}" method="POST" onsubmit="return confirm('Convert this lead into a customer?');">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success">Convert to Customer</button>
+                                        </form>
+                                    @elseif($lead->convertedToCustomer)
+                                        <a href="{{ route('customers.show', $lead->convertedToCustomer) }}" class="btn btn-outline-primary">View Customer</a>
+                                    @endif
+
+                                    <a href="{{ route('leads.edit', $lead) }}" class="btn btn-primary">Edit Lead</a>
+
+                                    @if (! $lead->isConverted())
+                                        <form id="deleteLeadForm" action="{{ route('leads.destroy', $lead) }}" method="POST" onsubmit="return confirm('Delete this lead? This action cannot be undone.');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-outline-danger">Delete</button>
+                                        </form>
+                                    @endif
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
 
-                {{-- Notes card --}}
-                @if ($lead->notes)
-                    <div class="card border-0 shadow-sm rounded-4 mb-4">
-                        <div class="card-header bg-transparent py-3 d-flex align-items-center gap-2 text-uppercase text-muted fw-bold"
-                            style="font-size: 0.75rem; letter-spacing: 0.05em;">
-                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor"
-                                stroke-width="1.5">
-                                <path d="M3 2h8l2 2v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" />
-                                <path d="M5 7h6M5 10h4" />
-                            </svg>
-                            Notes
+                <div class="card border-0 shadow-sm crm-detail-card mb-4">
+                    <div class="card-body">
+                        <div class="crm-form-section-head">
+                            <h2 class="crm-form-section-title">Lead Information</h2>
+                            <p class="crm-form-section-copy">Key contact, source, and value data for this opportunity.</p>
                         </div>
+
+                        <div class="crm-detail-grid crm-detail-grid-3">
+                            <div class="crm-detail-item">
+                                <span class="crm-detail-label">Email</span>
+                                <div class="crm-detail-value">{{ $lead->email ?: 'N/A' }}</div>
+                            </div>
+                            <div class="crm-detail-item">
+                                <span class="crm-detail-label">Phone</span>
+                                <div class="crm-detail-value">{{ $lead->phone ?: 'N/A' }}</div>
+                            </div>
+                            <div class="crm-detail-item">
+                                <span class="crm-detail-label">Source</span>
+                                <div class="crm-detail-value">{{ $lead->source ?: 'N/A' }}</div>
+                            </div>
+                            <div class="crm-detail-item">
+                                <span class="crm-detail-label">Expected Value</span>
+                                <div class="crm-detail-value">
+                                    {{ $lead->expected_value ? $currencyCode.' '.number_format($lead->expected_value, 2) : 'N/A' }}
+                                </div>
+                            </div>
+                            <div class="crm-detail-item">
+                                <span class="crm-detail-label">Assigned User</span>
+                                <div class="crm-detail-value">{{ $lead->assignedUser?->name ?: 'Unassigned' }}</div>
+                            </div>
+                            <div class="crm-detail-item">
+                                <span class="crm-detail-label">Created</span>
+                                <div class="crm-detail-value">{{ $lead->created_at->format('M d, Y h:i A') }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @if ($lead->notes)
+                    <div class="card border-0 shadow-sm crm-detail-card mb-4">
                         <div class="card-body">
-                            <p class="mb-0 text-secondary"
-                                style="font-size: 0.875rem; white-space: pre-line; line-height: 1.6;">{{ $lead->notes }}
-                            </p>
+                            <div class="crm-form-section-head">
+                                <h2 class="crm-form-section-title">Notes</h2>
+                                <p class="crm-form-section-copy">Additional sales context saved for this opportunity.</p>
+                            </div>
+                            <div class="crm-note-box" style="white-space: pre-line;">{{ $lead->notes }}</div>
                         </div>
                     </div>
                 @endif
 
+                @can('create', \App\Models\Activity::class)
+                    @include('activities._form', ['activity' => null, 'lead' => $lead, 'customer' => null])
+                @endcan
+
+                @include('activities._timeline', ['activities' => $activities])
             </div>
 
-            {{-- RIGHT: Pipeline + Activity  --}}
-            <div class="col-12 col-lg-8">
+            <div class="col-12 col-xl-4">
+                <div class="card border-0 shadow-sm crm-detail-card mb-4">
+                    <div class="card-body">
+                        <div class="crm-form-section-head">
+                            <h2 class="crm-form-section-title">Pipeline Summary</h2>
+                            <p class="crm-form-section-copy">Quick view of stage, conversion, and lifecycle timing.</p>
+                        </div>
 
-                {{-- Pipeline card --}}
-                <div class="card border-0 shadow-sm rounded-4 mb-4">
-                    <div class="card-header bg-transparent py-3 d-flex align-items-center gap-2 text-uppercase text-muted fw-bold"
-                        style="font-size: 0.75rem; letter-spacing: 0.05em;">
-                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor"
-                            stroke-width="1.5">
-                            <path d="M1 5h14M1 11h14M5 2v12M11 2v12" />
-                        </svg>
-                        Pipeline Stage
+                        <div class="crm-detail-grid">
+                            <div class="crm-detail-item">
+                                <span class="crm-detail-label">Current Status</span>
+                                <div class="crm-detail-value">{{ ucfirst(str_replace('_', ' ', $lead->status)) }}</div>
+                            </div>
+                            <div class="crm-detail-item">
+                                <span class="crm-detail-label">Priority</span>
+                                <div class="crm-detail-value">{{ ucfirst($lead->priority) }}</div>
+                            </div>
+                            <div class="crm-detail-item">
+                                <span class="crm-detail-label">Days Active</span>
+                                <div class="crm-detail-value">{{ $lead->created_at->diffInDays(now()) }}</div>
+                            </div>
+                            <div class="crm-detail-item">
+                                <span class="crm-detail-label">Activity Count</span>
+                                <div class="crm-detail-value">{{ $activities->count() }}</div>
+                            </div>
+                            <div class="crm-detail-item">
+                                <span class="crm-detail-label">Converted</span>
+                                <div class="crm-detail-value">{{ $lead->isConverted() ? 'Yes' : 'No' }}</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body p-4">
+                </div>
 
-                        {{-- Step tracker utilizing flexbox --}}
-                        <div class="d-flex align-items-start justify-content-between mb-4 position-relative px-2">
-                            @php
-                                $pipelineSteps = [
-                                    'New',
-                                    'Contacted',
-                                    'Qualified',
-                                    'Proposal Sent',
-                                    'Negotiation',
-                                    'Won',
-                                ];
-                                $activeIndex = array_search(ucfirst($lead->status), $pipelineSteps);
-                                $isLost = strtolower($lead->status) === 'lost';
-                            @endphp
+                @if ($user && ($user->hasRole('admin') || $user->hasRole('sales')))
+                    <div class="card border-0 shadow-sm crm-form-card mb-4">
+                        <div class="card-body">
+                            <div class="crm-form-section-head">
+                                <h2 class="crm-form-section-title">Lifecycle Actions</h2>
+                                <p class="crm-form-section-copy">Move this lead forward, reopen it, or mark it as lost when needed.</p>
+                            </div>
 
-                            @foreach ($pipelineSteps as $i => $step)
-                                @php
-                                    $isDone = !$isLost && $activeIndex !== false && $i < $activeIndex;
-                                    $isActive = !$isLost && $activeIndex === $i;
-                                    $isError = $isLost;
-                                @endphp
-
-                                <div class="d-flex flex-column align-items-center text-center z-1" style="flex: 1;">
-                                    {{-- Circle Dot --}}
-                                    <div class="rounded-circle mb-2"
-                                        style="width: 12px; height: 12px; transition: all 0.2s; 
-                                    background-color: {{ $isDone ? '#198754' : ($isActive ? '#212529' : ($isError ? '#dc3545' : '#dee2e6')) }}; 
-                                    box-shadow: {{ $isActive ? '0 0 0 4px rgba(33, 37, 41, 0.15)' : 'none' }}">
-                                    </div>
-
-                                    {{-- Label (hidden on extra small screens) --}}
-                                    <div class="d-none d-sm-block small text-nowrap fw-medium"
-                                        style="font-size: 0.7rem; color: {{ $isDone ? '#198754' : ($isActive ? '#212529' : ($isError ? '#dc3545' : '#6c757d')) }}">
-                                        {{ $step }}
-                                    </div>
-                                </div>
-
-                                @if ($i < count($pipelineSteps) - 1)
-                                    {{-- Connector Line --}}
-                                    <div class="flex-grow-1 border-top border-2 mt-1 mx-n2 z-0"
-                                        style="border-color: {{ $isDone || ($isActive && !$isLost) ? '#198754' : '#dee2e6' }} !important; transform: translateY(4px);">
-                                    </div>
+                            <div class="crm-form-actions">
+                                @if (! $lead->isLost())
+                                    <a href="{{ route('leads.lost-form', $lead) }}" class="btn btn-outline-danger w-100">Mark as Lost</a>
+                                @else
+                                    <form method="POST" action="{{ route('leads.reopen', $lead) }}" class="w-100">
+                                        @csrf
+                                        <button type="submit" class="btn btn-outline-primary w-100">Reopen Lead</button>
+                                    </form>
                                 @endif
-                            @endforeach
-                        </div>
-
-                        {{-- Quick stats --}}
-                        <div class="row g-3">
-                            <div class="col-12 col-sm-6 col-md-3">
-                                <div class="bg-light rounded-3 p-3 h-100">
-                                    <div class="text-uppercase text-muted fw-bold mb-1"
-                                        style="font-size: 0.65rem; letter-spacing: 0.05em;">Days Active</div>
-                                    <div class="font-serif fs-4 text-dark lh-1">{{ $lead->created_at->diffInDays(now()) }}
-                                    </div>
-                                </div>
-                            </div>
-                            @if ($lead->expected_value)
-                                <div class="col-12 col-sm-6 col-md-3">
-                                    <div class="bg-light rounded-3 p-3 h-100">
-                                        <div class="text-uppercase text-muted fw-bold mb-1"
-                                            style="font-size: 0.65rem; letter-spacing: 0.05em;">Expected Value</div>
-                                        <div class="font-serif fs-5 text-success lh-1 mt-2">
-                                            ₱{{ number_format($lead->expected_value / 1000, 0) }}K
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-                            @if ($lead->activities_count ?? false)
-                                <div class="col-12 col-sm-6 col-md-3">
-                                    <div class="bg-light rounded-3 p-3 h-100">
-                                        <div class="text-uppercase text-muted fw-bold mb-1"
-                                            style="font-size: 0.65rem; letter-spacing: 0.05em;">Interactions</div>
-                                        <div class="font-serif fs-4 text-dark lh-1">{{ $lead->activities_count }}</div>
-                                    </div>
-                                </div>
-                            @endif
-                            <div class="col-12 col-sm-6 col-md-3">
-                                <div class="bg-light rounded-3 p-3 h-100">
-                                    <div class="text-uppercase text-muted fw-bold mb-1"
-                                        style="font-size: 0.65rem; letter-spacing: 0.05em;">Priority</div>
-                                    <div class="fs-6 fw-bold text-dark lh-1 mt-2">{{ ucfirst($lead->priority) }}</div>
-                                </div>
                             </div>
                         </div>
-
                     </div>
-                </div>
-
-                {{-- Activity card --}}
-                <div class="mt-4">
-                    @can('create', \App\Models\Activity::class)
-                        @include('activities._form', ['lead' => $lead, 'customer' => null])
-                    @endcan
-                    @include('activities._timeline', ['activities' => $activities])
-                </div>
-
+                @endif
             </div>
         </div>
-
     </div>
-
-    {{-- ── Delete confirmation modal ───────────────────────── --}}
-    @if ($user && ($user->hasRole('admin') || $user->hasRole('sales')))
-        <form id="deleteLeadForm" action="{{ route('leads.destroy', $lead) }}" method="POST" class="d-none">
-            @csrf @method('DELETE')
-        </form>
-    @endif
 @endsection
-
-@push('scripts')
-    <script>
-        // Delete confirmation
-        document.addEventListener('DOMContentLoaded', () => {
-            const deleteBtn = document.getElementById('deleteLeadBtn');
-            const deleteForm = document.getElementById('deleteLeadForm');
-            if (deleteBtn && deleteForm) {
-                deleteBtn.addEventListener('click', () => {
-                    if (confirm('Delete this lead? This action cannot be undone.')) {
-                        deleteForm.submit();
-                    }
-                });
-            }
-        });
-    </script>
-@endpush

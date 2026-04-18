@@ -18,19 +18,18 @@
     @endif
 </head>
 
-<body class="bg-white">
-    <div class="container-fluid p-0 min-vh-100">
+<body class="crm-auth-body">
+    <div class="container-fluid p-0 min-vh-100 crm-auth-shell">
         <div class="row g-0 min-vh-100">
 
             {{-- Left panel --}}
             <div class="col-lg-6 d-none d-lg-flex flex-column justify-content-between p-5 nx-panel text-white position-relative overflow-hidden">
-                <div style="position:relative;z-index:1;">
+                <div class="crm-auth-panel-content">
                     <div class="d-flex align-items-center gap-3 mb-2">
-                        <img src="{{ asset('assets/images/crm_logo.png') }}" alt="NexLink Logo" class="rounded-3"
-                            style="width:52px;height:52px;object-fit:contain;background:rgba(255,255,255,.07);padding:4px;">
+                        <img src="{{ asset('assets/images/crm_logo.png') }}" alt="NexLink Logo" class="crm-auth-logo-lg">
                         <div>
                             <div class="d-flex align-items-center gap-2">
-                                <h5 class="mb-0 fw-bold">NexLink</h5>
+                                <h5 class="mb-0 fw-bold">{{ config('app.name', 'NexLink CRM') }}</h5>
                             </div>
                             <small class="nx-muted-copy">Integrated CRM Solutions</small>
                         </div>
@@ -74,14 +73,13 @@
             </div>
 
             {{-- Right panel --}}
-            <div class="col-12 col-lg-6 d-flex align-items-center justify-content-center p-4 p-lg-5 bg-white">
-                <div class="card border shadow-sm rounded-4 w-100" style="max-width:460px;">
+            <div class="col-12 col-lg-6 d-flex align-items-center justify-content-center p-4 p-lg-5">
+                <div class="card border shadow-sm rounded-4 w-100 crm-auth-card">
                     <div class="card-body p-4 p-lg-5">
 
                         <div class="d-flex d-lg-none align-items-center gap-2 mb-4">
-                            <img src="{{ asset('assets/images/crm_logo.png') }}" alt="NexLink"
-                                style="width:36px;height:36px;object-fit:contain;">
-                            <span class="fw-bold fs-6" style="color:var(--nx-navy);">NexLink</span>
+                            <img src="{{ asset('assets/images/crm_logo.png') }}" alt="NexLink" class="crm-auth-logo-sm">
+                            <span class="fw-bold fs-6" style="color:var(--nx-navy);">{{ config('app.name', 'NexLink CRM') }}</span>
                         </div>
 
                         @if (session('status'))
@@ -100,7 +98,7 @@
                         @endif
 
                         {{-- Heading --}}
-                        <h2 class="fw-bold mb-1" style="letter-spacing:-.03em;color:var(--nx-navy);">Welcome back</h2>
+                        <h2 class="fw-bold mb-1 crm-auth-title">Welcome back</h2>
                         <p class="text-secondary mb-4 small">Sign in to continue.</p>
 
                         <form method="POST" action="{{ route('login') }}">

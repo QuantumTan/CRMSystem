@@ -26,8 +26,9 @@
     $upcomingPendingFollowUps = max(($data['pendingFollowUps'] ?? 0) - ($data['overdueFollowUps'] ?? 0), 0);
 @endphp
 
-<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+<div class="crm-page-header d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
     <div>
+        <div class="crm-eyebrow mb-2">Dashboard Overview</div>
         <h2 class="h4 mb-1">{{ $scopeTitle }}</h2>
         <p class="text-muted mb-0">{{ $scopeDescription }}</p>
     </div>
@@ -52,48 +53,56 @@
 
 <div class="row g-3 mb-4">
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100">
+        <div class="card border-0 shadow-sm h-100 crm-stat-card">
             <div class="card-body">
-                <div class="text-muted small mb-1">Total Customers</div>
-                <div class="d-flex align-items-center justify-content-between">
-                    <h3 class="h4 mb-0">{{ number_format($data['totalCustomers']) }}</h3>
-                    <i class="bi bi-people fs-4 text-primary"></i>
+                <div class="crm-stat-label">Total Customers</div>
+                <div class="d-flex align-items-center justify-content-between gap-3">
+                    <h3 class="crm-stat-value mb-0">{{ number_format($data['totalCustomers']) }}</h3>
+                    <div class="crm-stat-icon text-primary">
+                        <i class="bi bi-people fs-5"></i>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100">
+        <div class="card border-0 shadow-sm h-100 crm-stat-card">
             <div class="card-body">
-                <div class="text-muted small mb-1">Active Leads</div>
-                <div class="d-flex align-items-center justify-content-between">
-                    <h3 class="h4 mb-0">{{ number_format($data['totalActiveLeads']) }}</h3>
-                    <i class="bi bi-funnel fs-4 text-warning"></i>
+                <div class="crm-stat-label">Active Leads</div>
+                <div class="d-flex align-items-center justify-content-between gap-3">
+                    <h3 class="crm-stat-value mb-0">{{ number_format($data['totalActiveLeads']) }}</h3>
+                    <div class="crm-stat-icon text-warning">
+                        <i class="bi bi-funnel fs-5"></i>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100">
+        <div class="card border-0 shadow-sm h-100 crm-stat-card">
             <div class="card-body">
-                <div class="text-muted small mb-1">Completed Follow-ups</div>
-                <div class="d-flex align-items-center justify-content-between">
-                    <h3 class="h4 mb-0">{{ number_format($data['completedFollowUps']) }}</h3>
-                    <i class="bi bi-check2-circle fs-4 text-success"></i>
+                <div class="crm-stat-label">Completed Follow-ups</div>
+                <div class="d-flex align-items-center justify-content-between gap-3">
+                    <h3 class="crm-stat-value mb-0">{{ number_format($data['completedFollowUps']) }}</h3>
+                    <div class="crm-stat-icon text-success">
+                        <i class="bi bi-check2-circle fs-5"></i>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100">
+        <div class="card border-0 shadow-sm h-100 crm-stat-card">
             <div class="card-body">
-                <div class="text-muted small mb-1">Overdue Follow-ups</div>
-                <div class="d-flex align-items-center justify-content-between">
-                    <h3 class="h4 mb-0">{{ number_format($data['overdueFollowUps']) }}</h3>
-                    <i class="bi bi-exclamation-triangle fs-4 text-danger"></i>
+                <div class="crm-stat-label">Overdue Follow-ups</div>
+                <div class="d-flex align-items-center justify-content-between gap-3">
+                    <h3 class="crm-stat-value mb-0">{{ number_format($data['overdueFollowUps']) }}</h3>
+                    <div class="crm-stat-icon text-danger">
+                        <i class="bi bi-exclamation-triangle fs-5"></i>
+                    </div>
                 </div>
             </div>
         </div>
@@ -130,7 +139,7 @@
             </div>
             <div class="card-body pt-3">
                 <div class="table-responsive">
-                    <table class="table table-sm align-middle mb-0 crm-data-table-compact">
+                    <table class="table crm-table crm-table-compact table-hover align-middle mb-0 crm-data-table-compact">
                         <thead>
                             <tr>
                                 <th>Status</th>
@@ -144,7 +153,7 @@
                                     <td class="text-end fw-semibold">{{ number_format($count) }}</td>
                                 </tr>
                             @endforeach
-                            <tr class="table-light fw-semibold">
+                            <tr class="crm-table-summary-row">
                                 <td>Total Leads</td>
                                 <td class="text-end">{{ number_format($data['totalLeads']) }}</td>
                             </tr>
@@ -207,7 +216,7 @@
                     <p class="text-muted mb-0">No recent activities.</p>
                 @else
                     <div class="table-responsive">
-                        <table class="table align-middle mb-0 crm-data-table-compact">
+                        <table class="table crm-table crm-table-compact table-hover align-middle mb-0 crm-data-table-compact">
                             <thead>
                                 <tr>
                                     <th>Date</th>

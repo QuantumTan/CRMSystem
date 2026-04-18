@@ -4,12 +4,12 @@
 
 @section('content')
     <div class="container-fluid px-3 px-md-4 py-4">
-        <div
-            class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
+        <div class="crm-page-header d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
             <div>
-                <div class="d-flex align-items-center gap-2 mb-1">
+                <div class="crm-eyebrow mb-2">Administration</div>
+                <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
                     <h2 class="mb-0 fs-3 fw-semibold">Users</h2>
-                    <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-1 rounded-pill">
+                    <span class="crm-section-tag">
                         Admin
                     </span>
                 </div>
@@ -22,7 +22,7 @@
 
         <div class="card border-0 shadow-sm">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 crm-data-table">
+                <table class="table crm-table table-hover align-middle mb-0 crm-data-table">
                     <thead class="table-light">
                         <tr>
                             <th class="small text-muted py-3">Name</th>
