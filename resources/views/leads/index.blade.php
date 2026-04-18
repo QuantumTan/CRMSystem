@@ -143,6 +143,7 @@
                                 <td>
                                     @php
                                         $leadStatus = strtolower((string) $lead->status);
+                                        $kanbanStatusAnchor = 'status-'.\Illuminate\Support\Str::slug($leadStatus, '-');
                                         $leadStatusClass = match ($leadStatus) {
                                             'new' => 'crm-table-status crm-table-status-primary',
                                             'contacted' => 'crm-table-status crm-table-status-info',
@@ -152,7 +153,10 @@
                                             default => 'crm-table-status crm-table-status-primary',
                                         };
                                     @endphp
-                                    <span class="{{ $leadStatusClass }}">{{ ucfirst($lead->status) }}</span>
+                                    <a href="{{ route('leads.kanban', ['status' => $lead->status]) }}#{{ $kanbanStatusAnchor }}"
+                                        class="{{ $leadStatusClass }} text-decoration-none">
+                                        {{ ucfirst(str_replace('_', ' ', $lead->status)) }}
+                                    </a>
                                 </td>
 
                                 {{-- Priority --}}

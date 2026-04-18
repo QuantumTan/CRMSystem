@@ -19,7 +19,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [AuthController::class, 'profile'])->name('profile');
     Route::get('/settings', function () {
         return view('settings.index');
-    })->name('settings.index');
+    })->middleware('role:admin')->name('settings.index');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/admin', [DashboardController::class, 'admin'])
         ->middleware('role:admin')
