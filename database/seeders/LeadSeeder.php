@@ -2,7 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Lead;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class LeadSeeder extends Seeder
@@ -12,13 +13,57 @@ class LeadSeeder extends Seeder
      */
     public function run(): void
     {
-        // Ensure there are users and customers to relate to
-        if (\App\Models\User::count() === 0) {
-            \App\Models\User::factory()->count(3)->create();
+        $targetCount = 60;
+        $currentCount = Lead::query()->count();
+
+        if ($currentCount >= $targetCount) {
+            return;
         }
-        if (\App\Models\Customer::count() === 0) {
-            \App\Models\Customer::factory()->count(3)->create();
+
+        $salesUsers = User::query()
+            ->where('role', 'sales')
+            ->orderBy('id')
+            ->get();
+
+        if ($salesUsers->isEmpty()) {
+            $salesUsers = User::factory()
+                ->count(3)
+                ->sales()
+                ->create();
         }
-        \App\Models\Lead::factory()->count(200)->create();
+
+        $statusCycle = [
+            'new',
+            'contacted',
+            'qualified',
+            'proposal_sent',
+            'negotiation',
+            'won',
+            'lost',
+        ];
+
+        $shortfall = $targetCount - $currentCount;
+        $salesUserCount = $salesUsers->count();
+        $statusCount = count($statusCycle);
+
+        for ($index = 0; $index < $shortfall; $index++) {
+            $salesUser = $salesUsers[$index % $salesUserCount];
+            $status = $statusCycle[$index % $statusCount];
+
+            $factory = Lead::factory()->assignedTo($salesUser);
+
+            $factory = match ($status) {
+                'won' => $factory->won(),
+                'lost' => $factory->lost(),
+                default => $factory->state([
+                        'status' => $status,
+                        'lost_reason' => null,
+                        'lost_category' => null,
+                        'lost_at' => null,
+                    ]),
+            };
+
+            $factory->create();
+        }
     }
 }
