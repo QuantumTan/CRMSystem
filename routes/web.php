@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FollowUpController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SystemConfigurationController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -17,9 +18,10 @@ Route::get('/', function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [AuthController::class, 'profile'])->name('profile');
-    Route::get('/settings', function () {
-        return view('settings.index');
-    })->name('settings.index');
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/settings', [SystemConfigurationController::class, 'index'])->name('settings.index');
+        Route::put('/settings', [SystemConfigurationController::class, 'update'])->name('settings.update');
+    });
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/admin', [DashboardController::class, 'admin'])
         ->middleware('role:admin')

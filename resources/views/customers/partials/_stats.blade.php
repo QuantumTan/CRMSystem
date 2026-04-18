@@ -10,16 +10,17 @@
 <div class="row g-3 mb-4">
     @foreach ($stats as $stat)
         <div class="col-6 col-lg-3">
-            <div class="card h-100 border shadow-sm bg-white">
+            <div class="card h-100 border shadow-sm bg-white crm-stat-card">
                 <div class="card-body px-3 py-4">
                     <div class="d-flex justify-content-between align-items-start mb-2">
-                        <div class="small text-uppercase fw-medium text-truncate"
-                            style="color: #9ca3af; letter-spacing: 0.06em; font-size: 0.7rem;">
+                        <div class="crm-stat-label text-truncate">
                             {{ $stat['label'] }}
                         </div>
-                        <i class="bi {{ $stat['icon'] }} text-muted" style="font-size: 0.95rem; opacity: 0.5;"></i>
+                        <div class="crm-stat-icon" style="width: 2.4rem; height: 2.4rem;">
+                            <i class="bi {{ $stat['icon'] }} text-muted" style="font-size: 0.95rem; opacity: 0.7;"></i>
+                        </div>
                     </div>
-                    <div class="fw-bold lh-1" style="font-size: 2rem; color: {{ $stat['color'] }};">
+                    <div class="crm-stat-value lh-1" style="color: {{ $stat['color'] }};">
                         {{ $stat['value'] }}
                     </div>
                 </div>

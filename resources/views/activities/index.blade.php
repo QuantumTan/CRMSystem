@@ -8,9 +8,9 @@
     <div class="container-fluid px-3 px-md-4 py-4">
 
         {{-- Header --}}
-        <div
-            class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
+        <div class="crm-page-header d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
             <div>
+                <div class="crm-eyebrow mb-2">Team Timeline</div>
                 <div class="d-flex align-items-center gap-2">
                     <div>
                         <h4 class="mb-0 fw-semibold">Activity Log</h4>
@@ -76,7 +76,7 @@
             <div class="card-body p-4">
 
                 @if ($activities->isEmpty())
-                    <div class="text-center py-5 text-muted">
+                    <div class="text-center py-5 text-muted crm-empty-state">
                         <i class="bi bi-inbox display-6 opacity-25"></i>
                         <p class="mt-3 mb-0">No activities found.</p>
                     </div>

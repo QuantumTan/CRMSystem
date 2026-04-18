@@ -133,7 +133,7 @@
                             <canvas id="leadStatusChart" aria-label="Lead status chart" role="img"></canvas>
                         </div>
                         <div class="table-responsive">
-                            <table class="table table-sm align-middle mb-0 crm-data-table-compact">
+                            <table class="table crm-table crm-table-compact table-hover align-middle mb-0 crm-data-table-compact">
                                 <thead>
                                     <tr>
                                         <th>Status</th>
@@ -209,7 +209,7 @@
                             <canvas id="userActivityChart" aria-label="User activity chart" role="img"></canvas>
                         </div>
                         <div class="table-responsive">
-                            <table class="table align-middle mb-0 crm-data-table-compact">
+                            <table class="table crm-table crm-table-compact table-hover align-middle mb-0 crm-data-table-compact">
                                 <thead>
                                     <tr>
                                         <th>User</th>

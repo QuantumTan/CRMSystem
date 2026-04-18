@@ -5,6 +5,7 @@
 @section('content')
     @php
         $currentUser = auth()->user();
+        $focusedStatus = request('status');
     @endphp
 
     <div class="container-fluid px-3 px-md-4 py-4">
@@ -99,7 +100,11 @@
         {{-- KANBAN BOARD --}}
         <div class="kanban-wrapper">
             @foreach ($statuses as $status)
-                <div class="kanban-column">
+                @php
+                    $statusAnchor = 'status-'.\Illuminate\Support\Str::slug($status, '-');
+                    $isFocusedStatus = $focusedStatus === $status;
+                @endphp
+                <div id="{{ $statusAnchor }}" class="kanban-column {{ $isFocusedStatus ? 'kanban-column-focused' : '' }}">
 
                     {{-- Column Header --}}
                     <div class="d-flex justify-content-between align-items-center mb-3 px-1">
@@ -313,6 +318,12 @@
             min-width: 340px;
             width: 340px;
             flex-shrink: 0;
+            scroll-margin-left: 20px;
+        }
+
+        .kanban-column-focused .droppable-zone {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.12);
         }
 
         .droppable-zone {

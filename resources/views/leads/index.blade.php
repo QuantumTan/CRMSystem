@@ -93,7 +93,7 @@
         {{-- TABLE --}}
         <div class="card border-0 shadow-sm">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 crm-data-table">
+                <table class="table crm-table table-hover align-middle mb-0 crm-data-table">
                     <thead class="table-light">
                         <tr>
                             <th class="ps-4 py-3 fw-semibold small text-uppercase text-muted">Lead</th>
@@ -143,6 +143,7 @@
                                 <td>
                                     @php
                                         $leadStatus = strtolower((string) $lead->status);
+                                        $kanbanStatusAnchor = 'status-'.\Illuminate\Support\Str::slug($leadStatus, '-');
                                         $leadStatusClass = match ($leadStatus) {
                                             'new' => 'crm-table-status crm-table-status-primary',
                                             'contacted' => 'crm-table-status crm-table-status-info',
@@ -152,7 +153,10 @@
                                             default => 'crm-table-status crm-table-status-primary',
                                         };
                                     @endphp
-                                    <span class="{{ $leadStatusClass }}">{{ ucfirst($lead->status) }}</span>
+                                    <a href="{{ route('leads.kanban', ['status' => $lead->status]) }}#{{ $kanbanStatusAnchor }}"
+                                        class="{{ $leadStatusClass }} text-decoration-none">
+                                        {{ ucfirst(str_replace('_', ' ', $lead->status)) }}
+                                    </a>
                                 </td>
 
                                 {{-- Priority --}}

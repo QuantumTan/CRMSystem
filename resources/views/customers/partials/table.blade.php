@@ -50,7 +50,7 @@
     </div>
 
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0 crm-data-table">
+        <table class="table crm-table table-hover align-middle mb-0 crm-data-table">
             <thead class="table-light">
                 <tr>
                     <th class="small text-muted py-3">Customer ID</th>

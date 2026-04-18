@@ -1,16 +1,18 @@
 {{-- resources/views/activities/_timeline.blade.php --}}
 {{-- Usage: @include('activities._timeline', ['activities' => $lead->activities]) --}}
 
-<div class="card border-0 shadow-sm rounded-4">
+<div class="card border-0 shadow-sm rounded-4 crm-detail-card">
     <div class="card-body p-4">
 
         <h6 class="fw-semibold mb-4 d-flex align-items-center gap-2">
-            <i class="bi bi-clock-history fs-5 text-primary"></i>
+            <span class="crm-icon-chip">
+                <i class="bi bi-clock-history fs-6"></i>
+            </span>
             Activity History
         </h6>
 
         @if ($activities->isEmpty())
-            <div class="text-center py-5 text-muted">
+            <div class="text-center py-5 text-muted crm-empty-state">
                 <i class="bi bi-inbox display-6 opacity-25"></i>
                 <p class="mt-3 small mb-0">No activities logged yet.</p>
             </div>
@@ -83,22 +85,4 @@
 
     </div>
 </div>
-
-<style>
-    /* Minimal custom CSS for the timeline line */
-    .timeline-container {
-        position: relative;
-    }
-
-    .timeline-container::before {
-        content: '';
-        position: absolute;
-        left: 20px;      /* Center of the icon (40px width / 2 = 20px) */
-        top: 0;
-        bottom: 0;
-        width: 2px;
-        background-color: #dee2e6;  /* Bootstrap's gray-300 */
-    }
-
-</style>
 
