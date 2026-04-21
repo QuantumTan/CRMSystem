@@ -18,19 +18,19 @@ class CustomerFactory extends Factory
      */
     public function definition(): array
     {
-        $assignmentStatus = fake()->randomElement(['pending', 'approved', 'rejected']);
+        $assignmentStatus = $this->faker->randomElement(['pending', 'approved', 'rejected']);
         $isReviewed = in_array($assignmentStatus, ['approved', 'rejected']);
         $salesAssigneeId = User::query()->where('role', 'sales')->inRandomOrder()->value('id')
             ?? User::factory()->sales()->create()->id;
 
         return [
-            'first_name' => fake()->firstName(),
-            'last_name' => fake()->lastName(),
-            'email' => fake()->unique()->safeEmail(),
-            'phone' => fake()->phoneNumber(),
-            'company' => fake()->optional()->company(),
-            'address' => fake()->optional()->address(),
-            'status' => fake()->randomElement(['active', 'inactive']),
+            'first_name' => $this->faker->firstName(),
+            'last_name' => $this->faker->lastName(),
+            'email' => $this->faker->unique()->safeEmail(),
+            'phone' => $this->faker->phoneNumber(),
+            'company' => $this->faker->optional()->company(),
+            'address' => $this->faker->optional()->address(),
+            'status' => $this->faker->randomElement(['active', 'inactive']),
             'assigned_user_id' => $salesAssigneeId,
             'assignment_status' => $assignmentStatus,
             'assignment_reviewed_by' => $isReviewed
@@ -38,7 +38,7 @@ class CustomerFactory extends Factory
                     ->inRandomOrder()
                     ->value('id')
                 : null,
-            'assignment_reviewed_at' => $isReviewed ? fake()->dateTimeBetween('-6 months', 'now') : null,
+            'assignment_reviewed_at' => $isReviewed ? $this->faker->dateTimeBetween('-6 months', 'now') : null,
         ];
     }
 
@@ -60,7 +60,7 @@ class CustomerFactory extends Factory
                 'assignment_reviewed_by' => User::query()->whereIn('role', ['admin', 'manager'])
                     ->inRandomOrder()
                     ->value('id'),
-                'assignment_reviewed_at' => fake()->dateTimeBetween('-6 months', 'now'),
+                'assignment_reviewed_at' => $this->faker->dateTimeBetween('-6 months', 'now'),
             ];
         });
     }
@@ -73,7 +73,7 @@ class CustomerFactory extends Factory
                 'assignment_reviewed_by' => User::query()->whereIn('role', ['admin', 'manager'])
                     ->inRandomOrder()
                     ->value('id'),
-                'assignment_reviewed_at' => fake()->dateTimeBetween('-6 months', 'now'),
+                'assignment_reviewed_at' => $this->faker->dateTimeBetween('-6 months', 'now'),
             ];
         });
     }
