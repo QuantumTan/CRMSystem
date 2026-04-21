@@ -19,6 +19,29 @@ if [ -n "${MYSQL_CA_CERT:-}" ] && [ -z "${MYSQL_ATTR_SSL_CA:-}" ]; then
     export MYSQL_ATTR_SSL_CA="$mysql_ca_path"
 fi
 
+if [ "${APP_ENV:-}" = "production" ]; then
+    if [ -z "${DB_CONNECTION:-}" ]; then
+        echo "DB_CONNECTION is required in production." >&2
+        exit 1
+    fi
+
+    if [ "${DB_CONNECTION}" = "mysql" ]; then
+        for required_var in DB_HOST DB_PORT DB_DATABASE DB_USERNAME DB_PASSWORD; do
+            eval "required_value=\${$required_var:-}"
+
+            if [ -z "$required_value" ]; then
+                echo "$required_var is required when DB_CONNECTION=mysql in production." >&2
+                exit 1
+            fi
+        done
+
+        if [ "${DB_HOST}" = "127.0.0.1" ] || [ "${DB_HOST}" = "localhost" ]; then
+            echo "DB_HOST cannot be ${DB_HOST} for production MySQL deployments." >&2
+            exit 1
+        fi
+    fi
+fi
+
 mkdir -p \
     bootstrap/cache \
     database \
