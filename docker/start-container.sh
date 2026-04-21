@@ -7,6 +7,46 @@ if [ ! -f .env ] && [ -f .env.example ]; then
     cp .env.example .env
 fi
 
+format_env_value() {
+    value="$1"
+
+    case "$value" in
+        '')
+            printf '""'
+            ;;
+        *[!A-Za-z0-9_./:@%+=,-]*)
+            escaped_value="$(printf '%s' "$value" | sed 's/\\/\\\\/g; s/"/\\"/g')"
+            printf '"%s"' "$escaped_value"
+            ;;
+        *)
+            printf '%s' "$value"
+            ;;
+    esac
+}
+
+upsert_env_var() {
+    key="$1"
+    value="$2"
+    formatted_value="$(format_env_value "$value")"
+    escaped_assignment="$(printf '%s=%s' "$key" "$formatted_value" | sed 's/[\/&]/\\&/g')"
+
+    if grep -q "^${key}=" .env; then
+        sed -i "s/^${key}=.*/${escaped_assignment}/" .env
+    else
+        printf '\n%s=%s\n' "$key" "$formatted_value" >> .env
+    fi
+}
+
+write_env_if_present() {
+    key="$1"
+    eval "is_set=\${$key+x}"
+
+    if [ -n "$is_set" ]; then
+        eval "value=\${$key}"
+        upsert_env_var "$key" "$value"
+    fi
+}
+
 if [ -n "${PORT:-}" ] && [ "$PORT" != "80" ]; then
     sed -ri "s/Listen 80/Listen ${PORT}/" /etc/apache2/ports.conf
     sed -ri "s/<VirtualHost \\*:80>/<VirtualHost *:${PORT}>/" /etc/apache2/sites-available/000-default.conf
@@ -18,6 +58,65 @@ if [ -n "${MYSQL_CA_CERT:-}" ] && [ -z "${MYSQL_ATTR_SSL_CA:-}" ]; then
     chmod 600 "$mysql_ca_path"
     export MYSQL_ATTR_SSL_CA="$mysql_ca_path"
 fi
+
+for runtime_key in \
+    APP_NAME \
+    APP_ENV \
+    APP_KEY \
+    APP_DEBUG \
+    APP_URL \
+    APP_LOCALE \
+    APP_FALLBACK_LOCALE \
+    APP_FAKER_LOCALE \
+    APP_MAINTENANCE_DRIVER \
+    APP_MAINTENANCE_STORE \
+    BCRYPT_ROUNDS \
+    LOG_CHANNEL \
+    LOG_STACK \
+    LOG_DEPRECATIONS_CHANNEL \
+    LOG_LEVEL \
+    DB_CONNECTION \
+    DB_URL \
+    DB_HOST \
+    DB_PORT \
+    DB_DATABASE \
+    DB_USERNAME \
+    DB_PASSWORD \
+    DB_SOCKET \
+    DB_CHARSET \
+    DB_COLLATION \
+    MYSQL_ATTR_SSL_CA \
+    SESSION_DRIVER \
+    SESSION_LIFETIME \
+    SESSION_ENCRYPT \
+    SESSION_PATH \
+    SESSION_DOMAIN \
+    SESSION_SECURE_COOKIE \
+    BROADCAST_CONNECTION \
+    FILESYSTEM_DISK \
+    QUEUE_CONNECTION \
+    CACHE_STORE \
+    CACHE_PREFIX \
+    REDIS_CLIENT \
+    REDIS_HOST \
+    REDIS_PASSWORD \
+    REDIS_PORT \
+    MAIL_MAILER \
+    MAIL_SCHEME \
+    MAIL_HOST \
+    MAIL_PORT \
+    MAIL_USERNAME \
+    MAIL_PASSWORD \
+    MAIL_FROM_ADDRESS \
+    MAIL_FROM_NAME \
+    AWS_ACCESS_KEY_ID \
+    AWS_SECRET_ACCESS_KEY \
+    AWS_DEFAULT_REGION \
+    AWS_BUCKET \
+    AWS_USE_PATH_STYLE_ENDPOINT \
+    VITE_APP_NAME; do
+    write_env_if_present "$runtime_key"
+done
 
 if [ "${APP_ENV:-}" = "production" ]; then
     if [ -z "${DB_CONNECTION:-}" ]; then
