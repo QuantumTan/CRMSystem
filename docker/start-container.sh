@@ -196,7 +196,7 @@ if [ "${RUN_MIGRATIONS:-false}" = "true" ]; then
 fi
 
 if [ "${RUN_SEEDERS:-false}" = "true" ]; then
-    php artisan db:seed --class="${SEEDER_CLASS:-Database\\Seeders\\DatabaseSeeder}" --no-interaction
+    php artisan db:seed --class="${SEEDER_CLASS:-Database\\Seeders\\DatabaseSeeder}" --force --no-interaction
 fi
 
 exec "$@"
