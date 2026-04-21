@@ -118,6 +118,8 @@ for runtime_key in \
     write_env_if_present "$runtime_key"
 done
 
+echo "Startup config: APP_ENV=${APP_ENV:-<unset>} DB_CONNECTION=${DB_CONNECTION:-<unset>} DB_HOST=${DB_HOST:-<unset>} DB_DATABASE=${DB_DATABASE:-<unset>} LOG_CHANNEL=${LOG_CHANNEL:-<unset>} RUN_MIGRATIONS=${RUN_MIGRATIONS:-false}"
+
 if [ "${APP_ENV:-}" = "production" ]; then
     if [ -z "${DB_CONNECTION:-}" ]; then
         echo "DB_CONNECTION is required in production." >&2
