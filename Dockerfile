@@ -41,7 +41,6 @@ COPY --from=frontend /app/public/build ./public/build
 COPY docker/start-container.sh /usr/local/bin/start-container
 RUN chmod +x /usr/local/bin/start-container \
     && composer install \
-        --no-dev \
         --prefer-dist \
         --no-interaction \
         --optimize-autoloader \
