@@ -12,6 +12,13 @@ if [ -n "${PORT:-}" ] && [ "$PORT" != "80" ]; then
     sed -ri "s/<VirtualHost \\*:80>/<VirtualHost *:${PORT}>/" /etc/apache2/sites-available/000-default.conf
 fi
 
+if [ -n "${MYSQL_CA_CERT:-}" ] && [ -z "${MYSQL_ATTR_SSL_CA:-}" ]; then
+    mysql_ca_path="/tmp/mysql-ca.pem"
+    printf '%s\n' "$MYSQL_CA_CERT" > "$mysql_ca_path"
+    chmod 600 "$mysql_ca_path"
+    export MYSQL_ATTR_SSL_CA="$mysql_ca_path"
+fi
+
 mkdir -p \
     bootstrap/cache \
     database \
