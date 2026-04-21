@@ -5,12 +5,13 @@
 @section('content')
     @php
         $currentUser = auth()->user();
+        $canDragLeads = $currentUser && ($currentUser->hasRole('admin') || $currentUser->hasRole('sales'));
         $focusedStatus = request('status');
     @endphp
 
-    <div class="container-fluid px-3 px-md-4 py-4">
+    <div class="container-fluid px-3 px-md-4 py-4" data-lead-kanban-page
+        data-leads-base-url="{{ url('/leads') }}" data-can-drag-leads="{{ $canDragLeads ? 'true' : 'false' }}">
 
-        {{-- HEADER --}}
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
             <div>
                 <h4 class="mb-0 fw-semibold">Leads</h4>
@@ -24,20 +25,18 @@
             </div>
 
             <div class="d-flex align-items-center gap-2">
-                <a href="{{ route('leads.kanban') }}" 
-                   class="btn btn-dark active d-flex align-items-center gap-2">
+                <a href="{{ route('leads.kanban') }}" class="btn btn-dark active d-flex align-items-center gap-2">
                     <i class="bi bi-kanban-fill"></i>
                     Kanban View
                 </a>
-                <a href="{{ route('leads.index') }}" 
-                   class="btn btn-outline-secondary d-flex align-items-center gap-2">
+                <a href="{{ route('leads.index') }}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
                     <i class="bi bi-table"></i>
                     Table View
                 </a>
 
-                @if ($currentUser && ($currentUser->hasRole('admin') || $currentUser->hasRole('sales')))
-                    <a href="{{ route('leads.create') }}" 
-                       class="btn btn-primary crm-module-add-btn d-flex align-items-center gap-2">
+                @if ($canDragLeads)
+                    <a href="{{ route('leads.create') }}"
+                        class="btn btn-primary crm-module-add-btn d-flex align-items-center gap-2">
                         <i class="bi bi-plus"></i>
                         Add Lead
                     </a>
@@ -45,40 +44,34 @@
             </div>
         </div>
 
-        {{-- FILTER TOOLKIT (Now powered entirely by traditional GET request) --}}
         <div class="card border-0 shadow-sm mb-4 crm-toolkit">
             <div class="card-body p-3">
                 <form action="{{ route('leads.kanban') }}" method="GET"
-                      class="d-flex flex-column flex-lg-row align-items-lg-center gap-3">
-
-                    {{-- Search --}}
+                    class="d-flex flex-column flex-lg-row align-items-lg-center gap-3">
                     <div class="position-relative" style="max-width: 300px; flex: 1;">
                         <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted small"></i>
                         <input type="text" id="search" name="search" class="form-control form-control-sm ps-5"
-                               value="{{ request('search') }}"
-                               placeholder="Search name, email, phone...">
+                            value="{{ request('search') }}" placeholder="Search name, email, phone...">
                     </div>
 
-                    {{-- All Statuses --}}
                     <select id="status" name="status" class="form-select form-select-sm w-auto" style="min-width: 140px;">
                         <option value="">All Statuses</option>
-                        @foreach ($statuses as $s)
-                            <option value="{{ $s }}" @selected(request('status') == $s)>
-                                {{ ucfirst(str_replace('_', ' ', $s)) }}
+                        @foreach ($statuses as $statusOption)
+                            <option value="{{ $statusOption }}" @selected(request('status') == $statusOption)>
+                                {{ ucfirst(str_replace('_', ' ', $statusOption)) }}
                             </option>
                         @endforeach
                     </select>
 
-                    {{-- All Priorities --}}
                     <select id="priority" name="priority" class="form-select form-select-sm w-auto" style="min-width: 130px;">
                         <option value="">All Priorities</option>
-                        <option value="low"    @selected(request('priority') == 'low')>Low</option>
+                        <option value="low" @selected(request('priority') == 'low')>Low</option>
                         <option value="medium" @selected(request('priority') == 'medium')>Medium</option>
-                        <option value="high"   @selected(request('priority') == 'high')>High</option>
+                        <option value="high" @selected(request('priority') == 'high')>High</option>
                     </select>
 
-                    {{-- All Users --}}
-                    <select id="assigned_user" name="assigned_user" class="form-select form-select-sm w-auto" style="min-width: 140px;">
+                    <select id="assigned_user" name="assigned_user" class="form-select form-select-sm w-auto"
+                        style="min-width: 140px;">
                         <option value="">All Users</option>
                         @foreach ($users as $assignee)
                             <option value="{{ $assignee->id }}" @selected(request('assigned_user') == $assignee->id)>
@@ -87,17 +80,14 @@
                         @endforeach
                     </select>
 
-                    {{-- Buttons --}}
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-dark btn-sm px-3">Filter</button>
                         <a href="{{ route('leads.kanban') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
                     </div>
-
                 </form>
             </div>
         </div>
 
-        {{-- KANBAN BOARD --}}
         <div class="kanban-wrapper">
             @foreach ($statuses as $status)
                 @php
@@ -105,12 +95,10 @@
                     $isFocusedStatus = $focusedStatus === $status;
                 @endphp
                 <div id="{{ $statusAnchor }}" class="kanban-column {{ $isFocusedStatus ? 'kanban-column-focused' : '' }}">
-
-                    {{-- Column Header --}}
                     <div class="d-flex justify-content-between align-items-center mb-3 px-1">
                         <div class="d-flex align-items-center gap-2">
                             <span class="badge rounded-pill px-3 py-2 fw-medium"
-                                  style="background-color: {{ getStatusColor($status) }}; color: white; font-size: 0.9rem;">
+                                style="background-color: {{ getStatusColor($status) }}; color: white; font-size: 0.9rem;">
                                 {{ ucfirst(str_replace('_', ' ', $status)) }}
                             </span>
                         </div>
@@ -119,19 +107,15 @@
                         </span>
                     </div>
 
-                    {{-- Droppable Zone --}}
                     <div class="kanban-cards droppable-zone" data-status="{{ $status }}">
-
                         @foreach ($leadsByStatus[$status] as $lead)
-                            <div class="kanban-card card border-0 shadow-sm draggable-card" draggable="true"
-                                 data-lead-id="{{ $lead->id }}" 
-                                 style="border-left: 5px solid {{ getPriorityColor($lead->priority) }};">
-
+                            <div id="lead-kanban-card-{{ $lead->id }}" class="kanban-card card border-0 shadow-sm draggable-card"
+                                draggable="true" data-lead-id="{{ $lead->id }}"
+                                style="border-left: 5px solid {{ getPriorityColor($lead->priority) }};">
                                 <div class="card-body p-3">
-
                                     <h6 class="card-title mb-2 fw-semibold">
-                                        <a href="{{ route('leads.show', $lead) }}" 
-                                           class="text-decoration-none text-dark hover-underline">
+                                        <a href="{{ route('leads.show', $lead) }}"
+                                            class="text-decoration-none text-dark hover-underline">
                                             {{ $lead->name }}
                                         </a>
                                     </h6>
@@ -157,12 +141,13 @@
 
                                     <div class="d-flex flex-wrap gap-2 mb-3">
                                         <span class="badge px-2 py-1"
-                                              style="background-color: {{ getPriorityColor($lead->priority) }}; color: white; font-size: 0.8rem;">
+                                            style="background-color: {{ getPriorityColor($lead->priority) }}; color: white; font-size: 0.8rem;">
                                             {{ ucfirst($lead->priority) }}
                                         </span>
 
                                         @if ($lead->source)
-                                            <span class="badge px-2 py-1" style="background-color: rgba(37, 99, 235, 0.12); color: #1d4ed8;">
+                                            <span class="badge px-2 py-1"
+                                                style="background-color: rgba(37, 99, 235, 0.12); color: #1d4ed8;">
                                                 {{ $lead->source }}
                                             </span>
                                         @endif
@@ -180,26 +165,29 @@
                                     @if ($lead->assignedUser)
                                         <div class="d-flex align-items-center gap-2 mb-3">
                                             <div class="avatar-circle text-white d-flex align-items-center justify-content-center fw-bold"
-                                                 style="width: 26px; height: 26px; font-size: 0.75rem; background: #6366f1;">
+                                                style="width: 26px; height: 26px; font-size: 0.75rem; background: #6366f1;">
                                                 {{ strtoupper(substr($lead->assignedUser->name, 0, 1)) }}
                                             </div>
                                             <small class="text-muted">{{ $lead->assignedUser->name }}</small>
                                         </div>
                                     @endif
 
-                                    {{-- Actions (Now using standard Forms) --}}
                                     <div class="d-flex flex-wrap gap-1 pt-2 border-top">
-                                        <a href="{{ route('leads.show', $lead) }}" class="btn btn-sm btn-outline-primary crm-action-btn" title="View">
+                                        <a href="{{ route('leads.show', $lead) }}"
+                                            class="btn btn-sm btn-outline-primary crm-action-btn" title="View">
                                             View
                                         </a>
-                                        @if ($currentUser && ($currentUser->hasRole('admin') || $currentUser->hasRole('sales')))
-                                            <a href="{{ route('leads.edit', $lead) }}" class="btn btn-sm btn-outline-warning crm-action-btn" title="Edit">
+                                        @if ($canDragLeads)
+                                            <a href="{{ route('leads.edit', $lead) }}"
+                                                class="btn btn-sm btn-outline-warning crm-action-btn" title="Edit">
                                                 Edit
                                             </a>
-                                            <form action="{{ route('leads.destroy', $lead) }}" method="POST" class="d-inline-flex" onsubmit="return confirm('Are you sure you want to delete this lead?');">
+                                            <form action="{{ route('leads.destroy', $lead) }}" method="POST" class="d-inline-flex"
+                                                onsubmit="return confirm('Are you sure you want to delete this lead?');">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-outline-danger crm-action-btn" title="Delete">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger crm-action-btn"
+                                                    title="Delete">
                                                     Delete
                                                 </button>
                                             </form>
@@ -215,93 +203,17 @@
                             </div>
                         @endforeach
 
-                        {{-- Empty State --}}
-                        @if(count($leadsByStatus[$status]) === 0)
+                        @if (count($leadsByStatus[$status]) === 0)
                             <div class="empty-state text-center py-5 text-muted">
                                 <i class="bi bi-inbox display-6 opacity-25"></i>
                                 <p class="mt-3 small">No leads in this stage</p>
                             </div>
                         @endif
-
                     </div>
                 </div>
             @endforeach
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-
-    <script>
-        const canDragLeads = @json($currentUser && ($currentUser->hasRole('admin') || $currentUser->hasRole('sales')));
-        const leadsBaseUrl = "{{ url('/leads') }}";
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-
-        if (!canDragLeads) {
-            document.querySelectorAll('.draggable-card').forEach((card) => {
-                card.setAttribute('draggable', 'false');
-                card.style.cursor = 'default';
-            });
-        }
-
-        // ── Sortable (drag & drop) with Traditional Form Submit ──────────
-        document.querySelectorAll('.droppable-zone').forEach(zone => {
-            if (!canDragLeads) {
-                return;
-            }
-
-            Sortable.create(zone, {
-                group: 'leads',
-                animation: 150,
-                ghostClass: 'card-ghost',
-                dragClass: 'card-dragging',
-                delay: 100,
-                delayOnTouchOnly: true,
-
-                onEnd(evt) {
-                    const leadId = evt.item.dataset.leadId;
-                    const newStatus = evt.to.dataset.status;
-                    const oldStatus = evt.from.dataset.status;
-
-                    if (oldStatus === newStatus) return;
-
-                    // Standard Redirect for lost reason
-                    if (newStatus === 'lost') {
-                        window.location.href = `${leadsBaseUrl}/${leadId}/lost-form`;
-                        return;
-                    }
-
-                    // Dynamically create a standard form and submit it to trigger a page reload
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    // Example action string: /leads/kanban/5/status
-                    form.action = `${leadsBaseUrl}/kanban/${leadId}/status`; 
-
-                    const csrfInput = document.createElement('input');
-                    csrfInput.type = 'hidden';
-                    csrfInput.name = '_token';
-                    csrfInput.value = csrfToken;
-
-                    const methodInput = document.createElement('input');
-                    methodInput.type = 'hidden';
-                    methodInput.name = '_method';
-                    methodInput.value = 'PATCH';
-
-                    const statusInput = document.createElement('input');
-                    statusInput.type = 'hidden';
-                    statusInput.name = 'status';
-                    statusInput.value = newStatus;
-
-                    form.appendChild(csrfInput);
-                    form.appendChild(methodInput);
-                    form.appendChild(statusInput);
-                    document.body.appendChild(form);
-                    
-                    // Trigger traditional form submit (page reload)
-                    form.submit();
-                },
-            });
-        });
-    </script>
 
     <style>
         .kanban-wrapper {
@@ -343,11 +255,18 @@
             cursor: grab;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            scroll-margin: 2rem 7rem;
         }
 
         .kanban-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .kanban-card:target,
+        .kanban-card-targeted {
+            box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.35), 0 12px 24px rgba(13, 110, 253, 0.12);
+            z-index: 2;
         }
 
         .kanban-card:active {
@@ -376,18 +295,20 @@
             opacity: 0.6;
         }
 
-        /* Scrollbar */
         .kanban-wrapper::-webkit-scrollbar {
             height: 9px;
         }
+
         .kanban-wrapper::-webkit-scrollbar-track {
             background: #f1f3f5;
             border-radius: 10px;
         }
+
         .kanban-wrapper::-webkit-scrollbar-thumb {
             background: #cbd5e1;
             border-radius: 10px;
         }
+
         .kanban-wrapper::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
@@ -400,3 +321,7 @@
         }
     </style>
 @endsection
+
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+@endpush

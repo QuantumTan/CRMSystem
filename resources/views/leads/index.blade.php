@@ -3,7 +3,8 @@
 @section('title', 'Leads')
 
 @section('content')
-    <div class="container-fluid px-3 px-md-4 py-4">
+    <div class="container-fluid px-3 px-md-4 py-4" data-lead-index-page
+        data-leads-base-url="{{ url('/leads') }}">
         <div
             class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
             <div>
@@ -43,11 +44,12 @@
                     <div class="position-relative" style="max-width: 300px; flex: 1;">
                         <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted small"></i>
                         <input type="text" id="search" name="search" class="form-control form-control-sm ps-5"
-                            value="{{ request('search') }}" placeholder="Search name, email, phone...">
+                            value="{{ request('search') }}" placeholder="Search name, email, phone..."
+                            data-lead-filter="search">
                     </div>
 
                     <select id="status" name="status" class="form-select form-select-sm w-auto"
-                        style="min-width: 140px;">
+                        style="min-width: 140px;" data-lead-filter="status">
                         <option value="">All Statuses</option>
                         @foreach ($statusOptions as $statusOption)
                             <option value="{{ $statusOption }}" @selected(request('status') == $statusOption)>
@@ -57,7 +59,7 @@
                     </select>
 
                     <select id="priority" name="priority" class="form-select form-select-sm w-auto"
-                        style="min-width: 130px;">
+                        style="min-width: 130px;" data-lead-filter="priority">
                         <option value="">All Priorities</option>
                         <option value="low" @selected(request('priority') == 'low')>Low</option>
                         <option value="medium" @selected(request('priority') == 'medium')>Medium</option>
@@ -65,7 +67,7 @@
                     </select>
 
                     <select id="assigned_user" name="assigned_user" class="form-select form-select-sm w-auto"
-                        style="min-width: 140px;">
+                        style="min-width: 140px;" data-lead-filter="assigned-user">
                         <option value="">All Users</option>
                         @foreach ($assignableUsers as $assignee)
                             <option value="{{ $assignee->id }}" @selected(request('assigned_user') == $assignee->id)>
@@ -112,6 +114,7 @@
                                 <td class="py-3">
                                     @php
                                         $leadStatus = strtolower((string) $lead->status);
+                                        $leadStatusTarget = route('leads.kanban').'#lead-kanban-card-'.$lead->id;
                                         $leadStatusClass = match ($leadStatus) {
                                             'new' => 'crm-table-status crm-table-status-primary',
                                             'contacted' => 'crm-table-status crm-table-status-info',
@@ -121,7 +124,10 @@
                                             default => 'crm-table-status crm-table-status-primary',
                                         };
                                     @endphp
-                                    <span class="{{ $leadStatusClass }}">{{ ucfirst(str_replace('_', ' ', $lead->status)) }}</span>
+                                    <a href="{{ $leadStatusTarget }}" class="text-decoration-none"
+                                        title="Open this lead in the Kanban board">
+                                        <span class="{{ $leadStatusClass }}">{{ ucfirst(str_replace('_', ' ', $lead->status)) }}</span>
+                                    </a>
                                 </td>
                                 <td class="py-3">
                                     @php
@@ -154,7 +160,7 @@
                                             </a>
                                             <button type="button"
                                                 class="btn btn-sm btn-light border text-danger delete-lead"
-                                                data-lead-id="{{ $lead->id }}">
+                                                data-delete-lead="{{ $lead->id }}">
                                                 Delete
                                             </button>
                                         @endif
@@ -180,89 +186,4 @@
             @endif
         </div>
     </div>
-
-    <script>
-        const leadsBaseUrl = "{{ url('/leads') }}";
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-
-        document.querySelectorAll('.delete-lead').forEach((btn) => {
-            btn.addEventListener('click', function() {
-                const leadId = this.dataset.leadId;
-
-                if (!confirm('Are you sure you want to delete this lead? This cannot be undone.')) {
-                    return;
-                }
-
-                fetch(`${leadsBaseUrl}/${leadId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken,
-                        },
-                    })
-                    .then((res) => res.json())
-                    .then((data) => {
-                        if (data.success) {
-                            const row = document.querySelector(`tr[data-lead-id="${leadId}"]`);
-
-                            if (row) {
-                                row.remove();
-                            }
-
-                            showNotification('Lead deleted successfully!', 'success');
-                        } else {
-                            showNotification(data.message ?? 'Error deleting lead.', 'danger');
-                        }
-                    })
-                    .catch(() => showNotification('Network error. Please try again.', 'danger'));
-            });
-        });
-
-        const searchInput = document.getElementById('search');
-        const statusSelect = document.getElementById('status');
-        const prioritySelect = document.getElementById('priority');
-        const assignedSelect = document.getElementById('assigned_user');
-
-        if (searchInput) searchInput.addEventListener('keyup', filterLeads);
-        if (statusSelect) statusSelect.addEventListener('change', filterLeads);
-        if (prioritySelect) prioritySelect.addEventListener('change', filterLeads);
-        if (assignedSelect) assignedSelect.addEventListener('change', filterLeads);
-
-        function filterLeads() {
-            const searchTerm = (searchInput?.value || '').toLowerCase();
-            const statusFilter = statusSelect?.value || '';
-            const priorityFilter = prioritySelect?.value || '';
-            const assignedFilter = assignedSelect?.value || '';
-
-            document.querySelectorAll('tbody tr[data-lead-id]').forEach((row) => {
-                const text = row.textContent.toLowerCase();
-                const rowStatus = row.dataset.status ?? '';
-                const rowPriority = row.dataset.priority ?? '';
-                const rowAssigned = row.dataset.assigned ?? '';
-
-                const matchSearch = !searchTerm || text.includes(searchTerm);
-                const matchStatus = !statusFilter || rowStatus === statusFilter;
-                const matchPriority = !priorityFilter || rowPriority === priorityFilter;
-                const matchAssigned = !assignedFilter || rowAssigned === assignedFilter;
-
-                row.style.display = matchSearch && matchStatus && matchPriority && matchAssigned ? '' : 'none';
-            });
-        }
-
-        function showNotification(message, type = 'info') {
-            const el = document.createElement('div');
-            el.className = `alert alert-${type} alert-dismissible fade show position-fixed shadow`;
-            el.style.cssText = 'top:20px;right:20px;z-index:9999;min-width:300px;';
-            el.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
-            document.body.appendChild(el);
-            setTimeout(() => el.remove(), 4000);
-        }
-
-        window.addEventListener('load', () => {
-            if (searchInput?.value || statusSelect?.value || prioritySelect?.value || assignedSelect?.value) {
-                filterLeads();
-            }
-        });
-    </script>
 @endsection
