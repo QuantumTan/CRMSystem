@@ -8,26 +8,29 @@ use Illuminate\Support\Facades\Hash;
 
 class userSeeder extends Seeder
 {
+    private function upsertUser(string $email, string $name, string $password, string $role): void
+    {
+        $user = User::withTrashed()->firstOrNew([
+            'email' => $email,
+        ]);
+
+        $user->fill([
+            'name' => $name,
+            'password' => Hash::make($password),
+            'role' => $role,
+        ]);
+
+        $user->deleted_at = null;
+        $user->save();
+    }
+
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        User::updateOrCreate([
-            'email' => 'admin@comp.com',
-        ], [
-            'name' => 'Admin User',
-            'password' => Hash::make('admin'),
-            'role' => 'admin',
-        ]);
-
-        User::updateOrCreate([
-            'email' => 'manager@comp.com',
-        ], [
-            'name' => 'Manager User',
-            'password' => Hash::make('manager'),
-            'role' => 'manager',
-        ]);
+        $this->upsertUser('admin@comp.com', 'Admin User', 'admin', 'admin');
+        $this->upsertUser('manager@comp.com', 'Manager User', 'manager', 'manager');
 
         $salesAccounts = [
             ['email' => 'sales@comp.com', 'name' => 'Sales User 1', 'password' => 'sales'],
@@ -38,13 +41,7 @@ class userSeeder extends Seeder
         ];
 
         foreach ($salesAccounts as $account) {
-            User::updateOrCreate([
-                'email' => $account['email'],
-            ], [
-                'name' => $account['name'],
-                'password' => Hash::make($account['password']),
-                'role' => 'sales',
-            ]);
+            $this->upsertUser($account['email'], $account['name'], $account['password'], 'sales');
         }
     }
 }
