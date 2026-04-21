@@ -120,7 +120,7 @@ for runtime_key in \
     write_env_if_present "$runtime_key"
 done
 
-echo "Startup config: APP_ENV=${APP_ENV:-<unset>} DB_CONNECTION=${DB_CONNECTION:-<unset>} DB_HOST=${DB_HOST:-<unset>} DB_DATABASE=${DB_DATABASE:-<unset>} LOG_CHANNEL=${LOG_CHANNEL:-<unset>} RUN_MIGRATIONS=${RUN_MIGRATIONS:-false}"
+echo "Startup config: APP_ENV=${APP_ENV:-<unset>} DB_CONNECTION=${DB_CONNECTION:-<unset>} DB_HOST=${DB_HOST:-<unset>} DB_DATABASE=${DB_DATABASE:-<unset>} LOG_CHANNEL=${LOG_CHANNEL:-<unset>} RUN_MIGRATIONS=${RUN_MIGRATIONS:-false} RUN_SEEDERS=${RUN_SEEDERS:-false}"
 
 if [ "${APP_ENV:-}" = "production" ]; then
     if [ -z "${DB_CONNECTION:-}" ]; then
@@ -193,6 +193,10 @@ php artisan package:discover --ansi --no-interaction
 
 if [ "${RUN_MIGRATIONS:-false}" = "true" ]; then
     php artisan migrate --force --no-interaction
+fi
+
+if [ "${RUN_SEEDERS:-false}" = "true" ]; then
+    php artisan db:seed --class="${SEEDER_CLASS:-Database\\Seeders\\DatabaseSeeder}" --no-interaction
 fi
 
 exec "$@"
