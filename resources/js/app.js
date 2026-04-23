@@ -2,6 +2,47 @@ import './bootstrap';
 import { initLeadIndexPage } from './pages/leads/index';
 import { initLeadKanbanPage } from './pages/leads/kanban';
 
+function initSubmitButtonGuard() {
+    let lastSubmitter = null;
+
+    document.addEventListener('click', function (event) {
+        const submitter = event.target.closest('button[type="submit"], input[type="submit"]');
+
+        if (submitter && submitter.form) {
+            lastSubmitter = submitter;
+        }
+    });
+
+    document.addEventListener('submit', function (event) {
+        if (event.defaultPrevented) {
+            return;
+        }
+
+        const form = event.target;
+        const submitter = event.submitter || lastSubmitter;
+
+        if (!(form instanceof HTMLFormElement) || form.dataset.submitting === 'true') {
+            event.preventDefault();
+            return;
+        }
+
+        form.dataset.submitting = 'true';
+
+        if (submitter && submitter.form === form && submitter.name && !submitter.disabled) {
+            const hiddenSubmitter = document.createElement('input');
+            hiddenSubmitter.type = 'hidden';
+            hiddenSubmitter.name = submitter.name;
+            hiddenSubmitter.value = submitter.value;
+            form.appendChild(hiddenSubmitter);
+        }
+
+        form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach(function (button) {
+            button.disabled = true;
+            button.setAttribute('aria-disabled', 'true');
+        });
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     const storageKey = 'crmSidebarCollapsed';
     const body = document.body;
@@ -48,6 +89,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    initSubmitButtonGuard();
     initLeadIndexPage();
     initLeadKanbanPage();
 });
