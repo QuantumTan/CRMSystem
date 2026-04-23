@@ -24,6 +24,6 @@ class CustomerPolicy
 
     public function delete(User $user, Customer $customer): bool
     {
-        return $this->view($user, $customer);
+        return $user->hasRole('admin');
     }
 }

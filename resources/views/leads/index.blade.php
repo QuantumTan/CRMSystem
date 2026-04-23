@@ -3,8 +3,9 @@
 @section('title', 'Leads')
 
 @section('content')
-    <div class="container-fluid px-3 px-md-4 py-4" data-lead-index-page
-        data-leads-base-url="{{ url('/leads') }}">
+    @include('leads.partials._modal-delete')
+
+    <div class="container-fluid px-3 px-md-4 py-4" data-lead-index-page>
         <div
             class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
             <div>
@@ -158,11 +159,11 @@
                                                 class="btn btn-sm btn-light border text-dark">
                                                 Edit
                                             </a>
-                                            <button type="button"
-                                                class="btn btn-sm btn-light border text-danger delete-lead"
-                                                data-delete-lead="{{ $lead->id }}">
-                                                Delete
-                                            </button>
+                                            @include('leads.partials._delete-trigger', [
+                                                'lead' => $lead,
+                                                'buttonClass' => 'btn btn-sm btn-light border text-danger d-inline-flex align-items-center gap-1',
+                                                'buttonLabel' => 'Delete',
+                                            ])
                                         @endif
                                     </div>
                                 </td>

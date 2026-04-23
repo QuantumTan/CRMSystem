@@ -1,4 +1,4 @@
-@include('customers.partials._modal-delete', ['deleting' => $deleting ?? null])
+@include('customers.partials._modal-delete')
 
 <div class="card border-0 shadow-sm crm-toolkit">
     @php
@@ -110,10 +110,11 @@
                                     <a href="{{ route('customers.edit', $customer) }}"
                                         class="btn btn-sm btn-light border text-dark">Edit</a>
                                 @endif
-                                @if ($isAdmin)
-                                    <a href="{{ route('customers.index', ['delete' => $customer->id]) }}"
-                                        class="btn btn-sm btn-light border text-danger">Delete</a>
-                                @endif
+                                @include('customers.partials._delete-form', [
+                                    'customer' => $customer,
+                                    'buttonClass' => 'btn btn-sm btn-light border text-danger d-inline-flex align-items-center gap-1',
+                                    'buttonLabel' => 'Delete',
+                                ])
                             </div>
                         </td>
                     </tr>

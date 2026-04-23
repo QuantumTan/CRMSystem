@@ -44,13 +44,10 @@
                                 @if ($isAdmin || $isSales)
                                     <a href="{{ route('customers.edit', $customer) }}" class="btn btn-primary">Edit Customer</a>
                                 @endif
-                                @if ($isAdmin)
-                                    <form method="POST" action="{{ route('customers.destroy', $customer) }}" onsubmit="return confirm('Delete this customer?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-outline-danger">Delete Customer</button>
-                                    </form>
-                                @endif
+                                @include('customers.partials._delete-form', [
+                                    'customer' => $customer,
+                                    'buttonClass' => 'btn btn-outline-danger d-inline-flex align-items-center gap-2',
+                                ])
                             </div>
                         </div>
                     </div>
@@ -165,4 +162,6 @@
             </div>
         </div>
     </div>
+
+    @include('customers.partials._modal-delete')
 @endsection
