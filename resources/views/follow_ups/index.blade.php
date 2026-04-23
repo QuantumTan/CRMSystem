@@ -36,42 +36,53 @@
         </div>
 
         <div class="card border-0 shadow-sm mb-4 crm-toolkit">
-            <div class="card-header bg-white border-bottom p-3">
-                <form action="{{ route('follow-ups.index') }}" method="GET"
-                    class="d-flex flex-column flex-lg-row align-items-lg-center gap-3">
-                    <div class="position-relative" style="max-width: 320px; flex: 1;">
-                        <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
-                        <input type="text" id="search" name="search" class="form-control form-control-sm ps-5"
-                            value="{{ request('search') }}" placeholder="Search follow-up title...">
-                    </div>
+            <div class="card-header bg-white border-bottom">
+                <div class="card-body p-1">
+                    <form action="{{ route('follow-ups.index') }}" method="GET"
+                        class="d-flex flex-column flex-lg-row align-items-lg-center gap-3">
+                        <div class="position-relative" style="max-width: 320px; flex: 1;">
+                            <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+                            <input type="text" id="search" name="search" class="form-control form-control-sm ps-5"
+                                value="{{ request('search') }}" placeholder="Search follow-up title...">
+                        </div>
 
-                    <div class="d-flex flex-wrap gap-2">
-                        <select id="status" name="status" class="form-select form-select-sm w-auto" style="min-width: 150px;">
-                            <option value="">All Statuses</option>
-                            @foreach ($statusOptions as $status)
-                                <option value="{{ $status }}" @selected(request('status') === $status)>{{ ucfirst($status) }}</option>
-                            @endforeach
-                        </select>
+                        <div class="d-flex flex-wrap gap-2">
+                            <select id="status" name="status" class="form-select form-select-sm w-auto" style="min-width: 150px;">
+                                <option value="">All Statuses</option>
+                                @foreach ($statusOptions as $status)
+                                    <option value="{{ $status }}" @selected(request('status') === $status)>{{ ucfirst($status) }}</option>
+                                @endforeach
+                            </select>
 
-                        <button type="submit" class="btn btn-dark btn-sm px-3">Filter</button>
-                        <a href="{{ route('follow-ups.index') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
-                    </div>
+                            <button type="submit" class="btn btn-primary btn-sm px-3">Filter</button>
+                            <a href="{{ route('follow-ups.index') }}" class="btn btn-outline-primary btn-sm">Reset</a>
+                        </div>
 
-                    <div class="ms-lg-auto d-flex gap-2">
-                        <button type="submit" name="export" value="csv" class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-download"></i> CSV
-                        </button>
-                        <button type="submit" name="export" value="pdf" class="btn btn-primary btn-sm">
-                            <i class="bi bi-file-earmark-pdf"></i> PDF
-                        </button>
-                    </div>
-                </form>
+                        <div class="ms-lg-auto d-flex flex-wrap gap-2">
+                            <button type="submit" name="export" value="csv" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-download"></i> CSV
+                            </button>
+                            <button type="submit" name="export" value="pdf" class="btn btn-primary btn-sm">
+                                <i class="bi bi-file-earmark-pdf"></i> PDF
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
 
         <div class="card border-0 shadow-sm">
             <div class="table-responsive">
-                <table class="table crm-table table-hover align-middle mb-0 crm-data-table">
+                <table class="table crm-table table-hover align-middle mb-0 crm-data-table crm-table-fixed crm-followups-table">
+                    <colgroup>
+                        <col class="crm-col-followup-title">
+                        <col class="crm-col-followup-date">
+                        <col class="crm-col-followup-status">
+                        <col class="crm-col-followup-related">
+                        <col class="crm-col-followup-related">
+                        <col class="crm-col-followup-assignee">
+                        <col class="crm-col-followup-actions">
+                    </colgroup>
                     <thead class="table-light">
                         <tr>
                             <th class="small text-muted py-3">Title</th>
@@ -85,12 +96,21 @@
                     </thead>
                     <tbody>
                         @forelse ($followUps as $followUp)
+                            @php
+                                $followUpDescription = $followUp->description ? preg_replace('/\s+/', ' ', trim((string) $followUp->description)) : 'No description';
+                                $followUpDueDate = $followUp->due_date?->format('M d, Y') ?: 'N/A';
+                                $followUpCustomer = $followUp->customer
+                                    ? trim($followUp->customer->first_name.' '.$followUp->customer->last_name)
+                                    : 'N/A';
+                                $followUpLead = $followUp->lead?->name ?? 'N/A';
+                                $followUpAssignee = $followUp->user?->name ?? 'N/A';
+                            @endphp
                             <tr>
-                                <td class="py-3">
-                                    <div class="fw-semibold text-dark">{{ $followUp->title }}</div>
-                                    <small class="text-muted">{{ \Illuminate\Support\Str::limit($followUp->description, 70) }}</small>
+                                <td class="py-3" title="{{ $followUp->title }} - {{ $followUpDescription }}">
+                                    <div class="fw-semibold text-dark crm-table-cell-truncate">{{ $followUp->title }}</div>
+                                    <small class="text-muted d-block crm-table-cell-truncate">{{ $followUpDescription }}</small>
                                 </td>
-                                <td class="small text-muted py-3">{{ $followUp->due_date?->format('M d, Y') }}</td>
+                                <td class="small text-muted py-3 crm-table-cell-truncate" title="{{ $followUpDueDate }}">{{ $followUpDueDate }}</td>
                                 <td class="py-3">
                                     @php
                                         $followUpStatus = strtolower((string) $followUp->status);
@@ -100,17 +120,11 @@
                                     @endphp
                                     <span class="{{ $followUpStatusClass }}">{{ ucfirst($followUpStatus) }}</span>
                                 </td>
-                                <td class="small text-muted py-3">
-                                    @if ($followUp->customer)
-                                        {{ $followUp->customer->first_name }} {{ $followUp->customer->last_name }}
-                                    @else
-                                        N/A
-                                    @endif
-                                </td>
-                                <td class="small text-muted py-3">{{ $followUp->lead?->name ?? 'N/A' }}</td>
-                                <td class="small text-muted py-3">{{ $followUp->user?->name ?? 'N/A' }}</td>
-                                <td class="py-3">
-                                    <div class="d-flex justify-content-end gap-2">
+                                <td class="small text-muted py-3 crm-table-cell-truncate" title="{{ $followUpCustomer }}">{{ $followUpCustomer }}</td>
+                                <td class="small text-muted py-3 crm-table-cell-truncate" title="{{ $followUpLead }}">{{ $followUpLead }}</td>
+                                <td class="small text-muted py-3 crm-table-cell-truncate" title="{{ $followUpAssignee }}">{{ $followUpAssignee }}</td>
+                                <td class="py-3 crm-table-actions-cell">
+                                    <div class="crm-table-actions">
                                         @can('update', $followUp)
                                             @if ($followUp->status !== 'completed')
                                                 <a href="{{ route('follow-ups.edit', $followUp) }}" class="btn btn-sm btn-light border text-dark">Edit</a>

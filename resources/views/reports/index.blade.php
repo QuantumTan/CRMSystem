@@ -36,41 +36,42 @@
         </div>
 
         <div class="card border-0 shadow-sm mb-4 crm-toolkit">
-            <div class="card-body">
-                <form action="{{ route('reports.index') }}" method="GET" class="row g-3 align-items-end">
-                    <div class="col-12 col-md-4">
-                        <label for="from" class="form-label mb-1">From Date</label>
-                        <input
-                            type="date"
-                            id="from"
-                            name="from"
-                            value="{{ $activeFilters['from'] }}"
-                            class="form-control @error('from') is-invalid @enderror"
-                        >
-                        @error('from')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="col-12 col-md-4">
-                        <label for="to" class="form-label mb-1">To Date</label>
-                        <input
-                            type="date"
-                            id="to"
-                            name="to"
-                            value="{{ $activeFilters['to'] }}"
-                            class="form-control @error('to') is-invalid @enderror"
-                        >
-                        @error('to')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="col-12 col-md-4 d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-funnel me-1"></i>Apply Filter
-                        </button>
-                        <a href="{{ route('reports.index') }}" class="btn btn-outline-secondary">Reset</a>
-                    </div>
-                </form>
+            <div class="card-header bg-white border-bottom">
+                <div class="card-body p-1">
+                    <form action="{{ route('reports.index') }}" method="GET"
+                        class="d-flex flex-column flex-lg-row align-items-lg-end gap-3">
+                        <div style="min-width: 180px;">
+                            <label for="from" class="form-label small fw-semibold mb-1">From Date</label>
+                            <input
+                                type="date"
+                                id="from"
+                                name="from"
+                                value="{{ $activeFilters['from'] }}"
+                                class="form-control form-control-sm @error('from') is-invalid @enderror"
+                            >
+                            @error('from')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div style="min-width: 180px;">
+                            <label for="to" class="form-label small fw-semibold mb-1">To Date</label>
+                            <input
+                                type="date"
+                                id="to"
+                                name="to"
+                                value="{{ $activeFilters['to'] }}"
+                                class="form-control form-control-sm @error('to') is-invalid @enderror"
+                            >
+                            @error('to')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm px-3">Filter</button>
+                            <a href="{{ route('reports.index') }}" class="btn btn-outline-primary btn-sm">Reset</a>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
 
@@ -133,7 +134,11 @@
                             <canvas id="leadStatusChart" aria-label="Lead status chart" role="img"></canvas>
                         </div>
                         <div class="table-responsive">
-                            <table class="table crm-table crm-table-compact table-hover align-middle mb-0 crm-data-table-compact">
+                            <table class="table crm-table crm-table-compact table-hover align-middle mb-0 crm-data-table-compact crm-table-fixed">
+                                <colgroup>
+                                    <col style="width: 70%;">
+                                    <col style="width: 30%;">
+                                </colgroup>
                                 <thead>
                                     <tr>
                                         <th>Status</th>
@@ -142,8 +147,9 @@
                                 </thead>
                                 <tbody>
                                     @forelse ($data['leadsByStatus'] as $row)
+                                        @php $reportStatusLabel = str($row['status'])->replace('_', ' ')->title(); @endphp
                                         <tr>
-                                            <td>{{ str($row['status'])->replace('_', ' ')->title() }}</td>
+                                            <td class="crm-table-cell-truncate" title="{{ $reportStatusLabel }}">{{ $reportStatusLabel }}</td>
                                             <td class="text-end fw-semibold">{{ number_format($row['total']) }}</td>
                                         </tr>
                                     @empty
@@ -209,7 +215,12 @@
                             <canvas id="userActivityChart" aria-label="User activity chart" role="img"></canvas>
                         </div>
                         <div class="table-responsive">
-                            <table class="table crm-table crm-table-compact table-hover align-middle mb-0 crm-data-table-compact">
+                            <table class="table crm-table crm-table-compact table-hover align-middle mb-0 crm-data-table-compact crm-table-fixed crm-report-user-table">
+                                <colgroup>
+                                    <col class="crm-col-report-user">
+                                    <col class="crm-col-report-role">
+                                    <col class="crm-col-report-count">
+                                </colgroup>
                                 <thead>
                                     <tr>
                                         <th>User</th>
@@ -219,9 +230,12 @@
                                 </thead>
                                 <tbody>
                                     @forelse ($data['userActivity'] as $row)
+                                        @php
+                                            $reportUserRole = str($row->role)->title();
+                                        @endphp
                                         <tr>
-                                            <td class="fw-medium">{{ $row->name }}</td>
-                                            <td>{{ str($row->role)->title() }}</td>
+                                            <td class="fw-medium crm-table-cell-truncate" title="{{ $row->name }}">{{ $row->name }}</td>
+                                            <td class="crm-table-cell-truncate" title="{{ $reportUserRole }}">{{ $reportUserRole }}</td>
                                             <td class="text-end fw-semibold">{{ number_format($row->total_activities) }}</td>
                                         </tr>
                                     @empty

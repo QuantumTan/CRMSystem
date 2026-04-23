@@ -139,7 +139,11 @@
             </div>
             <div class="card-body pt-3">
                 <div class="table-responsive">
-                    <table class="table crm-table crm-table-compact table-hover align-middle mb-0 crm-data-table-compact">
+                    <table class="table crm-table crm-table-compact table-hover align-middle mb-0 crm-data-table-compact crm-table-fixed">
+                        <colgroup>
+                            <col style="width: 70%;">
+                            <col style="width: 30%;">
+                        </colgroup>
                         <thead>
                             <tr>
                                 <th>Status</th>
@@ -148,8 +152,9 @@
                         </thead>
                         <tbody>
                             @foreach ($data['leadStatusCounts'] as $status => $count)
+                                @php $leadStatusLabel = $statusLabels[$status] ?? ucfirst(str_replace('_', ' ', $status)); @endphp
                                 <tr>
-                                    <td>{{ $statusLabels[$status] ?? ucfirst(str_replace('_', ' ', $status)) }}</td>
+                                    <td class="crm-table-cell-truncate" title="{{ $leadStatusLabel }}">{{ $leadStatusLabel }}</td>
                                     <td class="text-end fw-semibold">{{ number_format($count) }}</td>
                                 </tr>
                             @endforeach
@@ -216,7 +221,14 @@
                     <p class="text-muted mb-0">No recent activities.</p>
                 @else
                     <div class="table-responsive">
-                        <table class="table crm-table crm-table-compact table-hover align-middle mb-0 crm-data-table-compact">
+                        <table class="table crm-table crm-table-compact table-hover align-middle mb-0 crm-data-table-compact crm-table-fixed crm-activity-table">
+                            <colgroup>
+                                <col class="crm-col-activity-date">
+                                <col class="crm-col-activity-type">
+                                <col class="crm-col-activity-description">
+                                <col class="crm-col-activity-related">
+                                <col class="crm-col-activity-user">
+                            </colgroup>
                             <thead>
                                 <tr>
                                     <th>Date</th>
@@ -228,20 +240,22 @@
                             </thead>
                             <tbody>
                                 @foreach ($data['recentActivities'] as $activity)
+                                    @php
+                                        $activityDate = optional($activity->activity_date)->format('M d, Y') ?: 'N/A';
+                                        $activityDescription = $activity->description ? preg_replace('/\s+/', ' ', trim((string) $activity->description)) : 'N/A';
+                                        $activityRelated = match (true) {
+                                            (bool) $activity->customer => 'Customer: '.trim($activity->customer->first_name.' '.$activity->customer->last_name),
+                                            (bool) $activity->lead => 'Lead: '.$activity->lead->name,
+                                            default => 'N/A',
+                                        };
+                                        $activityUser = $activity->user?->name ?? 'N/A';
+                                    @endphp
                                     <tr>
-                                        <td>{{ optional($activity->activity_date)->format('M d, Y') }}</td>
-                                        <td>{{ ucfirst($activity->activity_type) }}</td>
-                                        <td>{{ \Illuminate\Support\Str::limit($activity->description, 90) }}</td>
-                                        <td>
-                                            @if ($activity->customer)
-                                                Customer: {{ $activity->customer->first_name }} {{ $activity->customer->last_name }}
-                                            @elseif ($activity->lead)
-                                                Lead: {{ $activity->lead->name }}
-                                            @else
-                                                N/A
-                                            @endif
-                                        </td>
-                                        <td>{{ $activity->user?->name ?? 'N/A' }}</td>
+                                        <td class="crm-table-cell-truncate" title="{{ $activityDate }}">{{ $activityDate }}</td>
+                                        <td class="crm-table-cell-truncate" title="{{ ucfirst($activity->activity_type) }}">{{ ucfirst($activity->activity_type) }}</td>
+                                        <td class="crm-table-cell-truncate" title="{{ $activityDescription }}">{{ $activityDescription }}</td>
+                                        <td class="crm-table-cell-truncate" title="{{ $activityRelated }}">{{ $activityRelated }}</td>
+                                        <td class="crm-table-cell-truncate" title="{{ $activityUser }}">{{ $activityUser }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>

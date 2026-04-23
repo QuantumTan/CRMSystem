@@ -8,7 +8,6 @@
         data-delete-modal-target="#deleteModal"
         data-delete-action="{{ route('customers.destroy', $customer) }}"
         data-delete-name="{{ trim($customer->first_name.' '.$customer->last_name) }}">
-        <i class="bi bi-trash"></i>
         {{ $buttonLabel }}
     </button>
 @endcan
