@@ -47,46 +47,48 @@
         </div>
 
         <div class="card border-0 shadow-sm mb-4 crm-toolkit">
-            <div class="card-body p-3">
-                <form action="{{ route('leads.kanban') }}" method="GET"
-                    class="d-flex flex-column flex-lg-row align-items-lg-center gap-3">
-                    <div class="position-relative" style="max-width: 300px; flex: 1;">
-                        <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted small"></i>
-                        <input type="text" id="search" name="search" class="form-control form-control-sm ps-5"
-                            value="{{ request('search') }}" placeholder="Search name, email, phone...">
-                    </div>
+            <div class="card-header bg-white border-bottom">
+                <div class="card-body p-1">
+                    <form action="{{ route('leads.kanban') }}" method="GET"
+                        class="d-flex flex-column flex-lg-row align-items-lg-center gap-3">
+                        <div class="position-relative" style="max-width: 320px; flex: 1;">
+                            <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+                            <input type="text" id="search" name="search" class="form-control form-control-sm ps-5"
+                                value="{{ request('search') }}" placeholder="Search name, email, phone...">
+                        </div>
 
-                    <select id="status" name="status" class="form-select form-select-sm w-auto" style="min-width: 140px;">
-                        <option value="">All Statuses</option>
-                        @foreach ($statuses as $statusOption)
-                            <option value="{{ $statusOption }}" @selected(request('status') == $statusOption)>
-                                {{ ucfirst(str_replace('_', ' ', $statusOption)) }}
-                            </option>
-                        @endforeach
-                    </select>
+                        <div class="d-flex flex-wrap gap-2">
+                            <select id="status" name="status" class="form-select form-select-sm w-auto" style="min-width: 140px;">
+                                <option value="">All Statuses</option>
+                                @foreach ($statuses as $statusOption)
+                                    <option value="{{ $statusOption }}" @selected(request('status') == $statusOption)>
+                                        {{ ucfirst(str_replace('_', ' ', $statusOption)) }}
+                                    </option>
+                                @endforeach
+                            </select>
 
-                    <select id="priority" name="priority" class="form-select form-select-sm w-auto" style="min-width: 130px;">
-                        <option value="">All Priorities</option>
-                        <option value="low" @selected(request('priority') == 'low')>Low</option>
-                        <option value="medium" @selected(request('priority') == 'medium')>Medium</option>
-                        <option value="high" @selected(request('priority') == 'high')>High</option>
-                    </select>
+                            <select id="priority" name="priority" class="form-select form-select-sm w-auto" style="min-width: 130px;">
+                                <option value="">All Priorities</option>
+                                <option value="low" @selected(request('priority') == 'low')>Low</option>
+                                <option value="medium" @selected(request('priority') == 'medium')>Medium</option>
+                                <option value="high" @selected(request('priority') == 'high')>High</option>
+                            </select>
 
-                    <select id="assigned_user" name="assigned_user" class="form-select form-select-sm w-auto"
-                        style="min-width: 140px;">
-                        <option value="">All Users</option>
-                        @foreach ($users as $assignee)
-                            <option value="{{ $assignee->id }}" @selected(request('assigned_user') == $assignee->id)>
-                                {{ $assignee->name }}
-                            </option>
-                        @endforeach
-                    </select>
+                            <select id="assigned_user" name="assigned_user" class="form-select form-select-sm w-auto"
+                                style="min-width: 140px;">
+                                <option value="">All Users</option>
+                                @foreach ($users as $assignee)
+                                    <option value="{{ $assignee->id }}" @selected(request('assigned_user') == $assignee->id)>
+                                        {{ $assignee->name }}
+                                    </option>
+                                @endforeach
+                            </select>
 
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-dark btn-sm px-3">Filter</button>
-                        <a href="{{ route('leads.kanban') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
-                    </div>
-                </form>
+                            <button type="submit" class="btn btn-primary btn-sm px-3">Filter</button>
+                            <a href="{{ route('leads.kanban') }}" class="btn btn-outline-primary btn-sm">Reset</a>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
 

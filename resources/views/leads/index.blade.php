@@ -39,55 +39,70 @@
         </div>
 
         <div class="card border-0 shadow-sm mb-4 crm-toolkit">
-            <div class="card-body p-3">
-                <form action="{{ route('leads.index') }}" method="GET"
-                    class="d-flex flex-column flex-lg-row align-items-lg-center gap-3">
-                    <div class="position-relative" style="max-width: 300px; flex: 1;">
-                        <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted small"></i>
-                        <input type="text" id="search" name="search" class="form-control form-control-sm ps-5"
-                            value="{{ request('search') }}" placeholder="Search name, email, phone..."
-                            data-lead-filter="search">
-                    </div>
+            <div class="card-header bg-white border-bottom">
+                <div class="card-body p-1">
+                    <form action="{{ route('leads.index') }}" method="GET"
+                        class="d-flex flex-column flex-lg-row align-items-lg-center gap-3">
+                        <div class="position-relative" style="max-width: 320px; flex: 1;">
+                            <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+                            <input type="text" id="search" name="search" class="form-control form-control-sm ps-5"
+                                value="{{ request('search') }}" placeholder="Search name, email, phone..."
+                                data-lead-filter="search">
+                        </div>
 
-                    <select id="status" name="status" class="form-select form-select-sm w-auto"
-                        style="min-width: 140px;" data-lead-filter="status">
-                        <option value="">All Statuses</option>
-                        @foreach ($statusOptions as $statusOption)
-                            <option value="{{ $statusOption }}" @selected(request('status') == $statusOption)>
-                                {{ ucfirst(str_replace('_', ' ', $statusOption)) }}
-                            </option>
-                        @endforeach
-                    </select>
+                        <div class="d-flex flex-wrap gap-2">
+                            <select id="status" name="status" class="form-select form-select-sm w-auto"
+                                style="min-width: 140px;" data-lead-filter="status">
+                                <option value="">All Statuses</option>
+                                @foreach ($statusOptions as $statusOption)
+                                    <option value="{{ $statusOption }}" @selected(request('status') == $statusOption)>
+                                        {{ ucfirst(str_replace('_', ' ', $statusOption)) }}
+                                    </option>
+                                @endforeach
+                            </select>
 
-                    <select id="priority" name="priority" class="form-select form-select-sm w-auto"
-                        style="min-width: 130px;" data-lead-filter="priority">
-                        <option value="">All Priorities</option>
-                        <option value="low" @selected(request('priority') == 'low')>Low</option>
-                        <option value="medium" @selected(request('priority') == 'medium')>Medium</option>
-                        <option value="high" @selected(request('priority') == 'high')>High</option>
-                    </select>
+                            <select id="priority" name="priority" class="form-select form-select-sm w-auto"
+                                style="min-width: 130px;" data-lead-filter="priority">
+                                <option value="">All Priorities</option>
+                                <option value="low" @selected(request('priority') == 'low')>Low</option>
+                                <option value="medium" @selected(request('priority') == 'medium')>Medium</option>
+                                <option value="high" @selected(request('priority') == 'high')>High</option>
+                            </select>
 
-                    <select id="assigned_user" name="assigned_user" class="form-select form-select-sm w-auto"
-                        style="min-width: 140px;" data-lead-filter="assigned-user">
-                        <option value="">All Users</option>
-                        @foreach ($assignableUsers as $assignee)
-                            <option value="{{ $assignee->id }}" @selected(request('assigned_user') == $assignee->id)>
-                                {{ $assignee->name }}
-                            </option>
-                        @endforeach
-                    </select>
+                            <select id="assigned_user" name="assigned_user" class="form-select form-select-sm w-auto"
+                                style="min-width: 140px;" data-lead-filter="assigned-user">
+                                <option value="">All Users</option>
+                                @foreach ($assignableUsers as $assignee)
+                                    <option value="{{ $assignee->id }}" @selected(request('assigned_user') == $assignee->id)>
+                                        {{ $assignee->name }}
+                                    </option>
+                                @endforeach
+                            </select>
 
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-dark btn-sm px-3">Filter</button>
-                        <a href="{{ route('leads.index') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
-                    </div>
-                </form>
+                            <button type="submit" class="btn btn-primary btn-sm px-3">Filter</button>
+                            <a href="{{ route('leads.index') }}" class="btn btn-outline-primary btn-sm">Reset</a>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
 
         <div class="card border-0 shadow-sm">
             <div class="table-responsive">
-                <table class="table crm-table table-hover align-middle mb-0 crm-data-table">
+                <table class="table crm-table table-hover align-middle mb-0 crm-data-table crm-table-fixed crm-leads-table">
+                    <colgroup>
+                        <col class="crm-col-lead-id">
+                        <col class="crm-col-lead-name">
+                        <col class="crm-col-lead-email">
+                        <col class="crm-col-lead-phone">
+                        <col class="crm-col-lead-status">
+                        <col class="crm-col-lead-priority">
+                        <col class="crm-col-lead-value">
+                        <col class="crm-col-lead-assignee">
+                        <col class="crm-col-lead-source">
+                        <col class="crm-col-lead-date">
+                        <col class="crm-col-lead-actions">
+                    </colgroup>
                     <thead class="table-light">
                         <tr>
                             <th class="small text-muted py-3">Lead ID</th>
@@ -105,13 +120,22 @@
                     </thead>
                     <tbody>
                         @forelse ($leads as $lead)
+                            @php
+                                $leadId = $lead->lead_id ?: 'N/A';
+                                $leadEmail = $lead->email ?: 'N/A';
+                                $leadPhone = $lead->phone ?: 'N/A';
+                                $leadValue = $lead->expected_value ? $currencyCode . ' ' . number_format($lead->expected_value, 2) : 'N/A';
+                                $leadAssignee = $lead->assignedUser?->name ?: 'Unassigned';
+                                $leadSource = $lead->source ?: 'N/A';
+                                $leadCreatedAt = $lead->created_at->format('M d, Y');
+                            @endphp
                             <tr data-lead-id="{{ $lead->id }}" data-status="{{ $lead->status }}"
                                 data-priority="{{ strtolower($lead->priority) }}"
                                 data-assigned="{{ $lead->assigned_user_id ?? '' }}">
-                                <td class="small text-muted py-3">{{ $lead->lead_id ?: 'N/A' }}</td>
-                                <td class="small text-muted py-3">{{ $lead->name }}</td>
-                                <td class="small text-muted py-3">{{ $lead->email ?: 'N/A' }}</td>
-                                <td class="small text-muted py-3">{{ $lead->phone ?: 'N/A' }}</td>
+                                <td class="small text-muted py-3 crm-table-cell-truncate" title="{{ $leadId }}">{{ $leadId }}</td>
+                                <td class="small text-muted py-3 crm-table-cell-truncate" title="{{ $lead->name }}">{{ $lead->name }}</td>
+                                <td class="small text-muted py-3 crm-table-cell-truncate" title="{{ $leadEmail }}">{{ $leadEmail }}</td>
+                                <td class="small text-muted py-3 crm-table-cell-truncate" title="{{ $leadPhone }}">{{ $leadPhone }}</td>
                                 <td class="py-3">
                                     @php
                                         $leadStatus = strtolower((string) $lead->status);
@@ -142,14 +166,12 @@
                                     @endphp
                                     <span class="{{ $leadPriorityClass }}">{{ ucfirst($lead->priority) }}</span>
                                 </td>
-                                <td class="small text-muted py-3">
-                                    {{ $lead->expected_value ? $currencyCode . ' ' . number_format($lead->expected_value, 2) : 'N/A' }}
-                                </td>
-                                <td class="small text-muted py-3">{{ $lead->assignedUser?->name ?: 'Unassigned' }}</td>
-                                <td class="small text-muted py-3">{{ $lead->source ?: 'N/A' }}</td>
-                                <td class="small text-muted py-3">{{ $lead->created_at->format('M d, Y') }}</td>
-                                <td class="py-3">
-                                    <div class="d-flex justify-content-end gap-2">
+                                <td class="small text-muted py-3 crm-table-cell-truncate" title="{{ $leadValue }}">{{ $leadValue }}</td>
+                                <td class="small text-muted py-3 crm-table-cell-truncate" title="{{ $leadAssignee }}">{{ $leadAssignee }}</td>
+                                <td class="small text-muted py-3 crm-table-cell-truncate" title="{{ $leadSource }}">{{ $leadSource }}</td>
+                                <td class="small text-muted py-3 crm-table-cell-truncate" title="{{ $leadCreatedAt }}">{{ $leadCreatedAt }}</td>
+                                <td class="py-3 crm-table-actions-cell">
+                                    <div class="crm-table-actions">
                                         <a href="{{ route('leads.show', $lead) }}"
                                             class="btn btn-sm btn-light border text-primary">
                                             View

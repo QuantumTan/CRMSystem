@@ -633,6 +633,220 @@ textarea.form-control {
     min-width: 920px;
 }
 
+.crm-table-fixed {
+    table-layout: fixed;
+}
+
+.crm-customer-table {
+    min-width: 112rem;
+}
+
+.crm-customer-table col.crm-col-customer-id {
+    width: 6rem;
+}
+
+.crm-customer-table col.crm-col-customer-name {
+    width: 7rem;
+}
+
+.crm-customer-table col.crm-col-customer-email {
+    width: 15rem;
+}
+
+.crm-customer-table col.crm-col-customer-phone {
+    width: 9.5rem;
+}
+
+.crm-customer-table col.crm-col-customer-company {
+    width: 11rem;
+}
+
+.crm-customer-table col.crm-col-customer-address {
+    width: 15rem;
+}
+
+.crm-customer-table col.crm-col-customer-status {
+    width: 7rem;
+}
+
+.crm-customer-table col.crm-col-customer-assignment {
+    width: 10.5rem;
+}
+
+.crm-customer-table col.crm-col-customer-assignee {
+    width: 10rem;
+}
+
+.crm-customer-table col.crm-col-customer-date {
+    width: 8.5rem;
+}
+
+.crm-customer-table col.crm-col-customer-actions {
+    width: 13.5rem;
+}
+
+.crm-leads-table {
+    min-width: 104rem;
+}
+
+.crm-leads-table col.crm-col-lead-id {
+    width: 8rem;
+}
+
+.crm-leads-table col.crm-col-lead-name {
+    width: 11rem;
+}
+
+.crm-leads-table col.crm-col-lead-email {
+    width: 15rem;
+}
+
+.crm-leads-table col.crm-col-lead-phone {
+    width: 10rem;
+}
+
+.crm-leads-table col.crm-col-lead-status {
+    width: 9rem;
+}
+
+.crm-leads-table col.crm-col-lead-priority {
+    width: 8rem;
+}
+
+.crm-leads-table col.crm-col-lead-value {
+    width: 10rem;
+}
+
+.crm-leads-table col.crm-col-lead-assignee {
+    width: 11rem;
+}
+
+.crm-leads-table col.crm-col-lead-source {
+    width: 10rem;
+}
+
+.crm-leads-table col.crm-col-lead-date {
+    width: 8.5rem;
+}
+
+.crm-leads-table col.crm-col-lead-actions {
+    width: 13.5rem;
+}
+
+.crm-users-table {
+    min-width: 58rem;
+}
+
+.crm-users-table col.crm-col-user-name {
+    width: 16rem;
+}
+
+.crm-users-table col.crm-col-user-email {
+    width: 20rem;
+}
+
+.crm-users-table col.crm-col-user-role {
+    width: 8rem;
+}
+
+.crm-users-table col.crm-col-user-date {
+    width: 8.5rem;
+}
+
+.crm-users-table col.crm-col-user-actions {
+    width: 14rem;
+}
+
+.crm-followups-table {
+    min-width: 84rem;
+}
+
+.crm-followups-table col.crm-col-followup-title {
+    width: 21rem;
+}
+
+.crm-followups-table col.crm-col-followup-date {
+    width: 9rem;
+}
+
+.crm-followups-table col.crm-col-followup-status {
+    width: 9rem;
+}
+
+.crm-followups-table col.crm-col-followup-related {
+    width: 12rem;
+}
+
+.crm-followups-table col.crm-col-followup-assignee {
+    width: 12rem;
+}
+
+.crm-followups-table col.crm-col-followup-actions {
+    width: 15rem;
+}
+
+.crm-activity-table {
+    min-width: 66rem;
+}
+
+.crm-activity-table col.crm-col-activity-date {
+    width: 9rem;
+}
+
+.crm-activity-table col.crm-col-activity-type {
+    width: 8rem;
+}
+
+.crm-activity-table col.crm-col-activity-description {
+    width: 24rem;
+}
+
+.crm-activity-table col.crm-col-activity-related {
+    width: 16rem;
+}
+
+.crm-activity-table col.crm-col-activity-user {
+    width: 11rem;
+}
+
+.crm-report-user-table {
+    min-width: 42rem;
+}
+
+.crm-report-user-table col.crm-col-report-user {
+    width: 20rem;
+}
+
+.crm-report-user-table col.crm-col-report-role {
+    width: 10rem;
+}
+
+.crm-report-user-table col.crm-col-report-count {
+    width: 10rem;
+}
+
+.crm-table-cell-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+td.crm-table-cell-truncate,
+th.crm-table-cell-truncate {
+    max-width: 0;
+}
+
+.crm-table-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.45rem;
+    flex-wrap: nowrap;
+}
+
+.crm-table-actions .btn {
+    flex: 0 0 auto;
+}
+
 .crm-data-table-compact {
     min-width: 620px;
 }
