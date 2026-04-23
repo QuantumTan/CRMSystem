@@ -163,7 +163,7 @@
         </table>
     </div>
 
-    <div class="card-footer bg-white border-top py-3">
+    <div class="card-footer bg-white border-top py-3 page-item">
         {{ $customers->withQueryString()->links('pagination::bootstrap-5') }}
     </div>
 </div>
