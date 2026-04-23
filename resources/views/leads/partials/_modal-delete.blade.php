@@ -1,4 +1,4 @@
-<div class="modal fade" id="deleteModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+<div class="modal fade" id="deleteLeadModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-0 pb-0">
@@ -7,7 +7,7 @@
 
             <div class="modal-body pt-2 text-center px-4">
                 <i class="bi bi-exclamation-triangle-fill text-warning" style="font-size: 3.5rem;"></i>
-                <h4 class="mt-3 mb-2">Delete Customer</h4>
+                <h4 class="mt-3 mb-2">Delete Lead</h4>
                 <p class="mb-1">
                     Are you sure you want to delete
                     <strong data-delete-modal-name></strong>?

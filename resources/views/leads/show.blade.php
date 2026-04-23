@@ -66,13 +66,14 @@
 
                                     <a href="{{ route('leads.edit', $lead) }}" class="btn btn-primary">Edit Lead</a>
 
-                                    @if (! $lead->isConverted())
-                                        <form id="deleteLeadForm" action="{{ route('leads.destroy', $lead) }}" method="POST" onsubmit="return confirm('Delete this lead? This action cannot be undone.');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-outline-danger">Delete</button>
-                                        </form>
-                                    @endif
+                                    @can('delete', $lead)
+                                        @if (! $lead->isConverted())
+                                            @include('leads.partials._delete-trigger', [
+                                                'lead' => $lead,
+                                                'buttonClass' => 'btn btn-outline-danger d-inline-flex align-items-center gap-2',
+                                            ])
+                                        @endif
+                                    @endcan
                                 </div>
                             @endif
                         </div>
@@ -193,4 +194,6 @@
             </div>
         </div>
     </div>
+
+    @include('leads.partials._modal-delete')
 @endsection

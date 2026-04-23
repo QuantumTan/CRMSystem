@@ -26,7 +26,7 @@ it('allows only admins to open the system configuration page', function () {
         ->assertForbidden();
 });
 
-it('renders lead status badges as links to the matching kanban column', function () {
+it('renders lead status badges as links to the matching kanban card', function () {
     $admin = User::factory()->admin()->create();
 
     $lead = Lead::factory()->create([
@@ -34,7 +34,7 @@ it('renders lead status badges as links to the matching kanban column', function
         'assigned_user_id' => $admin->id,
     ]);
 
-    $expectedLink = route('leads.kanban', ['status' => $lead->status]).'#status-proposal-sent';
+    $expectedLink = route('leads.kanban').'#lead-kanban-card-'.$lead->id;
 
     $this->actingAs($admin)
         ->get(route('leads.index'))

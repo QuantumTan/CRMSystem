@@ -22,16 +22,13 @@ class CustomerController extends Controller
             'search' => ['nullable', 'string', 'max:100'],
             'status' => ['nullable', 'in:active,inactive'],
             'assigned_user_id' => ['nullable', 'integer', 'exists:users,id'],
-            'delete' => ['nullable', 'integer', 'exists:customers,id'],
         ]);
 
         $customers = $this->service->getFilteredQuery($filters)->paginate(10)->withQueryString();
-        $deleting = isset($filters['delete']) ? Customer::find($filters['delete']) : null;
 
         return view('customers.index', array_merge($this->service->getStats(), [
             'customers' => $customers,
             'assignableUsers' => $this->service->assignableUsers(),
-            'deleting' => $deleting,
             'assignmentStatuses' => ['pending', 'approved', 'rejected'],
         ]));
     }

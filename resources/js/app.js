@@ -43,6 +43,38 @@ function initSubmitButtonGuard() {
     });
 }
 
+function initDeleteModals() {
+    document.querySelectorAll('[data-delete-modal-trigger]').forEach(function (trigger) {
+        trigger.addEventListener('click', function () {
+            const modalSelector = trigger.dataset.deleteModalTarget;
+            const modalElement = modalSelector ? document.querySelector(modalSelector) : null;
+
+            if (!modalElement || !window.bootstrap?.Modal) {
+                return;
+            }
+
+            const form = modalElement.querySelector('[data-delete-modal-form]');
+            const name = modalElement.querySelector('[data-delete-modal-name]');
+
+            if (form && trigger.dataset.deleteAction) {
+                form.action = trigger.dataset.deleteAction;
+                delete form.dataset.submitting;
+
+                form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach(function (button) {
+                    button.disabled = false;
+                    button.removeAttribute('aria-disabled');
+                });
+            }
+
+            if (name) {
+                name.textContent = trigger.dataset.deleteName || '';
+            }
+
+            window.bootstrap.Modal.getOrCreateInstance(modalElement).show();
+        });
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     const storageKey = 'crmSidebarCollapsed';
     const body = document.body;
@@ -90,6 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     initSubmitButtonGuard();
+    initDeleteModals();
     initLeadIndexPage();
     initLeadKanbanPage();
 });

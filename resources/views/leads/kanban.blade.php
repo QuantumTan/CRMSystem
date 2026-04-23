@@ -9,6 +9,8 @@
         $focusedStatus = request('status');
     @endphp
 
+    @include('leads.partials._modal-delete')
+
     <div class="container-fluid px-3 px-md-4 py-4" data-lead-kanban-page
         data-leads-base-url="{{ url('/leads') }}" data-can-drag-leads="{{ $canDragLeads ? 'true' : 'false' }}">
 
@@ -182,16 +184,12 @@
                                                 class="btn btn-sm btn-outline-warning crm-action-btn" title="Edit">
                                                 Edit
                                             </a>
-                                            <form action="{{ route('leads.destroy', $lead) }}" method="POST" class="d-inline-flex"
-                                                onsubmit="return confirm('Are you sure you want to delete this lead?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-outline-danger crm-action-btn"
-                                                    title="Delete">
-                                                    Delete
-                                                </button>
-                                            </form>
                                         @endif
+                                        @include('leads.partials._delete-trigger', [
+                                            'lead' => $lead,
+                                            'buttonClass' => 'btn btn-sm btn-outline-danger crm-action-btn d-inline-flex align-items-center gap-1',
+                                            'buttonLabel' => 'Delete',
+                                        ])
                                     </div>
                                 </div>
 
