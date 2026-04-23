@@ -48,9 +48,20 @@ class Lead extends Model
 
         static::creating(function ($lead) {
             if (! $lead->lead_id) {
-                $latest = self::latest('id')->first();
-                $nextId = $latest ? $latest->id + 1 : 1;
-                $lead->lead_id = 'LEAD-'.str_pad($nextId, 4, '0', STR_PAD_LEFT);
+                $maxLeadNumber = (int) static::withTrashed()
+                    ->where('lead_id', 'like', 'LEAD-%')
+                    ->selectRaw("MAX(CAST(SUBSTRING(lead_id, 6) AS UNSIGNED)) as max_number")
+                    ->value('max_number');
+
+                $nextId = $maxLeadNumber + 1;
+                $candidateLeadId = 'LEAD-'.str_pad($nextId, 4, '0', STR_PAD_LEFT);
+
+                while (static::withTrashed()->where('lead_id', $candidateLeadId)->exists()) {
+                    $nextId++;
+                    $candidateLeadId = 'LEAD-'.str_pad($nextId, 4, '0', STR_PAD_LEFT);
+                }
+
+                $lead->lead_id = $candidateLeadId;
             }
         });
     }
