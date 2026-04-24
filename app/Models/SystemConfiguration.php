@@ -21,12 +21,12 @@ class SystemConfiguration extends Model
     {
         return [
             'app_name' => config('app.name', 'NexLink CRM'),
-            'company_email' => null,
-            'company_phone' => null,
-            'company_address' => null,
-            'default_lead_status' => 'new',
-            'default_lead_priority' => 'medium',
-            'currency_code' => 'PHP',
+            'company_email' => config('crm.company_email'),
+            'company_phone' => config('crm.company_phone'),
+            'company_address' => config('crm.company_address'),
+            'default_lead_status' => config('crm.default_lead_status', 'new'),
+            'default_lead_priority' => config('crm.default_lead_priority', 'medium'),
+            'currency_code' => config('crm.currency_code', 'PHP'),
             'password_reset_expire_minutes' => 60,
         ];
     }

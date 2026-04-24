@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\SystemConfigurationService;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -13,7 +14,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(SystemConfigurationService::class);
     }
 
     /**
@@ -21,6 +22,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->app->make(SystemConfigurationService::class)->bootstrap();
+
         // add this because tailwind is the default
         Paginator::useBootstrapFive();
 

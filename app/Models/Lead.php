@@ -47,6 +47,14 @@ class Lead extends Model
         parent::boot();
 
         static::creating(function ($lead) {
+            if (blank($lead->status)) {
+                $lead->status = config('crm.default_lead_status', 'new');
+            }
+
+            if (blank($lead->priority)) {
+                $lead->priority = config('crm.default_lead_priority', 'medium');
+            }
+
             if (! $lead->lead_id) {
                 $maxLeadNumber = (int) static::withTrashed()
                     ->where('lead_id', 'like', 'LEAD-%')

@@ -88,6 +88,51 @@ it('uses configured lead defaults on the create lead page', function () {
         ->assertSee('<span class="input-group-text">USD</span>', false);
 });
 
+it('applies configured lead defaults when a lead is created without explicit status and priority', function () {
+    $admin = User::factory()->admin()->create();
+
+    SystemConfiguration::query()->create([
+        'app_name' => 'Atlas CRM',
+        'default_lead_status' => 'qualified',
+        'default_lead_priority' => 'high',
+        'currency_code' => 'USD',
+        'password_reset_expire_minutes' => 90,
+    ] + SystemConfiguration::defaults());
+
+    $this->actingAs($admin)
+        ->post(route('leads.store'), [
+            'name' => 'Config Driven Lead',
+            'email' => 'lead@example.test',
+            'source' => 'Website',
+        ])
+        ->assertRedirect(route('leads.index'));
+
+    $lead = Lead::query()->latest('id')->first();
+
+    expect($lead)->not->toBeNull();
+    expect($lead->status)->toBe('qualified');
+    expect($lead->priority)->toBe('high');
+});
+
+it('shows the configured currency code in reports', function () {
+    $admin = User::factory()->admin()->create();
+
+    SystemConfiguration::query()->create([
+        'app_name' => 'Atlas CRM',
+        'currency_code' => 'USD',
+    ] + SystemConfiguration::defaults());
+
+    Lead::factory()->create([
+        'assigned_user_id' => $admin->id,
+        'expected_value' => 12500,
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('reports.index'))
+        ->assertOk()
+        ->assertSee('USD 12,500.00');
+});
+
 it('shows the configured password reset expiration on the forgot password page', function () {
     SystemConfiguration::query()->create([
         'app_name' => 'Atlas CRM',

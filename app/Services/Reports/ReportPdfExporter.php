@@ -10,6 +10,7 @@ class ReportPdfExporter
     public function build(array $data): string
     {
         $dateRangeLabel = $this->resolveDateRangeLabel($data);
+        $currencyCode = config('crm.currency_code', 'PHP');
 
         $summaryRows = [
             ['Metric', 'Value'],
@@ -17,8 +18,8 @@ class ReportPdfExporter
             ['Pipeline Leads', (string) ($data['salesPipelineSummary']['active_pipeline_leads'] ?? 0)],
             ['Won Leads', (string) ($data['salesPipelineSummary']['won_leads'] ?? 0)],
             ['Lost Leads', (string) ($data['salesPipelineSummary']['lost_leads'] ?? 0)],
-            ['Total Expected Value', number_format((float) ($data['salesPipelineSummary']['total_expected_value'] ?? 0), 2, '.', '')],
-            ['Active Pipeline Value', number_format((float) ($data['salesPipelineSummary']['active_expected_value'] ?? 0), 2, '.', '')],
+            ['Total Expected Value', $currencyCode.' '.number_format((float) ($data['salesPipelineSummary']['total_expected_value'] ?? 0), 2, '.', '')],
+            ['Active Pipeline Value', $currencyCode.' '.number_format((float) ($data['salesPipelineSummary']['active_expected_value'] ?? 0), 2, '.', '')],
             ['Follow-up Completion Rate', number_format((float) ($data['followUpCompletion']['completion_rate'] ?? 0), 2, '.', '').'%'],
         ];
 
@@ -113,7 +114,7 @@ class ReportPdfExporter
             .'th,td{border:1px solid #d1d5db;padding:6px;text-align:left;vertical-align:top;}'
             .'th{background:#f3f4f6;font-weight:700;}'
             .'</style></head><body>'
-            .'<h1>CRM Reports Summary</h1>'
+            .'<h1>'.$this->escape(config('app.name', 'NexLink CRM')).' Reports Summary</h1>'
             .'<p class="meta">Generated At: '.$this->escape((string) $context['generatedAt']).'<br>Date Range: '.$this->escape((string) $context['dateRange']).'</p>'
             .$sectionsHtml
             .'</body></html>';

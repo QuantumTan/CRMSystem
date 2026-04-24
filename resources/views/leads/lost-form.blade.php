@@ -4,7 +4,7 @@
 
 @section('content')
     @php
-        $currencyCode = $systemConfiguration?->currency_code ?? 'PHP';
+        $currencyCode = $systemConfiguration?->currency_code ?? config('crm.currency_code', 'PHP');
     @endphp
 
     <div class="container-fluid px-3 px-md-4 py-4">
