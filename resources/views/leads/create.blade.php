@@ -4,9 +4,9 @@
 
 @section('content')
     @php
-        $defaultLeadStatus = old('status', $systemConfiguration?->default_lead_status ?? 'new');
-        $defaultLeadPriority = old('priority', $systemConfiguration?->default_lead_priority ?? 'medium');
-        $currencyCode = $systemConfiguration?->currency_code ?? 'PHP';
+        $defaultLeadStatus = old('status', $systemConfiguration?->default_lead_status ?? config('crm.default_lead_status', 'new'));
+        $defaultLeadPriority = old('priority', $systemConfiguration?->default_lead_priority ?? config('crm.default_lead_priority', 'medium'));
+        $currencyCode = $systemConfiguration?->currency_code ?? config('crm.currency_code', 'PHP');
     @endphp
 
     <div class="container-fluid px-3 px-md-4 py-4">

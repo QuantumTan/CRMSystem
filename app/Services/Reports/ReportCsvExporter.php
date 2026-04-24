@@ -7,17 +7,20 @@ class ReportCsvExporter
     public function build(array $data): array
     {
         $dateRangeLabel = $this->resolveDateRangeLabel($data);
+        $currencyCode = config('crm.currency_code', 'PHP');
 
         $rows = [
             ['Report', 'Value'],
+            ['Workspace', config('app.name', 'NexLink CRM')],
             ['Generated At', now()->toDateTimeString()],
             ['Date Range', $dateRangeLabel],
+            ['Currency', $currencyCode],
             ['Total Customers', (string) $data['totalCustomers']],
             ['Pipeline Leads', (string) $data['salesPipelineSummary']['active_pipeline_leads']],
             ['Won Leads', (string) $data['salesPipelineSummary']['won_leads']],
             ['Lost Leads', (string) $data['salesPipelineSummary']['lost_leads']],
-            ['Total Expected Value', number_format((float) $data['salesPipelineSummary']['total_expected_value'], 2, '.', '')],
-            ['Active Pipeline Value', number_format((float) $data['salesPipelineSummary']['active_expected_value'], 2, '.', '')],
+            ['Total Expected Value', $currencyCode.' '.number_format((float) $data['salesPipelineSummary']['total_expected_value'], 2, '.', '')],
+            ['Active Pipeline Value', $currencyCode.' '.number_format((float) $data['salesPipelineSummary']['active_expected_value'], 2, '.', '')],
             ['Follow-up Completion Rate', number_format((float) $data['followUpCompletion']['completion_rate'], 2, '.', '').'%'],
             [],
             ['Lead Status', 'Count'],

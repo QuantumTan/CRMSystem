@@ -36,4 +36,12 @@ class StoreLeadRequest extends FormRequest
             'assigned_user_id.exists' => 'Assigned user must be a Sales Staff account.',
         ];
     }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'status' => $this->filled('status') ? $this->input('status') : config('crm.default_lead_status', 'new'),
+            'priority' => $this->filled('priority') ? $this->input('priority') : config('crm.default_lead_priority', 'medium'),
+        ]);
+    }
 }

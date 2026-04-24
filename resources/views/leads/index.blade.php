@@ -15,7 +15,7 @@
 
             @php
                 $currentUser = auth()->user();
-                $currencyCode = $systemConfiguration?->currency_code ?? 'PHP';
+                $currencyCode = $systemConfiguration?->currency_code ?? config('crm.currency_code', 'PHP');
             @endphp
 
             <div class="d-flex align-items-center gap-2">

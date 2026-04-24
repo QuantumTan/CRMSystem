@@ -59,7 +59,7 @@ class FollowUpPdfExporter
             .'th{background:#f3f4f6;font-weight:700;}'
             .'.empty{padding:10px;border:1px solid #d1d5db;background:#f9fafb;}'
             .'</style></head><body>'
-            .'<h1>Follow-ups Report</h1>'
+            .'<h1>'.$this->escape(config('app.name', 'NexLink CRM')).' Follow-ups Report</h1>'
             .'<p class="meta">Generated At: '.$generatedAt.'</p>'
             .$sectionsHtml
             .'</body></html>';

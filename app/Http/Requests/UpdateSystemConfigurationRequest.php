@@ -34,7 +34,7 @@ class UpdateSystemConfigurationRequest extends FormRequest
             'company_email' => $this->filled('company_email') ? trim((string) $this->input('company_email')) : null,
             'company_phone' => $this->filled('company_phone') ? trim((string) $this->input('company_phone')) : null,
             'company_address' => $this->filled('company_address') ? trim((string) $this->input('company_address')) : null,
-            'currency_code' => strtoupper(trim((string) $this->input('currency_code', 'PHP'))),
+            'currency_code' => strtoupper(trim((string) $this->input('currency_code', config('crm.currency_code', 'PHP')))),
         ]);
     }
 }

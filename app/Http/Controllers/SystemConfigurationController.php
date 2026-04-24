@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use App\Http\Requests\UpdateSystemConfigurationRequest;
 use App\Models\SystemConfiguration;
 use App\Services\LeadService;
+use App\Services\SystemConfigurationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class SystemConfigurationController extends Controller
 {
+    public function __construct(private SystemConfigurationService $systemConfigurationService) {}
+
     public function index(): View
     {
         return view('settings.index', [
@@ -24,10 +27,7 @@ class SystemConfigurationController extends Controller
         $configuration = SystemConfiguration::current();
         $configuration->update($request->validated());
 
-        config([
-            'app.name' => $configuration->app_name,
-            'auth.passwords.users.expire' => $configuration->password_reset_expire_minutes,
-        ]);
+        $this->systemConfigurationService->apply($configuration);
 
         return redirect()
             ->route('settings.index')
