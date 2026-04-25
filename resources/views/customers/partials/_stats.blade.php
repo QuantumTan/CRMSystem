@@ -1,27 +1,21 @@
 @php
     $stats = [
-        ['label' => 'Total Customers', 'value' => $customers->total(), 'color' => '#1d4ed8', 'icon' => 'bi-people'],
-        ['label' => 'Active', 'value' => $customerIsActive, 'color' => '#16a34a', 'icon' => 'bi-check-circle'],
-        ['label' => 'Inactive', 'value' => $customerIsInactive, 'color' => '#e11d48', 'icon' => 'bi-x-circle'],
-        ['label' => 'New This Month', 'value' => $customerThisMonth, 'color' => '#0369a1', 'icon' => 'bi-calendar'],
+        ['label' => 'Total Customers', 'value' => $customers->total(), 'badge' => 'All Customers', 'badgeClass' => 'bg-primary-subtle text-primary'],
+        ['label' => 'Active Customers', 'value' => $customerIsActive, 'badge' => 'Active', 'badgeClass' => 'bg-success-subtle text-success'],
+        ['label' => 'Inactive Customers', 'value' => $customerIsInactive, 'badge' => 'Inactive', 'badgeClass' => 'bg-danger-subtle text-danger'],
+        ['label' => 'New This Month', 'value' => $customerThisMonth, 'badge' => 'New', 'badgeClass' => 'bg-info-subtle text-info'],
     ];
 @endphp
 
 <div class="row g-3 mb-4">
     @foreach ($stats as $stat)
-        <div class="col-6 col-lg-3">
-            <div class="card h-100 border shadow-sm bg-white crm-stat-card">
-                <div class="card-body px-3 py-4">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <div class="crm-stat-label text-truncate">
-                            {{ $stat['label'] }}
-                        </div>
-                        <div class="crm-stat-icon" style="width: 2.4rem; height: 2.4rem;">
-                            <i class="bi {{ $stat['icon'] }} text-muted" style="font-size: 0.95rem; opacity: 0.7;"></i>
-                        </div>
-                    </div>
-                    <div class="crm-stat-value lh-1" style="color: {{ $stat['color'] }};">
-                        {{ $stat['value'] }}
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100 crm-report-stat-card">
+                <div class="card-body">
+                    <div class="crm-report-stat-label">{{ $stat['label'] }}</div>
+                    <div class="d-flex align-items-end justify-content-between gap-3">
+                        <h3 class="crm-report-stat-value mb-0">{{ number_format($stat['value']) }}</h3>
+                        <span class="badge {{ $stat['badgeClass'] }}">{{ $stat['badge'] }}</span>
                     </div>
                 </div>
             </div>
