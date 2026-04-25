@@ -170,7 +170,7 @@
             @endif
 
             <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary flex-grow-1">{{ $submitLabel }}</button>
+                <button type="submit" class="btn btn-success flex-grow-1">{{ $submitLabel }}</button>
                 <a href="{{ route('follow-ups.index') }}" class="btn btn-outline-secondary">Cancel</a>
             </div>
         </div>

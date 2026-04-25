@@ -35,7 +35,7 @@
                         </div>
                     </div>
 
-                    <hr style="border-color:rgba(255,255,255,.1);margin:1.75rem 0;">
+                    <hr style="border-color:color-mix(in srgb, var(--color-surface-card) 10%, transparent);margin:1.75rem 0;">
 
                     <h1 class="fw-bold lh-sm mb-3 mt-"
                         style="max-width:460px;letter-spacing:-.03em;font-size:clamp(1.5rem,2.2vw,2rem);">

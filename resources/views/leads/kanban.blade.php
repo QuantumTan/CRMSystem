@@ -97,12 +97,20 @@
                 @php
                     $statusAnchor = 'status-'.\Illuminate\Support\Str::slug($status, '-');
                     $isFocusedStatus = $focusedStatus === $status;
+                    $statusBadgeClass = match (strtolower((string) $status)) {
+                        'new' => 'crm-table-status crm-table-status-primary',
+                        'contacted' => 'crm-table-status crm-table-status-info',
+                        'qualified', 'won' => 'crm-table-status crm-table-status-success',
+                        'proposal sent', 'proposal_sent', 'negotiation' => 'crm-table-status crm-table-status-warning',
+                        'lost' => 'crm-table-status crm-table-status-danger',
+                        default => 'crm-table-status crm-table-status-muted',
+                    };
                 @endphp
                 <div id="{{ $statusAnchor }}" class="kanban-column {{ $isFocusedStatus ? 'kanban-column-focused' : '' }}">
                     <div class="d-flex justify-content-between align-items-center mb-3 px-1">
                         <div class="d-flex align-items-center gap-2">
-                            <span class="badge rounded-pill px-3 py-2 fw-medium"
-                                style="background-color: {{ getStatusColor($status) }}; color: white; font-size: 0.9rem;">
+                            <span class="{{ $statusBadgeClass }} px-3 py-2"
+                                style="font-size: 0.9rem;">
                                 {{ ucfirst(str_replace('_', ' ', $status)) }}
                             </span>
                         </div>
@@ -144,14 +152,21 @@
                                     </div>
 
                                     <div class="d-flex flex-wrap gap-2 mb-3">
-                                        <span class="badge px-2 py-1"
-                                            style="background-color: {{ getPriorityColor($lead->priority) }}; color: white; font-size: 0.8rem;">
+                                        @php
+                                            $priorityBadgeClass = match (strtolower((string) $lead->priority)) {
+                                                'high', 'critical' => 'crm-table-status crm-table-status-danger',
+                                                'medium' => 'crm-table-status crm-table-status-warning',
+                                                'low' => 'crm-table-status crm-table-status-success',
+                                                default => 'crm-table-status crm-table-status-muted',
+                                            };
+                                        @endphp
+                                        <span class="{{ $priorityBadgeClass }} px-2 py-1"
+                                            style="font-size: 0.8rem;">
                                             {{ ucfirst($lead->priority) }}
                                         </span>
 
                                         @if ($lead->source)
-                                            <span class="badge px-2 py-1"
-                                                style="background-color: rgba(37, 99, 235, 0.12); color: #1d4ed8;">
+                                            <span class="badge bg-info-subtle text-info px-2 py-1">
                                                 {{ $lead->source }}
                                             </span>
                                         @endif
@@ -169,7 +184,7 @@
                                     @if ($lead->assignedUser)
                                         <div class="d-flex align-items-center gap-2 mb-3">
                                             <div class="avatar-circle text-white d-flex align-items-center justify-content-center fw-bold"
-                                                style="width: 26px; height: 26px; font-size: 0.75rem; background: #6366f1;">
+                                                style="width: 26px; height: 26px; font-size: 0.75rem; background: var(--color-accent);">
                                                 {{ strtoupper(substr($lead->assignedUser->name, 0, 1)) }}
                                             </div>
                                             <small class="text-muted">{{ $lead->assignedUser->name }}</small>
@@ -221,8 +236,8 @@
             gap: 24px;
             overflow-x: auto;
             padding: 8px 4px 30px;
-            background: #f8f9fa;
-            border-radius: 16px;
+            background: var(--color-surface-page);
+            border-radius: var(--radius-lg);
             min-height: 680px;
         }
 
@@ -234,38 +249,38 @@
         }
 
         .kanban-column-focused .droppable-zone {
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.12);
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 12%, transparent);
         }
 
         .droppable-zone {
-            background: #ffffff;
-            border-radius: 14px;
+            background: var(--color-surface-card);
+            border-radius: var(--radius-lg);
             padding: 16px;
             min-height: 620px;
             display: flex;
             flex-direction: column;
             gap: 14px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            border: 1px solid #f1f3f5;
+            box-shadow: 0 1px 3px color-mix(in srgb, var(--color-text-heading-light) 5%, transparent);
+            border: 1px solid var(--color-border);
         }
 
         .kanban-card {
-            border-radius: 12px;
+            border-radius: var(--radius-lg);
             cursor: grab;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 2px 8px color-mix(in srgb, var(--color-text-heading-light) 6%, transparent);
             scroll-margin: 2rem 7rem;
         }
 
         .kanban-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 10px 20px color-mix(in srgb, var(--color-text-heading-light) 12%, transparent);
         }
 
         .kanban-card:target,
         .kanban-card-targeted {
-            box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.35), 0 12px 24px rgba(13, 110, 253, 0.12);
+            box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent) 35%, transparent), 0 12px 24px color-mix(in srgb, var(--color-accent) 12%, transparent);
             z-index: 2;
         }
 
@@ -279,12 +294,12 @@
         }
 
         .card-ghost {
-            background: #e9ecef;
-            border: 2px dashed #adb5bd;
+            background: var(--color-border);
+            border: 2px dashed var(--color-border);
         }
 
         .avatar-circle {
-            border-radius: 50%;
+            border-radius: var(--radius-pill);
         }
 
         .hover-underline:hover {
@@ -300,17 +315,17 @@
         }
 
         .kanban-wrapper::-webkit-scrollbar-track {
-            background: #f1f3f5;
-            border-radius: 10px;
+            background: var(--color-border);
+            border-radius: var(--radius-pill);
         }
 
         .kanban-wrapper::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
+            background: var(--color-border);
+            border-radius: var(--radius-pill);
         }
 
         .kanban-wrapper::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+            background: var(--color-text-muted);
         }
 
         @media (max-width: 992px) {

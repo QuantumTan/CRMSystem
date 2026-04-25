@@ -71,11 +71,11 @@ class Activity extends Model
     public function getTypeColorAttribute(): string
     {
         return match ($this->activity_type) {
-            'call' => '#198754',
-            'email' => '#0d6efd',
-            'meeting' => '#ffc107',
-            'note' => '#8b5cf6',
-            default => '#6c757d',
+            'call' => 'var(--badge-info-dot)',
+            'email' => 'var(--badge-indigo-dot)',
+            'meeting' => 'var(--badge-warning-dot)',
+            'note' => 'var(--badge-neutral-dot)',
+            default => 'var(--badge-neutral-dot)',
         };
     }
 

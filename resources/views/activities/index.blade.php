@@ -79,16 +79,23 @@
                         @foreach ($activities as $activity)
                             <article class="timeline-item d-flex gap-3 pb-4">
                                 {{-- Icon --}}
-                                <div class="timeline-icon flex-shrink-0 d-flex align-items-center justify-content-center rounded-circle text-white shadow-sm"
-                                    style="width: 40px; height: 40px; background-color: {{ $activity->type_color }};">
+                                <div class="timeline-icon timeline-icon-{{ strtolower((string) $activity->activity_type) }} flex-shrink-0 d-flex align-items-center justify-content-center shadow-sm">
                                     <i class="bi {{ $activity->type_icon }} fs-6"></i>
                                 </div>
 
                                 <div class="flex-grow-1">
                                     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
                                         <div>
-                                            <span class="badge rounded-pill fw-medium px-2 py-1"
-                                                style="background-color: {{ $activity->type_color }}; color: white;">
+                                            @php
+                                                $activityTypeClass = match (strtolower((string) $activity->activity_type)) {
+                                                    'call' => 'crm-table-status crm-table-status-info',
+                                                    'email' => 'crm-table-status crm-table-status-primary',
+                                                    'meeting' => 'crm-table-status crm-table-status-warning',
+                                                    'note' => 'crm-table-status crm-table-status-muted',
+                                                    default => 'crm-table-status crm-table-status-muted',
+                                                };
+                                            @endphp
+                                            <span class="{{ $activityTypeClass }} px-2 py-1">
                                                 {{ $activity->type_label }}
                                             </span>
                                             <span class="small text-muted ms-2">
@@ -160,35 +167,27 @@
             content: '';
             position: absolute;
             left: 20px;
-            /* Center of icon (40px width / 2 = 20px) */
             top: 0;
             bottom: 0;
             width: 2px;
-            background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, #dee2e6 5%, #dee2e6 95%, rgba(0, 0, 0, 0) 100%);
-            border-radius: 2px;
+            background: linear-gradient(to bottom, transparent 0%, var(--color-border) 5%, var(--color-border) 95%, transparent 100%);
+            border-radius: var(--radius);
         }
 
         .timeline-item {
             position: relative;
             transition: all 0.2s ease-in-out;
-            border-radius: 0.75rem;
+            border-radius: var(--radius);
             padding: 0.5rem 0.5rem 0.5rem 0;
         }
 
         .timeline-item:hover {
-            background-color: rgba(0, 0, 0, 0.02);
+            background-color: color-mix(in srgb, var(--color-text-heading-light) 2%, transparent);
             transform: scale(1.01);
         }
 
         .timeline-item:last-child {
             padding-bottom: 0 !important;
-        }
-
-        .timeline-icon {
-            position: relative;
-            z-index: 1;
-            transition: transform 0.2s ease;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
         }
 
         .timeline-item:hover .timeline-icon {

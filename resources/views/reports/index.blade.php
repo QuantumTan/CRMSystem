@@ -312,10 +312,13 @@
             const userLabels = userActivityRows.map((item) => item.name);
             const userValues = userActivityRows.map((item) => item.total_activities);
             const chartTheme = getComputedStyle(document.documentElement);
-            const chartTextColor = chartTheme.getPropertyValue('--crm-text').trim() || '#0f172a';
-            const chartMutedColor = chartTheme.getPropertyValue('--crm-text-muted').trim() || '#64748b';
-            const chartSurfaceColor = chartTheme.getPropertyValue('--crm-surface').trim() || '#ffffff';
-            const chartBorderColor = chartTheme.getPropertyValue('--crm-border').trim() || '#dbe3ec';
+            const chartPalette = Array.from({ length: 10 }, (_, index) => chartTheme.getPropertyValue(`--chart-${index + 1}`).trim());
+            const chartTextColor = chartTheme.getPropertyValue('--crm-text').trim() || chartTheme.getPropertyValue('--color-text-heading').trim();
+            const chartMutedColor = chartTheme.getPropertyValue('--chart-axis').trim() || chartTheme.getPropertyValue('--color-text-muted').trim();
+            const chartSurfaceColor = chartTheme.getPropertyValue('--crm-surface').trim() || chartTheme.getPropertyValue('--color-surface-card').trim();
+            const chartBorderColor = chartTheme.getPropertyValue('--chart-grid').trim() || chartTheme.getPropertyValue('--color-border').trim();
+            const chartTooltipBg = chartTheme.getPropertyValue('--chart-tooltip-bg').trim();
+            const chartTooltipText = chartTheme.getPropertyValue('--chart-tooltip-text').trim();
             const numberFormatter = new Intl.NumberFormat();
             const getDatasetTotal = (dataset) => dataset.data.reduce((total, value) => total + Number(value || 0), 0);
             const centerTotalPlugin = {
@@ -358,11 +361,11 @@
                         },
                     },
                     tooltip: {
-                        backgroundColor: chartSurfaceColor,
+                        backgroundColor: chartTooltipBg,
                         borderColor: chartBorderColor,
                         borderWidth: 1,
-                        bodyColor: chartTextColor,
-                        titleColor: chartTextColor,
+                        bodyColor: chartTooltipText,
+                        titleColor: chartTooltipText,
                         padding: 12,
                         cornerRadius: 10,
                     },
@@ -380,7 +383,7 @@
                 y: {
                     beginAtZero: true,
                     grid: {
-                        color: 'rgba(148, 163, 184, 0.18)',
+                        color: chartBorderColor,
                     },
                     ticks: {
                         color: chartMutedColor,
@@ -397,7 +400,7 @@
                         labels: leadStatusLabels,
                         datasets: [{
                             data: leadStatusValues,
-                            backgroundColor: ['#0d6efd', '#20c997', '#ffc107', '#dc3545', '#6f42c1', '#198754', '#fd7e14'],
+                            backgroundColor: chartPalette.slice(0, 7),
                             borderColor: chartSurfaceColor,
                             borderWidth: 3,
                             hoverOffset: 6,
@@ -430,7 +433,7 @@
                                 pipelineSummary.won_leads,
                                 pipelineSummary.lost_leads,
                             ],
-                            backgroundColor: ['#0dcaf0', '#198754', '#dc3545'],
+                            backgroundColor: chartPalette.slice(0, 3),
                             borderRadius: 10,
                             borderSkipped: false,
                             maxBarThickness: 58,
@@ -458,7 +461,7 @@
                         datasets: [{
                             label: 'Activities',
                             data: userValues,
-                            backgroundColor: '#0d6efd',
+                            backgroundColor: chartPalette[0],
                             borderRadius: 10,
                             borderSkipped: false,
                             maxBarThickness: 58,
@@ -485,7 +488,7 @@
                         labels: ['Completed', 'Pending', 'Overdue'],
                         datasets: [{
                             data: [followUp.completed, followUp.pending, followUp.overdue],
-                            backgroundColor: ['#198754', '#ffc107', '#dc3545'],
+                            backgroundColor: chartPalette.slice(0, 3),
                             borderColor: chartSurfaceColor,
                             borderWidth: 3,
                             hoverOffset: 6,

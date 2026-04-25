@@ -92,7 +92,7 @@
                 </div>
 
                 <div class="crm-form-actions">
-                    <button type="submit" class="btn btn-primary flex-grow-1">Create User</button>
+                    <button type="submit" class="btn btn-success flex-grow-1">Create User</button>
                     <a href="{{ route('users.index') }}" class="btn btn-outline-secondary">Cancel</a>
                 </div>
             </div>

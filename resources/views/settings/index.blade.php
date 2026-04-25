@@ -239,7 +239,7 @@
                 </div>
 
                 <div class="d-grid">
-                    <button type="submit" class="btn btn-primary btn-lg">
+                    <button type="submit" class="btn btn-success btn-lg">
                         <i class="bi bi-save me-1"></i> Save Configuration
                     </button>
                 </div>

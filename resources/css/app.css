@@ -9,3 +9,63 @@
     --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+:root {
+    --color-brand-primary: #162447;
+    --color-accent: #2563EB;
+    --color-accent-hover: #1D4ED8;
+    --color-surface-page: #EFF2F7;
+    --color-surface-card: #FFFFFF;
+    --color-border: #E2E8F0;
+    --color-text-heading: #0F172A;
+    --color-text-muted: #64748B;
+    --badge-success-bg: #DCFCE7;
+    --badge-success-text: #166534;
+    --badge-success-dot: #16A34A;
+    --badge-danger-bg: #FEE2E2;
+    --badge-danger-text: #991B1B;
+    --badge-danger-dot: #DC2626;
+    --badge-warning-bg: #FEF9C3;
+    --badge-warning-text: #854D0E;
+    --badge-warning-dot: #CA8A04;
+    --badge-info-bg: #DBEAFE;
+    --badge-info-text: #1E40AF;
+    --badge-info-dot: #2563EB;
+    --badge-neutral-bg: #F1F5F9;
+    --badge-neutral-text: #475569;
+    --badge-neutral-dot: #94A3B8;
+    --badge-purple-bg: #FDF4FF;
+    --badge-purple-text: #6B21A8;
+    --badge-purple-dot: #A855F7;
+    --badge-orange-bg: #FFF7ED;
+    --badge-orange-text: #9A3412;
+    --badge-orange-dot: #F97316;
+    --badge-indigo-bg: #E0E7FF;
+    --badge-indigo-text: #3730A3;
+    --badge-indigo-dot: #4F46E5;
+    --btn-primary: #2563EB;
+    --btn-primary-hover: #1D4ED8;
+    --btn-success: #16A34A;
+    --btn-success-hover: #15803D;
+    --btn-danger: #DC2626;
+    --btn-danger-hover: #B91C1C;
+    --btn-warning: #CA8A04;
+    --btn-warning-hover: #A16207;
+    --chart-1: #2563EB;
+    --chart-2: #A855F7;
+    --chart-3: #22C55E;
+    --chart-4: #F97316;
+    --chart-5: #EAB308;
+    --chart-6: #14B8A6;
+    --chart-7: #DC2626;
+    --chart-8: #6366F1;
+    --chart-9: #EC4899;
+    --chart-10: #0EA5E9;
+    --chart-grid: #E2E8F0;
+    --chart-axis: #64748B;
+    --chart-tooltip-bg: #0F172A;
+    --chart-tooltip-text: #F8FAFC;
+    --radius: 8px;
+    --radius-lg: 12px;
+    --radius-pill: 20px;
+}
