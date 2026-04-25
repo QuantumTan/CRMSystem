@@ -128,7 +128,7 @@
                 </div>
 
                 <div class="crm-form-actions">
-                    <button type="submit" class="btn btn-primary flex-grow-1">Save Customer</button>
+                    <button type="submit" class="btn btn-success flex-grow-1">Save Customer</button>
                     <a href="{{ route('customers.index') }}" class="btn btn-outline-secondary">Cancel</a>
                 </div>
             </div>

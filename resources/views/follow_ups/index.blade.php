@@ -131,14 +131,14 @@
                                                 <form action="{{ route('follow-ups.complete', $followUp) }}" method="POST">
                                                     @csrf
                                                     @method('PATCH')
-                                                    <button type="submit" class="btn btn-sm btn-light border text-success">Complete</button>
+                                                    <button type="submit" class="btn btn-sm btn-success">Complete</button>
                                                 </form>
                                             @else
                                                 @if ($isAdmin)
                                                     <form action="{{ route('follow-ups.reopen', $followUp) }}" method="POST">
                                                         @csrf
                                                         @method('PATCH')
-                                                        <button type="submit" class="btn btn-sm btn-light border text-warning">Reopen</button>
+                                                        <button type="submit" class="btn btn-sm btn-warning">Reopen</button>
                                                     </form>
                                                 @else
                                                     <span class="text-muted small">Locked</span>

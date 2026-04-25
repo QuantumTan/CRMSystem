@@ -6,14 +6,14 @@ if (! function_exists('getStatusColor')) {
         $normalizedStatus = strtolower(str_replace('-', ' ', trim($status)));
 
         return match ($normalizedStatus) {
-            'new' => '#2563eb',
-            'contacted' => '#0891b2',
-            'qualified' => '#16a34a',
-            'proposal sent', 'proposal_sent' => '#d97706',
-            'negotiation' => '#ea580c',
-            'won' => '#15803d',
-            'lost' => '#dc2626',
-            default => '#2563eb',
+            'new' => 'var(--badge-info-dot)',
+            'contacted' => 'var(--badge-purple-dot)',
+            'qualified' => 'var(--badge-success-dot)',
+            'proposal sent', 'proposal_sent' => 'var(--badge-orange-dot)',
+            'negotiation' => 'var(--badge-warning-dot)',
+            'won' => 'var(--badge-success-dot)',
+            'lost' => 'var(--badge-danger-dot)',
+            default => 'var(--badge-neutral-dot)',
         };
     }
 }
@@ -24,10 +24,10 @@ if (! function_exists('getPriorityColor')) {
         $normalizedPriority = strtolower(trim($priority));
 
         return match ($normalizedPriority) {
-            'high' => '#dc2626',
-            'medium' => '#d97706',
-            'low' => '#16a34a',
-            default => '#2563eb',
+            'high', 'critical' => 'var(--badge-danger-dot)',
+            'medium' => 'var(--badge-warning-dot)',
+            'low' => 'var(--badge-success-dot)',
+            default => 'var(--badge-neutral-dot)',
         };
     }
 }

@@ -153,7 +153,7 @@
                                 <form method="POST" action="{{ route('customers.assignment.reject', $customer) }}" class="flex-grow-1">
                                     @csrf
                                     @method('PATCH')
-                                    <button type="submit" class="btn btn-outline-warning w-100">Reject</button>
+                                    <button type="submit" class="btn btn-outline-danger w-100">Reject</button>
                                 </form>
                             </div>
                         </div>

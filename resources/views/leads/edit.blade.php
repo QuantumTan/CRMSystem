@@ -150,7 +150,7 @@
                 </div>
 
                 <div class="crm-form-actions">
-                    <button type="submit" class="btn btn-primary flex-grow-1">Update Lead</button>
+                    <button type="submit" class="btn btn-success flex-grow-1">Update Lead</button>
                     <a href="{{ route('leads.show', $lead) }}" class="btn btn-outline-secondary">Cancel</a>
                 </div>
             </div>

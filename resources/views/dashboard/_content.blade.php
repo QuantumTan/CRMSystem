@@ -33,13 +33,13 @@
     $completedFollowUpRate = $followUpHealthTotal > 0 ? round(((int) ($data['completedFollowUps'] ?? 0) / $followUpHealthTotal) * 100) : 0;
     $overdueFollowUpRate = $followUpHealthTotal > 0 ? round(((int) ($data['overdueFollowUps'] ?? 0) / $followUpHealthTotal) * 100) : 0;
     $leadStatusColors = [
-        'new' => '#2563eb',
-        'contacted' => '#7c3aed',
-        'qualified' => '#16a34a',
-        'proposal_sent' => '#f97316',
-        'negotiation' => '#d97706',
-        'won' => '#0f766e',
-        'lost' => '#dc2626',
+        'new' => 'var(--chart-1)',
+        'contacted' => 'var(--chart-2)',
+        'qualified' => 'var(--chart-3)',
+        'proposal_sent' => 'var(--chart-4)',
+        'negotiation' => 'var(--chart-5)',
+        'won' => 'var(--chart-6)',
+        'lost' => 'var(--chart-7)',
     ];
     $wonLeadsCount = (int) ($data['leadStatusCounts']['won'] ?? 0);
     $lostLeadsCount = (int) ($data['leadStatusCounts']['lost'] ?? 0);
@@ -170,7 +170,7 @@
                         @php
                             $leadStatusLabel = $statusLabels[$status] ?? ucfirst(str_replace('_', ' ', $status));
                         @endphp
-                        <div class="crm-pipeline-legend-pill" style="--label-color: {{ $leadStatusColors[$status] ?? '#64748b' }};">
+                        <div class="crm-pipeline-legend-pill" style="--label-color: {{ $leadStatusColors[$status] ?? 'var(--chart-10)' }};">
                             <span class="crm-pipeline-legend-swatch"></span>
                             <span class="crm-pipeline-legend-name">{{ $leadStatusLabel }}</span>
                             <strong>{{ number_format($count) }}</strong>
@@ -206,9 +206,9 @@
                 <div class="crm-dashboard-summary-grid" aria-label="Follow-up health data labels">
                     @php
                         $followUpHealthRows = [
-                            ['label' => 'Completed', 'count' => (int) ($data['completedFollowUps'] ?? 0), 'color' => '#16a34a'],
-                            ['label' => 'Pending (Upcoming)', 'count' => (int) $upcomingPendingFollowUps, 'color' => '#0891b2'],
-                            ['label' => 'Overdue', 'count' => (int) ($data['overdueFollowUps'] ?? 0), 'color' => '#dc2626'],
+                            ['label' => 'Completed', 'count' => (int) ($data['completedFollowUps'] ?? 0), 'color' => 'var(--chart-1)'],
+                            ['label' => 'Pending (Upcoming)', 'count' => (int) $upcomingPendingFollowUps, 'color' => 'var(--chart-2)'],
+                            ['label' => 'Overdue', 'count' => (int) ($data['overdueFollowUps'] ?? 0), 'color' => 'var(--chart-3)'],
                         ];
                     @endphp
                     @foreach ($followUpHealthRows as $row)
@@ -415,12 +415,19 @@
             (() => {
                 const leadStatusLabels = @json(collect($data['leadStatusCounts'])->keys()->map(fn ($status) => $statusLabels[$status] ?? ucfirst(str_replace('_', ' ', $status)))->values());
                 const leadStatusValues = @json(collect($data['leadStatusCounts'])->values());
-                const leadStatusColors = @json(collect($data['leadStatusCounts'])->keys()->map(fn ($status) => $leadStatusColors[$status] ?? '#64748b')->values());
                 const chartTheme = getComputedStyle(document.documentElement);
-                const chartTextColor = chartTheme.getPropertyValue('--crm-text').trim() || '#0f172a';
-                const chartMutedColor = chartTheme.getPropertyValue('--crm-text-muted').trim() || '#64748b';
-                const chartSurfaceColor = chartTheme.getPropertyValue('--crm-surface').trim() || '#ffffff';
-                const chartBorderColor = chartTheme.getPropertyValue('--crm-border').trim() || '#dbe3ec';
+                const resolveThemeColor = (value) => {
+                    const match = /^var\((--[\w-]+)\)$/.exec(value);
+                    return match ? chartTheme.getPropertyValue(match[1]).trim() : value;
+                };
+                const chartPalette = Array.from({ length: 10 }, (_, index) => chartTheme.getPropertyValue(`--chart-${index + 1}`).trim());
+                const chartTextColor = chartTheme.getPropertyValue('--crm-text').trim() || chartTheme.getPropertyValue('--color-text-heading').trim();
+                const chartMutedColor = chartTheme.getPropertyValue('--chart-axis').trim() || chartTheme.getPropertyValue('--color-text-muted').trim();
+                const chartSurfaceColor = chartTheme.getPropertyValue('--crm-surface').trim() || chartTheme.getPropertyValue('--color-surface-card').trim();
+                const chartBorderColor = chartTheme.getPropertyValue('--chart-grid').trim() || chartTheme.getPropertyValue('--color-border').trim();
+                const chartTooltipBg = chartTheme.getPropertyValue('--chart-tooltip-bg').trim();
+                const chartTooltipText = chartTheme.getPropertyValue('--chart-tooltip-text').trim();
+                const leadStatusColors = @json(collect($data['leadStatusCounts'])->keys()->map(fn ($status) => $leadStatusColors[$status] ?? 'var(--chart-10)')->values()).map(resolveThemeColor);
                 const numberFormatter = new Intl.NumberFormat();
                 const percentFormatter = new Intl.NumberFormat(undefined, {
                     maximumFractionDigits: 0,
@@ -528,7 +535,7 @@
                             datasets: [{
                                 data: leadStatusValues,
                                 backgroundColor: leadStatusColors,
-                                borderColor: '#ffffff',
+                                borderColor: chartSurfaceColor,
                                 borderWidth: 3,
                                 hoverOffset: 6,
                             }],
@@ -547,11 +554,11 @@
                                     display: false,
                                 },
                                 tooltip: {
-                                    backgroundColor: chartSurfaceColor,
-                                    borderColor: chartBorderColor,
-                                    borderWidth: 1,
-                                    bodyColor: chartTextColor,
-                                    titleColor: chartTextColor,
+                        backgroundColor: chartTooltipBg,
+                        borderColor: chartBorderColor,
+                        borderWidth: 1,
+                        bodyColor: chartTooltipText,
+                        titleColor: chartTooltipText,
                                     displayColors: true,
                                     padding: 12,
                                     cornerRadius: 10,
@@ -583,7 +590,7 @@
                                     {{ (int) $upcomingPendingFollowUps }},
                                     {{ (int) ($data['overdueFollowUps'] ?? 0) }},
                                 ],
-                                backgroundColor: ['#198754', '#0dcaf0', '#dc3545'],
+                                backgroundColor: chartPalette.slice(0, 3),
                                 borderRadius: 10,
                                 borderSkipped: false,
                                 maxBarThickness: 58,
@@ -601,7 +608,7 @@
                                     beginAtZero: true,
                                     grace: '18%',
                                     grid: {
-                                        color: 'rgba(148, 163, 184, 0.18)',
+                                        color: chartBorderColor,
                                     },
                                     ticks: {
                                         precision: 0,

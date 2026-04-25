@@ -80,14 +80,22 @@
                                 'meeting' => ['bi-calendar-event-fill', 'Meeting'],
                                 'note' => ['bi-sticky-fill', 'Note'],
                             ] as $type => [$icon, $label])
+                                $typeChoiceClass = match ($type) {
+                                    'call' => 'crm-activity-choice crm-activity-choice-info',
+                                    'email' => 'crm-activity-choice crm-activity-choice-indigo',
+                                    'meeting' => 'crm-activity-choice crm-activity-choice-warning',
+                                    'note' => 'crm-activity-choice crm-activity-choice-neutral',
+                                    default => 'crm-activity-choice crm-activity-choice-neutral',
+                                };
                                 <div>
                                     <input type="radio" class="btn-check" name="activity_type"
                                         id="{{ $isEditing ? 'edit_' : '' }}type_{{ $type }}"
                                         value="{{ $type }}"
                                         @checked(old('activity_type', $activity->activity_type ?? 'note') === $type)>
-                                    <label class="btn btn-outline-secondary d-flex align-items-center gap-2 px-3"
+                                    <label class="{{ $typeChoiceClass }}"
                                         for="{{ $isEditing ? 'edit_' : '' }}type_{{ $type }}">
-                                        <i class="bi {{ $icon }}"></i> {{ $label }}
+                                        <span class="crm-activity-choice-icon"><i class="bi {{ $icon }}"></i></span>
+                                        <span>{{ $label }}</span>
                                     </label>
                                 </div>
                             @endforeach
@@ -144,7 +152,7 @@
         @endif
 
         <div class="crm-form-actions">
-            <button type="submit" class="btn btn-primary flex-grow-1">{{ $isEditing ? 'Save Changes' : 'Log Activity' }}</button>
+            <button type="submit" class="btn btn-success flex-grow-1">{{ $isEditing ? 'Save Changes' : 'Log Activity' }}</button>
             @if (! $isEmbedded)
                 <a href="{{ route('activities.index') }}" class="btn btn-outline-secondary">Cancel</a>
             @endif

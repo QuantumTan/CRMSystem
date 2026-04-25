@@ -158,7 +158,7 @@
                                     @php
                                         $leadPriority = strtolower((string) $lead->priority);
                                         $leadPriorityClass = match ($leadPriority) {
-                                            'high' => 'crm-table-status crm-table-status-danger',
+                                            'high', 'critical' => 'crm-table-status crm-table-status-danger',
                                             'medium' => 'crm-table-status crm-table-status-warning',
                                             'low' => 'crm-table-status crm-table-status-success',
                                             default => 'crm-table-status crm-table-status-primary',
