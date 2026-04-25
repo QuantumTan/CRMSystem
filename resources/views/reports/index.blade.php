@@ -125,13 +125,13 @@
 
         <div class="row g-3">
             <div class="col-12 col-xl-6">
-                <div class="card border-0 shadow-sm h-100">
+                <div class="card border-0 shadow-sm h-100 crm-reports-style-card crm-report-graph-card">
                     <div class="card-header bg-white border-0 pb-0">
                         <h5 class="mb-1">Lead Status Report</h5>
                         <p class="text-muted small mb-0">Distribution across each lead stage.</p>
                     </div>
                     <div class="card-body">
-                        <div class="mb-3" style="height: 280px;">
+                        <div class="crm-report-chart-frame mb-3">
                             <canvas id="leadStatusChart" aria-label="Lead status chart" role="img"></canvas>
                         </div>
                         <div class="table-responsive">
@@ -166,13 +166,13 @@
             </div>
 
             <div class="col-12 col-xl-6">
-                <div class="card border-0 shadow-sm h-100">
+                <div class="card border-0 shadow-sm h-100 crm-reports-style-card crm-report-graph-card">
                     <div class="card-header bg-white border-0 pb-0">
                         <h5 class="mb-1">Sales Pipeline Summary</h5>
                         <p class="text-muted small mb-0">Pipeline volume and expected deal value snapshot.</p>
                     </div>
                     <div class="card-body">
-                        <div class="mb-3" style="height: 280px;">
+                        <div class="crm-report-chart-frame mb-3">
                             <canvas id="pipelineSummaryChart" aria-label="Pipeline summary chart" role="img"></canvas>
                         </div>
                         <div class="row g-3">
@@ -206,13 +206,13 @@
             </div>
 
             <div class="col-12 col-xl-7">
-                <div class="card border-0 shadow-sm h-100">
+                <div class="card border-0 shadow-sm h-100 crm-reports-style-card crm-report-graph-card">
                     <div class="card-header bg-white border-0 pb-0">
                         <h5 class="mb-1">User Activity Report</h5>
                         <p class="text-muted small mb-0">Activity volume by system user.</p>
                     </div>
                     <div class="card-body">
-                        <div class="mb-3" style="height: 300px;">
+                        <div class="crm-report-chart-frame crm-report-chart-frame-tall mb-3">
                             <canvas id="userActivityChart" aria-label="User activity chart" role="img"></canvas>
                         </div>
                         <div class="table-responsive">
@@ -252,13 +252,13 @@
             </div>
 
             <div class="col-12 col-xl-5">
-                <div class="card border-0 shadow-sm h-100">
+                <div class="card border-0 shadow-sm h-100 crm-reports-style-card crm-report-graph-card">
                     <div class="card-header bg-white border-0 pb-0">
                         <h5 class="mb-1">Follow-up Completion Report</h5>
                         <p class="text-muted small mb-0">Completion and pending follow-up health.</p>
                     </div>
                     <div class="card-body">
-                        <div class="mb-3" style="height: 280px;">
+                        <div class="crm-report-chart-frame mb-3">
                             <canvas id="followUpChart" aria-label="Follow-up completion chart" role="img"></canvas>
                         </div>
                         <div class="row g-3">
@@ -311,16 +311,80 @@
 
             const userLabels = userActivityRows.map((item) => item.name);
             const userValues = userActivityRows.map((item) => item.total_activities);
+            const chartTheme = getComputedStyle(document.documentElement);
+            const chartTextColor = chartTheme.getPropertyValue('--crm-text').trim() || '#0f172a';
+            const chartMutedColor = chartTheme.getPropertyValue('--crm-text-muted').trim() || '#64748b';
+            const chartSurfaceColor = chartTheme.getPropertyValue('--crm-surface').trim() || '#ffffff';
+            const chartBorderColor = chartTheme.getPropertyValue('--crm-border').trim() || '#dbe3ec';
+            const numberFormatter = new Intl.NumberFormat();
+            const getDatasetTotal = (dataset) => dataset.data.reduce((total, value) => total + Number(value || 0), 0);
+            const centerTotalPlugin = {
+                id: 'centerTotalPlugin',
+                afterDraw(chart) {
+                    if (chart.config.type !== 'doughnut') {
+                        return;
+                    }
+
+                    const dataset = chart.data.datasets[0];
+                    const total = getDatasetTotal(dataset);
+                    const { ctx, chartArea } = chart;
+                    const centerX = (chartArea.left + chartArea.right) / 2;
+                    const centerY = (chartArea.top + chartArea.bottom) / 2;
+
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = chartMutedColor;
+                    ctx.font = '700 12px Inter, system-ui, sans-serif';
+                    ctx.fillText('Total', centerX, centerY - 18);
+                    ctx.fillStyle = chartTextColor;
+                    ctx.font = '800 34px Inter, system-ui, sans-serif';
+                    ctx.fillText(numberFormatter.format(total), centerX, centerY + 12);
+                    ctx.restore();
+                },
+            };
 
             const commonOptions = {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
+                        position: 'bottom',
                         labels: {
-                            boxWidth: 12,
+                            boxHeight: 10,
+                            boxWidth: 10,
+                            color: chartTextColor,
                             usePointStyle: true,
                         },
+                    },
+                    tooltip: {
+                        backgroundColor: chartSurfaceColor,
+                        borderColor: chartBorderColor,
+                        borderWidth: 1,
+                        bodyColor: chartTextColor,
+                        titleColor: chartTextColor,
+                        padding: 12,
+                        cornerRadius: 10,
+                    },
+                },
+            };
+            const commonBarScales = {
+                x: {
+                    grid: {
+                        display: false,
+                    },
+                    ticks: {
+                        color: chartMutedColor,
+                    },
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(148, 163, 184, 0.18)',
+                    },
+                    ticks: {
+                        color: chartMutedColor,
+                        precision: 0,
                     },
                 },
             };
@@ -334,13 +398,22 @@
                         datasets: [{
                             data: leadStatusValues,
                             backgroundColor: ['#0d6efd', '#20c997', '#ffc107', '#dc3545', '#6f42c1', '#198754', '#fd7e14'],
-                            borderWidth: 1,
+                            borderColor: chartSurfaceColor,
+                            borderWidth: 3,
+                            hoverOffset: 6,
                         }],
                     },
                     options: {
                         ...commonOptions,
-                        cutout: '60%',
+                        animation: {
+                            animateRotate: true,
+                            animateScale: true,
+                            duration: 1100,
+                            easing: 'easeOutQuart',
+                        },
+                        cutout: '62%',
                     },
+                    plugins: [centerTotalPlugin],
                 });
             }
 
@@ -358,18 +431,14 @@
                                 pipelineSummary.lost_leads,
                             ],
                             backgroundColor: ['#0dcaf0', '#198754', '#dc3545'],
+                            borderRadius: 10,
+                            borderSkipped: false,
+                            maxBarThickness: 58,
                         }],
                     },
                     options: {
                         ...commonOptions,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    precision: 0,
-                                },
-                            },
-                        },
+                        scales: commonBarScales,
                         plugins: {
                             ...commonOptions.plugins,
                             legend: {
@@ -390,20 +459,14 @@
                             label: 'Activities',
                             data: userValues,
                             backgroundColor: '#0d6efd',
-                            borderRadius: 6,
-                            maxBarThickness: 36,
+                            borderRadius: 10,
+                            borderSkipped: false,
+                            maxBarThickness: 58,
                         }],
                     },
                     options: {
                         ...commonOptions,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    precision: 0,
-                                },
-                            },
-                        },
+                        scales: commonBarScales,
                         plugins: {
                             ...commonOptions.plugins,
                             legend: {
@@ -423,13 +486,16 @@
                         datasets: [{
                             data: [followUp.completed, followUp.pending, followUp.overdue],
                             backgroundColor: ['#198754', '#ffc107', '#dc3545'],
-                            borderWidth: 1,
+                            borderColor: chartSurfaceColor,
+                            borderWidth: 3,
+                            hoverOffset: 6,
                         }],
                     },
                     options: {
                         ...commonOptions,
                         cutout: '62%',
                     },
+                    plugins: [centerTotalPlugin],
                 });
             }
         })();
