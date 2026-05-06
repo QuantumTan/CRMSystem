@@ -126,8 +126,15 @@ class LeadController extends Controller
 
         $lead->update(['status' => $newStatus]);
 
-        if ($newStatus === 'won' && $oldStatus !== 'won') {
-            return redirect()->route('leads.show', $lead)->with('success', 'Lead marked as won! Click "Convert to Customer" when ready.');
+        if ($newStatus === 'won' && $oldStatus !== 'won' && ! $lead->isConverted()) {
+            try {
+                $customer = $lead->convertToCustomer();
+                $customerName = trim($customer->first_name.' '.$customer->last_name);
+
+                return redirect()->route('customers.show', $customer)->with('success', "Lead marked as won and automatically converted to customer: {$customerName}");
+            } catch (\Exception $e) {
+                return redirect()->route('leads.show', $lead)->with('error', 'Lead marked as won but conversion failed: '.$e->getMessage());
+            }
         }
 
         return redirect()->back()->with('success', "Lead moved from {$oldStatus} to {$newStatus}.");

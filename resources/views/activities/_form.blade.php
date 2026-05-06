@@ -80,13 +80,15 @@
                                 'meeting' => ['bi-calendar-event-fill', 'Meeting'],
                                 'note' => ['bi-sticky-fill', 'Note'],
                             ] as $type => [$icon, $label])
-                                $typeChoiceClass = match ($type) {
-                                    'call' => 'crm-activity-choice crm-activity-choice-info',
-                                    'email' => 'crm-activity-choice crm-activity-choice-indigo',
-                                    'meeting' => 'crm-activity-choice crm-activity-choice-warning',
-                                    'note' => 'crm-activity-choice crm-activity-choice-neutral',
-                                    default => 'crm-activity-choice crm-activity-choice-neutral',
-                                };
+                                @php
+                                    $typeChoiceClass = match ($type) {
+                                        'call' => 'crm-activity-choice crm-activity-choice-info',
+                                        'email' => 'crm-activity-choice crm-activity-choice-indigo',
+                                        'meeting' => 'crm-activity-choice crm-activity-choice-warning',
+                                        'note' => 'crm-activity-choice crm-activity-choice-neutral',
+                                        default => 'crm-activity-choice crm-activity-choice-neutral',
+                                    };
+                                @endphp
                                 <div>
                                     <input type="radio" class="btn-check" name="activity_type"
                                         id="{{ $isEditing ? 'edit_' : '' }}type_{{ $type }}"
